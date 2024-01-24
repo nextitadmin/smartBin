@@ -45,8 +45,7 @@ export const sha256 = (data: string) => {
 };
 
 export const comparePassword = (password: string, customerPassword: string) => {
-  const hashedPassword = getHashedPassword(password);
-  return bcrypt.compareSync(hashedPassword, customerPassword);
+  return bcrypt.compareSync(password, customerPassword);
 };
 
 export const getHashedPassword = (password: string) => {

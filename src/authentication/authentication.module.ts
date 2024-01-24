@@ -8,6 +8,6 @@ import { JwtService } from '@nestjs/jwt';
 @Module({
   imports: [SequelizeModule.forFeature([Customer])],
   controllers: [AuthenticationController],
-  providers: [AuthenticationService, JwtService],
+  providers: [AuthenticationService],
 })
 export class AuthenticationModule {}
