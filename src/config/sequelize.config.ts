@@ -19,6 +19,7 @@ const getOpts = (
     autoLoadModels: true,
     logging: (sql) => logger.verbose(sql),
     dialectOptions: { decimalNumbers: true },
+    sync: { alter: true },
   };
 };
 
