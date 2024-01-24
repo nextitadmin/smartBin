@@ -1,0 +1,181 @@
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  Logger,
+} from '@nestjs/common';
+import {
+  Customer,
+  CustomerAttributes,
+  CustomerStatus,
+} from '../models/customer.model';
+import { InjectModel } from '@nestjs/sequelize';
+import { JwtService } from '@nestjs/jwt';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EmailTemplates, cacheKeys, events } from '../common/constants';
+import { SendEmailEvent } from '../notification/dto/event';
+import {
+  compileTemplateWithData,
+  generateOtpCode,
+  getCustomerToken,
+  getHashedPassword,
+} from '../common/utils';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { PaymentService } from '../payment/payment.service';
+
+@Injectable()
+export class CustomerService {
+  constructor(
+    @Inject(CACHE_MANAGER) private cacheService: Cache,
+    @InjectModel(Customer) private customer: typeof Customer,
+    private jwtService: JwtService,
+    private paymentService: PaymentService,
+    private ee: EventEmitter2,
+  ) {}
+  private logger = new Logger(CustomerService.name);
+
+  async validateCustomer(email: string) {
+    try {
+      const isCustomerExist = await this.customer.findOne({
+        where: {
+          email,
+        },
+      });
+      if (isCustomerExist) {
+        this.logger.error('email already exists');
+        throw new BadRequestException(
+          'Customer already exist, Please try resetting your passcode!',
+        );
+      }
+
+      return {
+        exists: false,
+      };
+    } catch (error) {
+      this.logger.error(error);
+    }
+  }
+
+  async createCustomer(payload: CustomerAttributes) {
+    const customerDetails = await this.customer.findOne({
+      where: {
+        email: payload.email,
+      },
+    });
+    if (customerDetails && customerDetails.status === CustomerStatus.Active) {
+      this.logger.error('Customer already exist');
+      throw new BadRequestException(
+        'Customer already exist, Please try resetting your passcode!',
+      );
+    }
+
+    if (customerDetails && customerDetails.status === CustomerStatus.Disabled) {
+      this.logger.error('Customer already exist');
+      throw new BadRequestException(
+        'Unable to complete operation, Please contact support!',
+      );
+    }
+
+    if (customerDetails && customerDetails.status === CustomerStatus.Pending) {
+      this.logger.log('customer exists, sending otp code');
+      // const jwtToken = this.generateToken(customerDetails);
+      await this.sendOtpCode({
+        id: customerDetails.id,
+        first_name: customerDetails.first_name,
+        email: customerDetails.email,
+      });
+      return { user: customerDetails };
+    }
+
+    payload.passcode = getHashedPassword(payload.passcode);
+    const newCustomerDetails = await this.customer.create(payload);
+    await newCustomerDetails.save();
+
+    // Create JWT for validating code
+    // const jwtToken = this.generateToken(newCustomerDetails);
+    await this.sendOtpCode({
+      id: newCustomerDetails.id,
+      first_name: newCustomerDetails.first_name,
+      email: newCustomerDetails.email,
+    });
+    return { user: newCustomerDetails };
+  }
+
+  async validateCustomerOtpCode({
+    email,
+    otpCode,
+  }: {
+    email: string;
+    otpCode: string;
+  }) {
+    const cacheField = cacheKeys.otp(email);
+    const otpCodeFromCache = await this.cacheService.get(cacheField);
+
+    if (!otpCodeFromCache || String(otpCodeFromCache) !== String(otpCode)) {
+      throw new BadRequestException('Invalid OTP code');
+    }
+
+    // Get customer details
+    const customerDetails = await this.customer.findOne({
+      where: {
+        email,
+      },
+    });
+    customerDetails.status = CustomerStatus.Active;
+    await customerDetails.save();
+    await this.cacheService.del(cacheField);
+
+    const access_token = getCustomerToken(customerDetails, this.jwtService);
+    return { access_token };
+  }
+
+  async getCustomerProfile(id: number) {
+    const customerDetails = await this.customer.findOne({
+      where: {
+        id,
+      },
+      attributes: ['id', 'first_name', 'last_name', 'email', 'status'],
+    });
+    return customerDetails;
+  }
+
+  async sendOtpCode({
+    id,
+    first_name,
+    email,
+  }: {
+    id: number;
+    first_name: string;
+    email: string;
+  }) {
+    const otp_code = generateOtpCode();
+    // Send OTP
+    const emailbody = compileTemplateWithData(EmailTemplates.VerifyOtp, {
+      first_name,
+      otp_code,
+    });
+    this.ee.emit(
+      events.sendEmail,
+      new SendEmailEvent({
+        to: email,
+        subject: 'Lumeo OTP Code',
+        html: emailbody,
+      }),
+    );
+
+    // Set OTP code in cache
+    await this.cacheService.set(cacheKeys.otp(email), otp_code, 60000);
+  }
+
+  async getCustomerDetailsbyToken(token: string) {
+    const details = this.jwtService.decode(token);
+    const customerDetails = await this.customer.findOne({
+      where: {
+        email: details.email,
+      },
+    });
+
+    return customerDetails;
+  }
+}
