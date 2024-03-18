@@ -30,7 +30,6 @@ export class CustomerService {
     @Inject(CACHE_MANAGER) private cacheService: Cache,
     @InjectModel(Customer) private customer: typeof Customer,
     private jwtService: JwtService,
-    private paymentService: PaymentService,
     private ee: EventEmitter2,
   ) {}
   private logger = new Logger(CustomerService.name);
@@ -170,6 +169,8 @@ export class CustomerService {
 
   async getCustomerDetailsbyToken(token: string) {
     const details = this.jwtService.decode(token);
+    if (!details) return null;
+
     const customerDetails = await this.customer.findOne({
       where: {
         email: details.email,

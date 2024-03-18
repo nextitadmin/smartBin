@@ -20,6 +20,7 @@ export class AuthenticationService {
         email,
       },
     });
+    console.log({ customer }, 'cciuucu');
     if (!customer) {
       this.logger.error('Invalid email');
       throw new UnauthorizedException('Invalid Customer Details');

@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { AuthenticationService } from './authentication.service';
 import { BodySchema } from '@common/joi';
 import { validateCustomerLogin } from '@src/customer/schema/request';
@@ -13,6 +13,7 @@ export class AuthenticationController {
   constructor(private readonly authenticationService: AuthenticationService) {}
 
   @Post()
+  @HttpCode(HttpStatus.OK)
   @BodySchema(validateCustomerLogin)
   async login(@Body() body: CustomerAttributes) {
     const loginData = await this.authenticationService.login(body);

@@ -1,5 +1,8 @@
 export const events = Object.freeze({
   sendEmail: 'send-email',
+  kyc: {
+    upgraded: 'kyc.upgraded',
+  },
   // job: {
   //   dispatched: 'job.dispatched',
   // },

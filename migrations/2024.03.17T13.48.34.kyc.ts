@@ -1,9 +1,9 @@
 import { DataTypes, QueryInterface, Sequelize } from 'sequelize';
 import { MigrationFn } from 'umzug';
-import { SupportedCurrency, WalletStatus } from '../src/models/wallet.model';
+import { KycStatus, KycTier } from '../src/models/kyc.model';
 
 type SequelizeMigration = MigrationFn<QueryInterface>;
-const TABLE_NAME = 'wallets';
+const TABLE_NAME = 'kycs';
 
 export const up: SequelizeMigration = async ({ context }) => {
   await context.createTable(TABLE_NAME, {
@@ -16,47 +16,27 @@ export const up: SequelizeMigration = async ({ context }) => {
     customer_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      unique: true,
       references: { model: 'customers', key: 'id' },
     },
-    wallet_id: {
+    bvn: {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    external_wallet_id: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    bank_name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    account_number: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    available_balance: {
-      type: DataTypes.DECIMAL(19, 0),
-      allowNull: false,
-      defaultValue: 0,
-    },
-    ledger_balance: {
-      type: DataTypes.DECIMAL(19, 0),
-      allowNull: false,
-      defaultValue: 0,
-    },
-    currency: {
-      type: DataTypes.ENUM(...Object.values(SupportedCurrency)),
-      allowNull: false,
-      defaultValue: SupportedCurrency.NGN,
-    },
-    note: {
+    nin: {
       type: DataTypes.STRING,
       allowNull: true,
+      defaultValue: null,
+    },
+    tier: {
+      type: DataTypes.ENUM(...Object.values(KycTier)),
+      allowNull: false,
+      defaultValue: KycTier.One,
     },
     status: {
-      type: DataTypes.ENUM(...Object.values(WalletStatus)),
+      type: DataTypes.ENUM(...Object.values(KycStatus)),
       allowNull: false,
-      defaultValue: WalletStatus.Pending,
+      defaultValue: KycStatus.Disabled,
     },
     created_at: {
       type: DataTypes.DATE,
@@ -71,6 +51,7 @@ export const up: SequelizeMigration = async ({ context }) => {
     deleted_at: {
       type: DataTypes.DATE,
       allowNull: true,
+      defaultValue: null,
     },
   });
 };

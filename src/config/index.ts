@@ -26,6 +26,10 @@ export interface ConfigAttributes {
     fromName?: string;
     fromEmail?: string;
   };
+  flutterwave: {
+    publicKey: string;
+    secretKey: string;
+  };
 }
 
 const config = (): ConfigAttributes => ({
@@ -52,6 +56,10 @@ const config = (): ConfigAttributes => ({
     fromEmail: process.env.MAILGUN_FROM_EMAIL,
     fromName: process.env.MAILGUN_FROM_NAME,
   },
+  flutterwave: {
+    publicKey: process.env.FLW_PUB_KEY,
+    secretKey: process.env.FLW_SEC_KEY,
+  },
 });
 
 const schema = Joi.object<Record<string, string>>({
@@ -73,6 +81,8 @@ const schema = Joi.object<Record<string, string>>({
   MAILGUN_DOMAIN: Joi.string().required(),
   MAILGUN_FROM_NAME: Joi.string().default('Lumeo'),
   MAILGUN_FROM_EMAIL: Joi.string().default('no-reply@uselumeo.com'),
+  FLW_PUB_KEY: Joi.string().required(),
+  FLW_SEC_KEY: Joi.string().required(),
 });
 
 export const configModuleOpts: ConfigModuleOptions = {

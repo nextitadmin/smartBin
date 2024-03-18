@@ -18,6 +18,11 @@ import { cacheModuleConfigOpts } from './config/cache.config';
 import { exec } from 'child_process';
 import { WalletModule } from './wallet/wallet.module';
 import { PaymentModule } from './payment/payment.module';
+import { KycModule } from './kyc/kyc.module';
+import { APP_GUARD } from '@nestjs/core';
+import { CustomerAuthGuard } from './common/guards/auth.guard';
+import { FlutterwaveModule } from './flutterwave/flutterwave.module';
+import { WebhookModule } from './webhook/webhook.module';
 
 @Module({
   imports: [
@@ -33,6 +38,9 @@ import { PaymentModule } from './payment/payment.module';
     CustomerModule,
     WalletModule,
     PaymentModule,
+    KycModule,
+    FlutterwaveModule,
+    WebhookModule,
   ],
 })
 export class AppModule {

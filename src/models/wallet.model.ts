@@ -5,7 +5,7 @@ import {
   Model,
   Table,
 } from 'sequelize-typescript';
-import { Money } from '../common/utils/money';
+import { Money, getMoney, setMoney } from '../common/utils/money';
 import { Customer } from './customer.model';
 
 export enum WalletStatus {
@@ -24,9 +24,14 @@ export enum SupportedCurrency {
 export interface WalletAttributes {
   id?: number;
   customer_id: number;
+  wallet_id: string;
+  external_wallet_id: string;
+  bank_name: string;
+  account_number: string;
+  currency: SupportedCurrency;
   available_balance: Money;
   ledger_balance: Money;
-  currency: SupportedCurrency;
+  note?: string;
   status: WalletStatus;
 }
 
@@ -40,19 +45,56 @@ export class Wallet extends Model<WalletAttributes> {
   @ForeignKey(() => Customer)
   @Column({
     allowNull: false,
+    unique: true,
     type: DataType.STRING,
   })
   customer_id: string;
 
   @Column({
     allowNull: false,
+    type: DataType.STRING,
+  })
+  bank_name: string;
+
+  @Column({
+    allowNull: false,
+    type: DataType.STRING,
+  })
+  account_number: string;
+
+  @Column({
+    allowNull: false,
+    type: DataType.STRING,
+  })
+  wallet_id: string;
+
+  @Column({
+    allowNull: false,
+    type: DataType.STRING,
+  })
+  external_wallet_id: string;
+
+  @Column({
+    allowNull: false,
     type: DataType.DECIMAL(19, 0),
+    set(this: Wallet, val: Money) {
+      return setMoney(this, 'available_balance', val);
+    },
+    get(this: Wallet) {
+      return getMoney(this, 'available_balance');
+    },
   })
   available_balance: Money;
 
   @Column({
     allowNull: false,
     type: DataType.DECIMAL(19, 0),
+    set(this: Wallet, val: Money) {
+      return setMoney(this, 'ledger_balance', val);
+    },
+    get(this: Wallet) {
+      return getMoney(this, 'ledger_balance');
+    },
   })
   ledger_balance: Money;
 
@@ -62,6 +104,12 @@ export class Wallet extends Model<WalletAttributes> {
     defaultValue: SupportedCurrency.NGN,
   })
   currency: SupportedCurrency;
+
+  @Column({
+    allowNull: true,
+    type: DataType.STRING,
+  })
+  note: string;
 
   @Column({
     allowNull: false,

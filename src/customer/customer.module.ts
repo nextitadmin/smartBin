@@ -7,8 +7,9 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { PaymentService } from '../payment/payment.service';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Customer]), EventEmitterModule],
+  imports: [EventEmitterModule, SequelizeModule.forFeature([Customer])],
   controllers: [CustomerController],
   providers: [CustomerService, PaymentService],
+  exports: [CustomerService],
 })
 export class CustomerModule {}
