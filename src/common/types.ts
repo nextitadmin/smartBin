@@ -14,5 +14,5 @@ export type RawModelWithAttributes<
 > = Pick<RawModel<T>, A>;
 
 export type AuthCustomer = {
-  id: number;
+  id: string;
 };

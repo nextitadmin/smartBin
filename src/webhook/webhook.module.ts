@@ -1,12 +1,17 @@
 import { Module } from '@nestjs/common';
 import { WebhookController } from './webhook.controller';
 import { WebhookService } from './webhook.service';
-import { SequelizeModule } from '@nestjs/sequelize';
-import { Wallet } from '../models/wallet.model';
-import { Customer } from '../models/customer.model';
+import { Wallet, WalletSchema } from '../models/wallet.model';
+import { Customer, CustomerSchema } from '../models/customer.model';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Wallet, Customer])],
+  imports: [
+    MongooseModule.forFeature([
+      { name: Wallet.name, schema: WalletSchema },
+      { name: Customer.name, schema: CustomerSchema },
+    ]),
+  ],
   controllers: [WebhookController],
   providers: [WebhookService],
 })

@@ -32,7 +32,7 @@ export class KycController {
 
   @CustomerAuth()
   async getCustomerKyc(@AuthenticatedCustomer() customer: AuthCustomer) {
-    const kyc = await this.kycService.getKycByCustomer(customer.id);
+    const kyc = await this.kycService.getCustomerKyc(customer.id);
     return new SuccessResponse('kyc fetched', kyc);
   }
 }

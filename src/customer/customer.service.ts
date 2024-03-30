@@ -9,7 +9,7 @@ import {
   CustomerAttributes,
   CustomerStatus,
 } from '../models/customer.model';
-import { InjectModel } from '@nestjs/sequelize';
+import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { EmailTemplates, cacheKeys, events } from '../common/constants';
@@ -22,13 +22,13 @@ import {
 } from '../common/utils';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { PaymentService } from '../payment/payment.service';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class CustomerService {
   constructor(
     @Inject(CACHE_MANAGER) private cacheService: Cache,
-    @InjectModel(Customer) private customer: typeof Customer,
+    @InjectModel(Customer.name) private customer: Model<Customer>,
     private jwtService: JwtService,
     private ee: EventEmitter2,
   ) {}
@@ -37,9 +37,7 @@ export class CustomerService {
   async validateCustomer(email: string) {
     try {
       const isCustomerExist = await this.customer.findOne({
-        where: {
-          email,
-        },
+        email,
       });
       if (isCustomerExist) {
         this.logger.error('email already exists');
@@ -58,9 +56,7 @@ export class CustomerService {
 
   async createCustomer(payload: CustomerAttributes) {
     const customerDetails = await this.customer.findOne({
-      where: {
-        email: payload.email,
-      },
+      email: payload.email,
     });
     if (customerDetails && customerDetails.status === CustomerStatus.Active) {
       this.logger.error('Customer already exist');
@@ -116,11 +112,7 @@ export class CustomerService {
     }
 
     // Get customer details
-    const customerDetails = await this.customer.findOne({
-      where: {
-        email,
-      },
-    });
+    const customerDetails = await this.customer.findOne({ email });
     customerDetails.status = CustomerStatus.Active;
     await customerDetails.save();
     await this.cacheService.del(cacheField);
@@ -129,13 +121,10 @@ export class CustomerService {
     return { access_token };
   }
 
-  async getCustomerProfile(id: number) {
-    const customerDetails = await this.customer.findOne({
-      where: {
-        id,
-      },
-      attributes: ['id', 'first_name', 'last_name', 'email', 'status'],
-    });
+  async getCustomerProfile(customerId: string) {
+    const customerDetails = await this.customer
+      .findById(customerId)
+      .select('first_name last_name email status');
     return customerDetails;
   }
 
@@ -172,9 +161,7 @@ export class CustomerService {
     if (!details) return null;
 
     const customerDetails = await this.customer.findOne({
-      where: {
-        email: details.email,
-      },
+      email: details.email,
     });
 
     return customerDetails;

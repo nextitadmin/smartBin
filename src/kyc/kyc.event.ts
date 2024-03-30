@@ -1,7 +1,7 @@
 import { KycTier } from '../models/kyc.model';
 
 interface KycUpgradedEventData {
-  customer_id: number;
+  customer_id: string;
   tier: KycTier;
   bvn?: string;
   nin?: string;

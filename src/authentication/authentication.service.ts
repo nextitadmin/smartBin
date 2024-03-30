@@ -1,13 +1,14 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Customer } from '../models/customer.model';
-import { InjectModel } from '@nestjs/sequelize';
+import { InjectModel } from '@nestjs/mongoose';
 import { comparePassword, getCustomerToken } from '../common/utils';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class AuthenticationService {
   constructor(
-    @InjectModel(Customer) private customerModel: typeof Customer,
+    @InjectModel(Customer.name) private customerModel: Model<Customer>,
     private jwtService: JwtService,
   ) {}
 
@@ -16,11 +17,8 @@ export class AuthenticationService {
   async login({ email, passcode }: { email: string; passcode: string }) {
     // Validate user
     const customer = await this.customerModel.findOne({
-      where: {
-        email,
-      },
+      email,
     });
-    console.log({ customer }, 'cciuucu');
     if (!customer) {
       this.logger.error('Invalid email');
       throw new UnauthorizedException('Invalid Customer Details');

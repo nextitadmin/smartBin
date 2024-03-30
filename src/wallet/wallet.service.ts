@@ -2,37 +2,34 @@ import { Injectable, Logger } from '@nestjs/common';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { events } from '../common/constants';
 import { FlutterwaveService } from '../flutterwave/flutterwave.service';
-import { InjectModel } from '@nestjs/sequelize';
+import { InjectModel } from '@nestjs/mongoose';
 import { Wallet } from '../models/wallet.model';
 import { KycUpgradedEvent } from '../kyc/kyc.event';
 import { KycTier } from '../models/kyc.model';
 import { Customer } from '../models/customer.model';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class WalletService {
   constructor(
-    @InjectModel(Wallet) private readonly wallet: typeof Wallet,
-    @InjectModel(Customer) private readonly customer: typeof Customer,
+    @InjectModel(Wallet.name) private readonly wallet: Model<Wallet>,
+    @InjectModel(Customer.name) private readonly customer: Model<Customer>,
     private readonly flutterwaveService: FlutterwaveService,
     private readonly ee: EventEmitter2,
   ) {}
   private logger = new Logger(WalletService.name);
 
-  async getCustomerWallets(customer_id: number) {
-    return this.wallet.findAll({
-      where: {
+  async getCustomerWallets(customer_id: string) {
+    return this.wallet
+      .find({
         customer_id,
-      },
-      attributes: ['id', 'account_number', 'bank_name'],
-    });
+      })
+      .select('_id account_number bank_name');
   }
 
   async getCustomersWallets() {
     // const wallets = await this.flutterwaveService.getVirtualAccounts();
-    return this.wallet.findAll({
-      order: [['created_at', 'DESC']],
-      attributes: ['id', 'account_number', 'bank_name'],
-    });
+    return this.wallet.find({}).sort({ createdAt: -1 });
   }
 
   @OnEvent(events.kyc.upgraded)
@@ -43,7 +40,7 @@ export class WalletService {
         return this.logger.log('Only create wallets on tier 2!');
       }
 
-      const customerDetails = await this.customer.findByPk(data.customer_id);
+      const customerDetails = await this.customer.findById(data.customer_id);
       const accountDetails = await this.flutterwaveService.createVirtualAccount(
         {
           email: customerDetails.email,

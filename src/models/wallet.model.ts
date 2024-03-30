@@ -1,12 +1,7 @@
-import {
-  Column,
-  DataType,
-  ForeignKey,
-  Model,
-  Table,
-} from 'sequelize-typescript';
-import { Money, getMoney, setMoney } from '../common/utils/money';
+import { Money } from '../common/utils/money';
 import { Customer } from './customer.model';
+import { Model, SchemaTypes } from 'mongoose';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 export enum WalletStatus {
   Pending = 'pending',
@@ -22,8 +17,8 @@ export enum SupportedCurrency {
 }
 
 export interface WalletAttributes {
-  id?: number;
-  customer_id: number;
+  _id?: string;
+  customer_id: string;
   wallet_id: string;
   external_wallet_id: string;
   bank_name: string;
@@ -35,86 +30,81 @@ export interface WalletAttributes {
   status: WalletStatus;
 }
 
-@Table({
-  tableName: 'wallets',
-  createdAt: 'created_at',
-  updatedAt: 'updated_at',
-  deletedAt: 'deleted_at',
+@Schema({
+  collection: 'wallets',
+  timestamps: true,
+  versionKey: false,
 })
 export class Wallet extends Model<WalletAttributes> {
-  @ForeignKey(() => Customer)
-  @Column({
-    allowNull: false,
-    unique: true,
-    type: DataType.STRING,
+  @Prop({
+    required: false,
+    type: SchemaTypes.ObjectId,
+    ref: Customer.name,
   })
   customer_id: string;
 
-  @Column({
-    allowNull: false,
-    type: DataType.STRING,
+  @Prop({
+    required: false,
+    type: SchemaTypes.String,
   })
   bank_name: string;
 
-  @Column({
-    allowNull: false,
-    type: DataType.STRING,
+  @Prop({
+    required: false,
+    type: SchemaTypes.String,
   })
   account_number: string;
 
-  @Column({
-    allowNull: false,
-    type: DataType.STRING,
+  @Prop({
+    required: false,
+    type: SchemaTypes.String,
   })
   wallet_id: string;
 
-  @Column({
-    allowNull: false,
-    type: DataType.STRING,
+  @Prop({
+    required: false,
+    type: SchemaTypes.String,
   })
   external_wallet_id: string;
 
-  @Column({
-    allowNull: false,
-    type: DataType.DECIMAL(19, 0),
-    set(this: Wallet, val: Money) {
-      return setMoney(this, 'available_balance', val);
-    },
-    get(this: Wallet) {
-      return getMoney(this, 'available_balance');
-    },
+  @Prop({
+    required: false,
+    type: SchemaTypes.Number,
+    default: 0,
   })
-  available_balance: Money;
+  available_balance: number;
 
-  @Column({
-    allowNull: false,
-    type: DataType.DECIMAL(19, 0),
-    set(this: Wallet, val: Money) {
-      return setMoney(this, 'ledger_balance', val);
-    },
-    get(this: Wallet) {
-      return getMoney(this, 'ledger_balance');
-    },
+  @Prop({
+    required: false,
+    type: SchemaTypes.Number,
+    default: 0,
+    // set(this: Wallet, val: Money) {
+    //   return setMoney(this, 'ledger_balance', val);
+    // },
+    // get(this: Wallet) {
+    //   return getMoney(this, 'ledger_balance');
+    // },
   })
-  ledger_balance: Money;
+  ledger_balance: number;
 
-  @Column({
-    allowNull: false,
-    type: DataType.ENUM(...Object.values(SupportedCurrency)),
-    defaultValue: SupportedCurrency.NGN,
+  @Prop({
+    required: false,
+    enum: Object.values(SupportedCurrency),
+    default: SupportedCurrency.NGN,
   })
   currency: SupportedCurrency;
 
-  @Column({
-    allowNull: true,
-    type: DataType.STRING,
+  @Prop({
+    required: true,
+    type: SchemaTypes.String,
   })
   note: string;
 
-  @Column({
-    allowNull: false,
-    type: DataType.ENUM(...Object.values(WalletStatus)),
-    defaultValue: WalletStatus.Pending,
+  @Prop({
+    required: false,
+    enum: Object.values(WalletStatus),
+    default: WalletStatus.Pending,
   })
   status: WalletStatus;
 }
+export const WalletSchema = SchemaFactory.createForClass(Wallet);

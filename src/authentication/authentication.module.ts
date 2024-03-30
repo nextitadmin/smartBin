@@ -2,10 +2,17 @@ import { Module } from '@nestjs/common';
 import { AuthenticationController } from './authentication.controller';
 import { AuthenticationService } from './authentication.service';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { Customer } from '../models/customer.model';
+import { Customer, CustomerSchema } from '../models/customer.model';
+import { MongooseModule } from '@nestjs/mongoose';
+import { CustomerModule } from '@src/customer/customer.module';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Customer])],
+  imports: [
+    CustomerModule,
+    MongooseModule.forFeature([
+      { name: Customer.name, schema: CustomerSchema },
+    ]),
+  ],
   controllers: [AuthenticationController],
   providers: [AuthenticationService],
 })

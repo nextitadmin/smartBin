@@ -1,12 +1,15 @@
 import { Module } from '@nestjs/common';
 import { KycService } from './kyc.service';
 import { KycController } from './kyc.controller';
-import { SequelizeModule } from '@nestjs/sequelize';
-import { Kyc } from '../models/kyc.model';
+import { Kyc, KycSchema } from '../models/kyc.model';
 import { CustomerModule } from '../customer/customer.module';
+import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
-  imports: [CustomerModule, SequelizeModule.forFeature([Kyc])],
+  imports: [
+    CustomerModule,
+    MongooseModule.forFeature([{ name: Kyc.name, schema: KycSchema }]),
+  ],
   controllers: [KycController],
   providers: [KycService],
 })

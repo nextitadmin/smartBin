@@ -1,4 +1,5 @@
-import { Column, DataType, Model, Table } from 'sequelize-typescript';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Model, SchemaTypes, Types } from 'mongoose';
 
 export enum CustomerStatus {
   Pending = 'pending',
@@ -8,80 +9,76 @@ export enum CustomerStatus {
 }
 
 export interface CustomerAttributes {
-  id?: number;
+  _id?: string | Types.ObjectId;
   first_name: string;
   last_name: string;
   email: string;
   phone: string;
   passcode: string;
   status: CustomerStatus;
-  tag: string;
-  firebase_tokens?: string[];
+  tag?: string;
+  firebaseTokens?: string[];
   deleted_at?: Date;
 }
 
-@Table({
-  tableName: 'customers',
-  createdAt: 'created_at',
-  updatedAt: 'updated_at',
-  deletedAt: 'deleted_at',
+@Schema({
+  collection: 'customers',
+  timestamps: true,
+  versionKey: false,
 })
 export class Customer extends Model<CustomerAttributes> {
-  @Column({
-    allowNull: false,
-    type: DataType.STRING,
+  @Prop({
+    type: SchemaTypes.String,
+    required: true,
   })
   first_name: string;
 
-  @Column({
-    allowNull: false,
-    type: DataType.STRING,
+  @Prop({
+    type: SchemaTypes.String,
+    required: true,
   })
   last_name: string;
 
-  @Column({
-    type: DataType.VIRTUAL,
-    get(this: Customer) {
-      return `${this.first_name} ${this.last_name}`;
-    },
-  })
-  full_name: string;
-
-  @Column({
-    allowNull: false,
-    type: DataType.STRING,
-    unique: true,
+  @Prop({
+    type: SchemaTypes.String,
+    required: true,
   })
   email: string;
 
-  @Column({
-    allowNull: false,
-    type: DataType.STRING,
+  @Prop({
+    type: SchemaTypes.String,
+    required: true,
   })
   phone: string;
 
-  @Column({
-    allowNull: false,
-    type: DataType.STRING,
+  @Prop({
+    type: SchemaTypes.String,
+    required: true,
   })
   passcode: string;
 
-  @Column({
-    allowNull: false,
-    type: DataType.ENUM(...Object.values(CustomerStatus)),
-    defaultValue: CustomerStatus.Pending,
+  @Prop({
+    type: SchemaTypes.String,
+  })
+  tag?: string;
+
+  @Prop({
+    type: SchemaTypes.Mixed,
+  })
+  firebaseTokens: string[];
+
+  @Prop({
+    type: SchemaTypes.String,
+    enum: Object.values(CustomerStatus),
+    default: CustomerStatus.Active,
   })
   status: CustomerStatus;
 
-  @Column({
-    allowNull: false,
-    type: DataType.STRING,
+  @Prop({
+    type: SchemaTypes.String,
+    default: null,
   })
-  tag: string;
-
-  @Column({
-    type: DataType.ARRAY(DataType.STRING),
-    defaultValue: [],
-  })
-  firebase_tokens: string[];
+  deleted_at?: Date;
 }
+
+export const CustomerSchema = SchemaFactory.createForClass(Customer);

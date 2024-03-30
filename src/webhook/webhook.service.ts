@@ -1,14 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { InjectModel } from '@nestjs/sequelize';
+import { InjectModel } from '@nestjs/mongoose';
 import { Customer } from '../models/customer.model';
 import { Wallet } from '../models/wallet.model';
 import { Money } from '../common/utils/money';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class WebhookService {
   constructor(
-    @InjectModel(Customer) private readonly customer: typeof Customer,
-    @InjectModel(Wallet) private readonly wallet: typeof Wallet,
+    @InjectModel(Customer.name) private readonly customer: Model<Customer>,
+    @InjectModel(Wallet.name) private readonly wallet: Model<Wallet>,
   ) {}
 
   private logger = new Logger(WebhookService.name);

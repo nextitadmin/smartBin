@@ -59,7 +59,7 @@ export const getCustomerToken = (
   const payload = {
     email: customer.email,
     sub: {
-      id: customer.id,
+      id: String(customer._id),
       tag: customer.tag,
       status: customer.status,
     },

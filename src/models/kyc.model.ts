@@ -5,7 +5,8 @@ import {
   Model,
   Table,
 } from 'sequelize-typescript';
-import { Money } from '../common/utils/money';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { ObjectId, SchemaTypes, Types } from 'mongoose';
 import { Customer } from './customer.model';
 
 export enum KycStatus {
@@ -20,51 +21,52 @@ export enum KycTier {
 }
 
 export interface KycAttributes {
-  id?: number;
-  customer_id: number;
+  _id?: string;
+  customer_id: Types.ObjectId | string | any;
   bvn: string;
   nin?: string;
   tier: KycTier;
   status: KycStatus;
 }
 
-@Table({
-  tableName: 'kycs',
-  createdAt: 'created_at',
-  updatedAt: 'updated_at',
-  deletedAt: 'deleted_at',
+@Schema({
+  collection: 'kycs',
+  timestamps: true,
+  versionKey: false,
 })
 export class Kyc extends Model<KycAttributes> {
-  @ForeignKey(() => Customer)
-  @Column({
-    allowNull: false,
-    type: DataType.STRING,
-    unique: true,
+  @Prop({
+    required: true,
+    type: SchemaTypes.ObjectId,
+    ref: Customer.name,
   })
-  customer_id: string;
+  customer_id: Types.ObjectId;
 
-  @Column({
-    allowNull: false,
-    type: DataType.STRING,
+  @Prop({
+    required: false,
+    type: SchemaTypes.String,
   })
   bvn: string;
 
-  @Column({
-    allowNull: false,
-    type: DataType.STRING,
+  @Prop({
+    required: false,
+    type: SchemaTypes.String,
   })
   nin: string;
 
-  @Column({
-    allowNull: false,
-    type: DataType.ENUM(...Object.values(KycTier)),
+  @Prop({
+    required: false,
+    type: SchemaTypes.String,
+    enum: Object.values(KycTier),
   })
   tier: string;
 
-  @Column({
-    allowNull: false,
-    type: DataType.ENUM(...Object.values(KycStatus)),
-    defaultValue: KycStatus.Apprvoed,
+  @Prop({
+    required: false,
+    enum: Object.values(KycStatus),
+    default: KycStatus.Apprvoed,
   })
   status: KycStatus;
 }
+
+export const KycSchema = SchemaFactory.createForClass(Kyc);
