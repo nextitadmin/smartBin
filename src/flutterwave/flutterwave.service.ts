@@ -31,15 +31,17 @@ export class FlutterwaveService {
   }
 
   async createVirtualAccount(payload: CreateVirtualAccountAttributes) {
-    const virtualAccount = await this.flutterwaveInstance.VirtualAcct.create({
-      ...payload,
-      tx_ref: `LVA-${generateRandomChars(16)}`,
-    });
-    if (virtualAccount.status !== 'success') {
+    const virtualAccountResponse =
+      await this.flutterwaveInstance.VirtualAcct.create({
+        ...payload,
+        tx_ref: `LVA-${generateRandomChars(16)}`,
+      });
+    if (virtualAccountResponse.status !== 'success') {
+      this.logger.error(virtualAccountResponse);
       throw new BadRequestException('Unable to create virtual wallet account');
     }
 
-    return virtualAccount.data;
+    return virtualAccountResponse.data;
   }
 
   async getVirtualAccount(payload: Pick<CreateVirtualAccountAttributes, 'id'>) {

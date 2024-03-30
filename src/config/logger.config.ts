@@ -19,7 +19,7 @@ export const getPinoConfig = (
         target: 'pino-pretty',
         options: {
           colorize: true,
-          ignore: 'pid,hostname',
+          ignore: 'pid,hostname,remotePort,remoteAddress',
         },
       },
       level: loggingConfig.level,
@@ -42,15 +42,11 @@ export const getPinoConfig = (
         req: (req: SerializedRequest & { query: Record<string, string> }) => {
           const headers = req.headers || {};
           return {
-            remoteAddress: req.remoteAddress,
-            remotePort: req.remotePort,
             method: req.method,
             url: req.url,
             headers: {
               host: headers.host,
               userAgent: headers['user-agent'],
-              accept: headers.accept,
-              origin: headers.origin,
             },
             query: req.query,
           };

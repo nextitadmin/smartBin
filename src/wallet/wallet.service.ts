@@ -48,10 +48,8 @@ export class WalletService {
           is_permanent: true,
         },
       );
-
-      console.log({ accountDetails });
-
       if (!accountDetails) {
+        this.logger.error(accountDetails);
         return this.logger.warn(
           'Unable to create user virtual account, Please retry!',
         );
@@ -60,12 +58,13 @@ export class WalletService {
       const customerWallet = await this.wallet.create({
         customer_id: data.customer_id,
         bank_name: accountDetails.bank_name,
-        wallet_id: accountDetails.tx_ref,
+        wallet_id: accountDetails?.tx_ref || accountDetails?.flw_ref,
         external_wallet_id: accountDetails.order_ref,
         account_number: accountDetails.account_number,
         available_balance: 0,
         ledger_balance: 0,
-        note: accountDetails.note,
+        note: accountDetails?.note,
+        status: accountDetails?.account_status,
       });
       await customerWallet.save();
 
