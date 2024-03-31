@@ -35,7 +35,7 @@ export interface WalletAttributes {
   timestamps: true,
   versionKey: false,
 })
-export class Wallet extends Model<WalletAttributes> {
+export class Wallet implements WalletAttributes {
   @Prop({
     required: false,
     type: SchemaTypes.ObjectId,

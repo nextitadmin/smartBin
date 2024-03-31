@@ -34,7 +34,7 @@ export interface KycAttributes {
   timestamps: true,
   versionKey: false,
 })
-export class Kyc extends Model<KycAttributes> {
+export class Kyc implements KycAttributes {
   @Prop({
     required: true,
     type: SchemaTypes.ObjectId,
@@ -59,7 +59,7 @@ export class Kyc extends Model<KycAttributes> {
     type: SchemaTypes.String,
     enum: Object.values(KycTier),
   })
-  tier: string;
+  tier: KycTier;
 
   @Prop({
     required: false,

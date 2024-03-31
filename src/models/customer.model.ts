@@ -26,7 +26,7 @@ export interface CustomerAttributes {
   timestamps: true,
   versionKey: false,
 })
-export class Customer extends Model<CustomerAttributes> {
+export class Customer implements CustomerAttributes {
   @Prop({
     type: SchemaTypes.String,
     required: true,
