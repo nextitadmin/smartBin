@@ -37,7 +37,7 @@ export interface WalletAttributes {
 })
 export class Wallet implements WalletAttributes {
   @Prop({
-    required: false,
+    required: true,
     type: SchemaTypes.ObjectId,
     ref: Customer.name,
   })

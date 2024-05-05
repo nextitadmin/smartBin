@@ -20,11 +20,14 @@ export class WalletService {
   private logger = new Logger(WalletService.name);
 
   async getCustomerWallets(customer_id: string) {
+    // await this.flutterwaveService.getBillCategories();
     return this.wallet
       .find({
         customer_id,
       })
-      .select('_id account_number bank_name');
+      .select(
+        '_id account_number bank_name available_balance ledger_balance currency',
+      );
   }
 
   async getCustomersWallets() {

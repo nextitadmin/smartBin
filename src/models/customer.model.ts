@@ -10,6 +10,7 @@ export enum CustomerStatus {
 
 export interface CustomerAttributes {
   _id?: string | Types.ObjectId;
+  id?: string | Types.ObjectId;
   first_name: string;
   last_name: string;
   email: string;
@@ -23,6 +24,7 @@ export interface CustomerAttributes {
 
 @Schema({
   collection: 'customers',
+  id: true,
   timestamps: true,
   versionKey: false,
 })
@@ -70,7 +72,7 @@ export class Customer implements CustomerAttributes {
   @Prop({
     type: SchemaTypes.String,
     enum: Object.values(CustomerStatus),
-    default: CustomerStatus.Active,
+    default: CustomerStatus.Pending,
   })
   status: CustomerStatus;
 

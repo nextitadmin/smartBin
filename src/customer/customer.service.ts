@@ -23,6 +23,7 @@ import {
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { Model } from 'mongoose';
+import { AuthenticationService } from '@src/authentication/authentication.service';
 
 @Injectable()
 export class CustomerService {
@@ -41,9 +42,9 @@ export class CustomerService {
       });
       if (isCustomerExist) {
         this.logger.error('email already exists');
-        throw new BadRequestException(
-          'Customer already exist, Please try resetting your passcode!',
-        );
+        return {
+          exist: true,
+        };
       }
 
       return {
@@ -74,13 +75,13 @@ export class CustomerService {
 
     if (customerDetails && customerDetails.status === CustomerStatus.Pending) {
       this.logger.log('customer exists, sending otp code');
-      // const jwtToken = this.generateToken(customerDetails);
+      const jwtToken = getCustomerToken(customerDetails, this.jwtService);
       await this.sendOtpCode({
         id: customerDetails.id,
         first_name: customerDetails.first_name,
         email: customerDetails.email,
       });
-      return { user: customerDetails };
+      return { user: customerDetails, access_token: jwtToken };
     }
 
     payload.passcode = getHashedPassword(payload.passcode);
@@ -88,13 +89,13 @@ export class CustomerService {
     await newCustomerDetails.save();
 
     // Create JWT for validating code
-    // const jwtToken = this.generateToken(newCustomerDetails);
+    const jwtToken = getCustomerToken(newCustomerDetails, this.jwtService);
     await this.sendOtpCode({
       id: newCustomerDetails.id,
       first_name: newCustomerDetails.first_name,
       email: newCustomerDetails.email,
     });
-    return { user: newCustomerDetails };
+    return { user: newCustomerDetails, access_token: jwtToken };
   }
 
   async validateCustomerOtpCode({
@@ -124,7 +125,7 @@ export class CustomerService {
   async getCustomerProfile(customerId: string) {
     const customerDetails = await this.customer
       .findById(customerId)
-      .select('first_name last_name email status');
+      .select('first_name last_name email status id');
     return customerDetails;
   }
 

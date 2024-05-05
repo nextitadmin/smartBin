@@ -83,6 +83,7 @@ const schema = Joi.object<Record<string, string>>({
   MAILGUN_FROM_EMAIL: Joi.string().default('no-reply@uselumeo.com'),
   FLW_PUB_KEY: Joi.string().required(),
   FLW_SEC_KEY: Joi.string().required(),
+  // FLW_ENC_KEY: Joi.string().optional(),
 });
 
 export const configModuleOpts: ConfigModuleOptions = {

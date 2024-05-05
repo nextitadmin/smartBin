@@ -8,6 +8,7 @@ export const cacheModuleConfigOpts: CacheModuleAsyncOptions = {
     isGlobal: true,
     store: redisStore,
     url: configService.get('CACHE_URL'),
+    ttl: 0,
   }),
   inject: [ConfigService],
 };
