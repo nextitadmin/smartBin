@@ -30,6 +30,12 @@ export interface ConfigAttributes {
     publicKey: string;
     secretKey: string;
   };
+  vtpass: {
+    baseUrl: string;
+    apiKey: string;
+    publicKey: string;
+    secretKey: string;
+  };
 }
 
 const config = (): ConfigAttributes => ({
@@ -60,6 +66,12 @@ const config = (): ConfigAttributes => ({
     publicKey: process.env.FLW_PUB_KEY,
     secretKey: process.env.FLW_SEC_KEY,
   },
+  vtpass: {
+    baseUrl: process.env.VTPASS_BASE_URL,
+    apiKey: process.env.VTPASS_API_KEY,
+    publicKey: process.env.VTPASS_PUBLIC_KEY,
+    secretKey: process.env.VTPASS_SECRET_KEY,
+  },
 });
 
 const schema = Joi.object<Record<string, string>>({
@@ -84,6 +96,11 @@ const schema = Joi.object<Record<string, string>>({
   FLW_PUB_KEY: Joi.string().required(),
   FLW_SEC_KEY: Joi.string().required(),
   // FLW_ENC_KEY: Joi.string().optional(),
+
+  VTPASS_BASE_URL: Joi.string().required(),
+  VTPASS_API_KEY: Joi.string().required(),
+  VTPASS_PUBLIC_KEY: Joi.string().required(),
+  VTPASS_SECRET_KEY: Joi.string().required(),
 });
 
 export const configModuleOpts: ConfigModuleOptions = {

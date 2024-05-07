@@ -53,3 +53,14 @@ export const cacheKeys = {
 export enum EmailTemplates {
   VerifyOtp = 'verify-otp',
 }
+
+export enum SupportedCurrency {
+  NGN = 'NGN',
+  USD = 'USD',
+  GBP = 'GBP',
+  EUR = 'EUR',
+}
+
+export enum TransactionNarrations {
+  WalletTopup = 'Wallet Topup',
+}

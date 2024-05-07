@@ -21,6 +21,9 @@ import { KycModule } from './kyc/kyc.module';
 import { FlutterwaveModule } from './flutterwave/flutterwave.module';
 import { WebhookModule } from './webhook/webhook.module';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ProviderModule } from './provider/provider.module';
+import { HttpModule } from '@nestjs/axios';
+import { TransactionModule } from './transaction/transaction.module';
 
 @Module({
   imports: [
@@ -30,6 +33,7 @@ import { MongooseModule } from '@nestjs/mongoose';
     JwtModule.registerAsync(jwtConfigOpts),
     CacheModule.registerAsync(cacheModuleConfigOpts),
     EventEmitterModule.forRoot(),
+    HttpModule,
     AuthenticationModule,
     UtilityModule,
     NotificationModule,
@@ -39,6 +43,8 @@ import { MongooseModule } from '@nestjs/mongoose';
     KycModule,
     FlutterwaveModule,
     WebhookModule,
+    ProviderModule,
+    TransactionModule,
   ],
 })
 export class AppModule {

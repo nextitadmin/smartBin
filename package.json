@@ -55,6 +55,7 @@
     "nanoid": "^3",
     "nestjs-pino": "^3.5.0",
     "nunjucks": "^3.2.4",
+    "paystack-api": "^2.0.6",
     "pg": "^8.11.3",
     "pg-hstore": "^2.3.4",
     "pino": "^8.16.1",

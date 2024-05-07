@@ -128,13 +128,42 @@ export class FlutterwaveService {
     }
   }
 
-  async initiateBillPayment({}: {
+  async initiateBillPayment({
+    billerCode,
+    itemCode,
+    customer,
+    amount,
+    reference,
+  }: {
     billerCode: string;
     itemCode: string;
-    customer: string;
-    amount: string;
-  }) {}
+    customer: {
+      name: string;
+      email: string;
+      phone_number: string;
+    };
+    amount: number;
+    reference: string;
+  }) {
+    console.log({ billerCode, itemCode, customer, amount });
+    const response = await this.flutterwaveInstance.Bills.create_ord_billing({
+      id: billerCode,
+      product_id: itemCode,
+      amount,
+      reference,
+      country: 'NG',
+      customer,
+      fields: [
+        {
+          id: billerCode,
+          quantity: '1',
+          value: String(amount),
+        },
+      ],
+    });
 
+    console.log(response, 'FMLW instance');
+  }
   // async getBillPaymentshistory() {} TBD.
   // async getVirtualAccounts() {
   //   return await this.flutterwaveInstance.VirtualAcct.
