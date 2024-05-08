@@ -67,7 +67,7 @@ export class TransactionService {
     console.log('ddd', customer_id);
     const transaction = await this.transactionModel.findOne({
       reference: referenceId,
-      // status: TransactionStatus.Abandoned,
+      status: TransactionStatus.Abandoned,
       customer_id,
     });
 
