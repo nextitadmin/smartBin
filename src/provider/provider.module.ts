@@ -7,7 +7,7 @@ import { ProviderController } from './provider.controller';
 @Module({
   imports: [HttpModule],
   providers: [ProviderService, PaystackService],
-  exports: [ProviderService],
+  exports: [ProviderService, PaystackService],
   controllers: [ProviderController],
 })
 export class ProviderModule {}

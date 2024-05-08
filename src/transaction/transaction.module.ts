@@ -5,10 +5,12 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Transaction, TransactionSchema } from '@models/transaction.model';
 import { Wallet, WalletSchema } from '@models/wallet.model';
 import { CustomerModule } from '@src/customer/customer.module';
+import { ProviderModule } from '@src/provider/provider.module';
 
 @Module({
   imports: [
     CustomerModule,
+    ProviderModule,
     MongooseModule.forFeature([
       {
         name: Transaction.name,

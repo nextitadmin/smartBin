@@ -11,94 +11,27 @@ export class PaystackService {
     private readonly configService: ConfigService<ConfigAttributes>,
   ) {}
 
-  async validateUtility({
-    customerId,
-    serviceId,
-    type = 'prepaid',
-  }: {
-    customerId: string;
-    serviceId: string;
-    type?: 'prepaid';
-  }) {
-    const vtpassConfig = this.configService.get('vtpass', {
-      infer: true,
-    });
-    const vtpassApiKey = this.configService.get('vtpass.baseUrl', {
+  async verifyTransaction(reference: string) {
+    const paystackConfig = this.configService.get('paystack', {
       infer: true,
     });
 
-    console.log({ vtpassConfig, vtpassApiKey });
-    const validationResponse = await this.httpService.axiosRef.post(
-      `${vtpassConfig.baseUrl}/api/merchant-verify`,
-      {
-        billersCode: Number(customerId),
-        serviceID: serviceId,
-        type,
-      },
+    const validationResponse = await this.httpService.axiosRef.get(
+      `${paystackConfig.baseUrl}/transaction/verify/${reference}`,
       {
         headers: {
-          'api-key': vtpassConfig.apiKey,
-          'secret-key': vtpassConfig.secretKey,
+          Authorization: `Bearer ${paystackConfig.secretKey}`,
         },
       },
     );
 
-    console.log(validationResponse.data);
-
-    if (validationResponse.data.code !== '000') {
-      throw new Error(validationResponse.data.message);
+    if (
+      !validationResponse.data.status ||
+      validationResponse.data.data.status !== 'success'
+    ) {
+      throw new Error('Invalid or pending transaction');
     }
 
-    return validationResponse.data.content;
-  }
-
-  async purchaseUtility({
-    customerId,
-    serviceId,
-    amount,
-    phone,
-    type = 'prepaid',
-  }: {
-    customerId: string;
-    serviceId: string;
-    type?: 'prepaid';
-    amount: number;
-    phone: string;
-  }) {
-    const vtpassConfig = this.configService.get('vtpass', {
-      infer: true,
-    });
-    const da = new Date();
-    let reference = `${da.getFullYear().toLocaleString()}${generateRandomChars(
-      12,
-    )}`;
-    const [date, time] = reference.split('T');
-    reference = `${date}${time}`;
-    // return console.log(reference);
-    const validationResponse = await this.httpService.axiosRef.post(
-      `${vtpassConfig.baseUrl}/api/pay`,
-      {
-        request_id: reference,
-        serviceID: 'ibadan-electric',
-        billersCode: customerId,
-        variation_code: type,
-        amount,
-        phone,
-      },
-      {
-        headers: {
-          'api-key': vtpassConfig.apiKey,
-          'secret-key': vtpassConfig.secretKey,
-        },
-      },
-    );
-
-    console.log(validationResponse);
-
-    // if (validationResponse.data.code !== '000') {
-    //   throw new Error(validationResponse);
-    // }
-
-    return validationResponse.data.content;
+    return validationResponse.data.data;
   }
 }

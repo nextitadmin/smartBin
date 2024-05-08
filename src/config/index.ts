@@ -30,6 +30,11 @@ export interface ConfigAttributes {
     publicKey: string;
     secretKey: string;
   };
+  paystack: {
+    publicKey: string;
+    secretKey: string;
+    baseUrl: string;
+  };
   vtpass: {
     baseUrl: string;
     apiKey: string;
@@ -72,6 +77,12 @@ const config = (): ConfigAttributes => ({
     publicKey: process.env.VTPASS_PUBLIC_KEY,
     secretKey: process.env.VTPASS_SECRET_KEY,
   },
+
+  paystack: {
+    publicKey: process.env.PAYSTACK_PUB_KEY,
+    secretKey: process.env.PAYSTACK_SEC_KEY,
+    baseUrl: process.env.PAYSTACK_BASE_URL,
+  },
 });
 
 const schema = Joi.object<Record<string, string>>({
@@ -101,6 +112,10 @@ const schema = Joi.object<Record<string, string>>({
   VTPASS_API_KEY: Joi.string().required(),
   VTPASS_PUBLIC_KEY: Joi.string().required(),
   VTPASS_SECRET_KEY: Joi.string().required(),
+
+  PAYSTACK_PUB_KEY: Joi.string().required(),
+  PAYSTACK_SEC_KEY: Joi.string().required(),
+  PAYSTACK_BASE_URL: Joi.string().required(),
 });
 
 export const configModuleOpts: ConfigModuleOptions = {

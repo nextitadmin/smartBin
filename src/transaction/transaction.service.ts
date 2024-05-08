@@ -6,8 +6,10 @@ import {
   TransactionType,
 } from '@models/transaction.model';
 import { Wallet } from '@models/wallet.model';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { PaystackService } from '@src/provider/paystack.service';
+import { ProviderService } from '@src/provider/provider.service';
 import { Model } from 'mongoose';
 
 @Injectable()
@@ -16,6 +18,7 @@ export class TransactionService {
     @InjectModel(Transaction.name)
     private readonly transactionModel: Model<Transaction>,
     @InjectModel(Wallet.name) private readonly walletModel: Model<Transaction>,
+    private readonly paystackService: PaystackService,
   ) {}
 
   async generateReference({
@@ -61,19 +64,27 @@ export class TransactionService {
   }) {
     const wallet = await this.walletModel.findOne({ customer_id });
 
+    console.log('ddd', customer_id);
     const transaction = await this.transactionModel.findOne({
       reference: referenceId,
-      status: TransactionStatus.Abandoned,
+      // status: TransactionStatus.Abandoned,
       customer_id,
     });
 
     if (!transaction) {
-      throw new Error('Transaction not found');
+      throw new BadRequestException('Transaction not found');
     }
 
-    if (amount) {
-      transaction.amount = amount;
+    const isFromProvider = await this.paystackService.verifyTransaction(
+      referenceId,
+    );
+    console.log(isFromProvider);
+    if (!isFromProvider) {
+      throw new BadRequestException('Invalid transaction');
     }
+
+    transaction.amount = Number(isFromProvider.amount);
+    console.log(transaction);
     if (transaction.type === TransactionType.Topup) {
       const walletupdate = await this.walletModel.findByIdAndUpdate(
         wallet._id,
@@ -87,8 +98,10 @@ export class TransactionService {
         status: TransactionStatus.Successful,
         available_balance: walletupdate.available_balance,
         ledger_balance: walletupdate.ledger_balance,
-        meta,
-        amount,
+        meta: {
+          ...meta,
+          providerMeta: isFromProvider,
+        },
       });
     }
   }
