@@ -30,6 +30,7 @@ export interface TransactionAttributes {
   ledger_balance?: Money;
   narration: string;
   status: TransactionStatus;
+  meta?: any;
 }
 
 @Schema({
@@ -114,6 +115,12 @@ export class Transaction implements TransactionAttributes {
     default: TransactionStatus.Abandoned,
   })
   status: TransactionStatus;
+
+  @Prop({
+    required: false,
+    type: SchemaTypes.Mixed,
+  })
+  meta: any;
 }
 export const TransactionSchema = SchemaFactory.createForClass(Transaction);
 // Indexes

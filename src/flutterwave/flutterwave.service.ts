@@ -137,32 +137,96 @@ export class FlutterwaveService {
   }: {
     billerCode: string;
     itemCode: string;
-    customer: {
-      name: string;
-      email: string;
-      phone_number: string;
-    };
+    // customer: {
+    //   name: string;
+    //   email: string;
+    //   phone_number: string;
+
+    // };
+    customer: string;
     amount: number;
     reference: string;
   }) {
-    console.log({ billerCode, itemCode, customer, amount });
-    const response = await this.flutterwaveInstance.Bills.create_ord_billing({
-      id: billerCode,
-      product_id: itemCode,
-      amount,
-      reference,
-      country: 'NG',
-      customer,
-      fields: [
+    try {
+      const flutterwaveSecretKey = this.configService.get(
+        'flutterwave.secretKey',
         {
-          id: billerCode,
-          quantity: '1',
-          value: String(amount),
+          infer: true,
         },
-      ],
-    });
+      );
+      const response = await this.http.axiosRef.post(
+        `https://api.flutterwave.com/v3/billers/${billerCode}/items/${itemCode}/payment`,
+        {
+          country: 'NG',
+          customer_id: customer,
+          amount,
+          reference,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${flutterwaveSecretKey}`,
+          },
+        },
+      );
 
-    console.log(response, 'FMLW instance');
+      console.log(response.data, 'bill payment');
+      // if (response.data !== 'success') {
+      //   // refund customer
+      //   throw new BadRequestException('Failed to Complete bill payment');
+      // }
+
+      return response.data.data;
+    } catch (error) {
+      console.error(error);
+      throw new BadRequestException('Failed to Complete bill payment');
+    }
+
+    // console.log({ billerCode, itemCode, customer, amount });
+    // const response = await this.flutterwaveInstance.Bills.create_ord_billing({
+    //   id: billerCode,
+    //   product_id: itemCode,
+    //   amount,
+    //   reference,
+    //   country: 'NG',
+    //   customer,
+    //   fields: [
+    //     {
+    //       id: billerCode,
+    //       quantity: '1',
+    //       value: String(amount),
+    //     },
+    //   ],
+    // });
+  }
+
+  async getBillPaymentStatus({ reference }) {
+    try {
+      const flutterwaveSecretKey = this.configService.get(
+        'flutterwave.secretKey',
+        {
+          infer: true,
+        },
+      );
+      const response = await this.http.axiosRef.get(
+        `https://api.flutterwave.com/v3/bills/${reference}`,
+
+        {
+          headers: {
+            Authorization: `Bearer ${flutterwaveSecretKey}`,
+          },
+        },
+      );
+
+      console.log(response.data, 'from td');
+      // if (response.data !== 'success') {
+      //   // refund customer
+      //   throw new BadRequestException('Failed to Complete bill payment');
+      // }
+
+      return response.data.data;
+    } catch (error) {
+      console.error(error);
+    }
   }
   // async getBillPaymentshistory() {} TBD.
   // async getVirtualAccounts() {

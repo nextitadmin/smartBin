@@ -63,4 +63,5 @@ export enum SupportedCurrency {
 
 export enum TransactionNarrations {
   WalletTopup = 'Wallet Topup',
+  BillPayment = 'Bill Payment',
 }

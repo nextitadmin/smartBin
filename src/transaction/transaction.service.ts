@@ -22,10 +22,12 @@ export class TransactionService {
     customer_id,
     type,
     amount,
+    narration,
   }: {
     customer_id: string;
     amount: number;
     type: TransactionType;
+    narration?: TransactionNarrations;
   }) {
     const reference = `LMO${generateRandomChars(16)}`;
 
@@ -39,7 +41,7 @@ export class TransactionService {
       reference,
       amount,
       wallet_id: wallet_id._id,
-      narration: TransactionNarrations.WalletTopup,
+      narration: narration || TransactionNarrations.WalletTopup,
       type,
     }).save();
 
@@ -49,13 +51,15 @@ export class TransactionService {
   async actionReference({
     customer_id,
     referenceId,
+    meta,
+    amount,
   }: {
     customer_id: string;
     referenceId: string;
+    meta?: any;
+    amount?: number;
   }) {
-    const wallet_id = await this.walletModel
-      .findOne({ customer_id })
-      .select('_id');
+    const wallet = await this.walletModel.findOne({ customer_id });
 
     const transaction = await this.transactionModel.findOne({
       reference: referenceId,
@@ -67,11 +71,15 @@ export class TransactionService {
       throw new Error('Transaction not found');
     }
 
+    if (amount) {
+      transaction.amount = amount;
+    }
     if (transaction.type === TransactionType.Topup) {
       const walletupdate = await this.walletModel.findByIdAndUpdate(
-        transaction.wallet_id,
+        wallet._id,
         {
-          customer_id,
+          available_balance: wallet.available_balance + transaction.amount,
+          ledger_balance: wallet.available_balance + transaction.amount,
         },
         { new: true },
       );
@@ -79,7 +87,27 @@ export class TransactionService {
         status: TransactionStatus.Successful,
         available_balance: walletupdate.available_balance,
         ledger_balance: walletupdate.ledger_balance,
+        meta,
+        amount,
       });
     }
+  }
+
+  async createTransaction({ amount, type, customer_id, narration }) {
+    const reference = await this.generateReference({
+      customer_id,
+      amount,
+      type,
+      narration,
+    });
+
+    return reference;
+  }
+
+  async getTransaction(query: any) {
+    return this.transactionModel.findOne(query);
+  }
+  async updateTransaction(query: any, update: any) {
+    return this.transactionModel.findOneAndUpdate(query, update, { new: true });
   }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { UtilityService } from './utility.service';
 import { SuccessResponse } from '@common/http';
 import { PurchaseBillPayload, ValidateBillAttributes } from './types';
@@ -34,6 +34,19 @@ export class UtilityController {
     const purchaseResponse = await this.utilityService.purchaseBill({
       ...body,
       customer_id: customer.id,
+    });
+    return new SuccessResponse('bill purchase successful!', purchaseResponse);
+  }
+
+  @Get('/order/:reference/token')
+  @CustomerAuth()
+  async getToken(
+    @Param() param: { reference: string },
+    @AuthenticatedCustomer() customer: AuthCustomer,
+  ) {
+    const purchaseResponse = await this.utilityService.generateUtilityToken({
+      customer_id: customer.id,
+      reference: param.reference,
     });
     return new SuccessResponse('bill purchase successful!', purchaseResponse);
   }

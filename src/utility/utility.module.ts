@@ -8,6 +8,7 @@ import { CustomerModule } from '@src/customer/customer.module';
 import { Wallet, WalletSchema } from '@models/wallet.model';
 import { ProviderModule } from '@src/provider/provider.module';
 import { ProviderService } from '@src/provider/provider.service';
+import { TransactionModule } from '@src/transaction/transaction.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ProviderService } from '@src/provider/provider.service';
     CustomerModule,
     FlutterwaveModule,
     ProviderModule,
+    TransactionModule,
   ],
   controllers: [UtilityController],
   providers: [UtilityService],

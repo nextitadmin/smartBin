@@ -12,7 +12,15 @@ export class KycService {
     @InjectModel(Kyc.name) private readonly kycModel: Model<Kyc>,
     private ee: EventEmitter2,
   ) {}
-  async enrollBvn({ customer_id, bvn }: { customer_id: string; bvn: string }) {
+  async enrollBvn({
+    customer_id,
+    bvn,
+    tier,
+  }: {
+    customer_id: string;
+    bvn: string;
+    tier?: KycTier;
+  }) {
     const kycEnrolled = await this.kycModel
       .findOne({
         customer_id,
@@ -28,7 +36,7 @@ export class KycService {
     const userKyc = await this.kycModel.create({
       customer_id,
       bvn,
-      tier: KycTier.Two,
+      tier: tier || KycTier.One,
       nin: 'N/A',
     });
     await userKyc.save();
