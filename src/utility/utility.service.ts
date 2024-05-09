@@ -66,7 +66,7 @@ export class UtilityService {
     await this.walletService.debitWallet({
       customer_id: payload.customer_id,
       amount: debitAmount,
-      field: 'both-balance',
+      field: 'both_balance',
     });
 
     const transactionAmount = payload.amount - 15000; // 15000 is transaction fee and in kobo
