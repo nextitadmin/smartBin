@@ -99,10 +99,10 @@ export class WalletService {
   async creditWallet({
     customer_id,
     amount,
-    field = 'ledger_balance',
+    field = 'both_balance',
   }: {
     customer_id: string;
-    field?: 'ledger_balance' | 'available_balance' | 'both-balance';
+    field?: 'ledger_balance' | 'available_balance' | 'both_balance';
     amount: number;
   }) {
     const amountToCredit = amount;
@@ -134,10 +134,10 @@ export class WalletService {
   async debitWallet({
     customer_id,
     amount,
-    field = 'both-balance',
+    field = 'both_balance',
   }: {
     customer_id: string;
-    field?: 'ledger_balance' | 'available_balance' | 'both-balance';
+    field?: 'ledger_balance' | 'available_balance' | 'both_balance';
     amount: number;
   }) {
     const amountToCredit = -amount;
