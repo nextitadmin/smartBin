@@ -6,11 +6,13 @@ import { Transaction, TransactionSchema } from '@models/transaction.model';
 import { Wallet, WalletSchema } from '@models/wallet.model';
 import { CustomerModule } from '@src/customer/customer.module';
 import { ProviderModule } from '@src/provider/provider.module';
+import { WalletModule } from '@src/wallet/wallet.module';
 
 @Module({
   imports: [
     CustomerModule,
     ProviderModule,
+    WalletModule,
     MongooseModule.forFeature([
       {
         name: Transaction.name,

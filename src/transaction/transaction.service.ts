@@ -10,6 +10,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { PaystackService } from '@src/provider/paystack.service';
 import { ProviderService } from '@src/provider/provider.service';
+import { WalletService } from '@src/wallet/wallet.service';
 import { Model } from 'mongoose';
 
 @Injectable()
@@ -19,6 +20,7 @@ export class TransactionService {
     private readonly transactionModel: Model<Transaction>,
     @InjectModel(Wallet.name) private readonly walletModel: Model<Transaction>,
     private readonly paystackService: PaystackService,
+    private readonly walletService: WalletService,
   ) {}
 
   async generateReference({
@@ -82,13 +84,13 @@ export class TransactionService {
 
     transaction.amount = Number(isFromProvider.amount);
     if (transaction.type === TransactionType.Topup) {
-      const walletupdate = await this.walletModel.findByIdAndUpdate(
-        wallet._id,
-        {
-          available_balance: wallet.available_balance + transaction.amount,
-          ledger_balance: wallet.available_balance + transaction.amount,
-        },
-        { new: true },
+      await this.walletService.creditWallet({
+        customer_id: transaction.customer_id,
+        amount: Number(isFromProvider.amount),
+      });
+
+      const walletupdate = await this.walletModel.findById(
+        transaction.wallet_id,
       );
       await this.transactionModel.findByIdAndUpdate(transaction._id, {
         status: TransactionStatus.Successful,
