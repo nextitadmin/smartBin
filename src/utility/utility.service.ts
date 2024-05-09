@@ -9,6 +9,7 @@ import { Wallet } from '@models/wallet.model';
 import { ProviderService } from '@src/provider/provider.service';
 import { TransactionService } from '@src/transaction/transaction.service';
 import { TransactionStatus, TransactionType } from '@models/transaction.model';
+import { WalletService } from '@src/wallet/wallet.service';
 
 @Injectable()
 export class UtilityService {
@@ -18,6 +19,7 @@ export class UtilityService {
     private readonly providerService: ProviderService,
     private readonly flutterwaveService: FlutterwaveService,
     private readonly transactionService: TransactionService,
+    private readonly walletService: WalletService,
   ) {}
 
   async getBills() {
@@ -47,8 +49,6 @@ export class UtilityService {
   }
 
   async purchaseBill(payload: PurchaseBillPayload) {
-    // console.log({ payload });
-
     const customer = await this.customerModel
       .findById(payload.customer_id)
       .select('email first_name phone');
@@ -60,15 +60,13 @@ export class UtilityService {
     if (!customerWallet || customerWallet.available_balance < payload.amount) {
       throw new BadRequestException('Insufficient funds to complete purchase!');
     }
-
-    console.log('customerWallet', customerWallet);
-
     const debitAmount = payload.amount;
 
     // Debit customer wallet
-    await this.walletModel.findByIdAndUpdate(customerWallet._id, {
-      available_balance: customerWallet.available_balance - debitAmount,
-      ledger_balance: customerWallet.ledger_balance - debitAmount,
+    await this.walletService.debitWallet({
+      customer_id: payload.customer_id,
+      amount: debitAmount,
+      field: 'both-balance',
     });
 
     const transactionAmount = payload.amount - 15000; // 15000 is transaction fee and in kobo
@@ -80,53 +78,34 @@ export class UtilityService {
       narration: 'Bill Payment',
     });
 
-    // const response = await this.providerService.purchaseUtility({
-    //   customerId: payload.customerIdentifier,
-    //   amount: payload.amount,
-    //   phone: customer.phone,
-    //   serviceId: 'ibadan-electric',
-    // });
     const billPayload = {
       customer: payload.customerIdentifier,
       amount: transactionAmount / 100,
-      // phone: customer.phone,
-      // serviceId: 'ibadan-electric',
       itemCode: payload.itemCode,
       billerCode: payload.billCode,
-      reference,
+      reference: 'LMOhMT8HZMMQF08L3vK',
     };
-    // console.log(billPayload);
-    // return reference;
+
     const billResponse = await this.flutterwaveService.initiateBillPayment(
       billPayload,
     );
+    if (!billResponse.success) {
+      // revert money
+      await this.walletService.creditWallet({
+        customer_id: payload.customer_id,
+        amount: debitAmount,
+        field: 'ledger_balance',
+      });
 
-    await this.transactionService.actionReference({
-      customer_id: payload.customer_id,
-      referenceId: reference,
-      meta: billResponse,
-    });
+      throw new BadRequestException(
+        'Unable to complete bill payment, Please try again!',
+      );
+    }
 
-    return reference;
-
-    // console.log('response', response);
-
-    // Proceed to flutterwave payment
-    // const response = await this.flutterwaveService.initiateBillPayment({
-    //   billerCode: payload.billCode,
-    //   itemCode: payload.itemCode,
-    //   customer: {
-    //     name: customer.first_name,
-    //     email: customer.email,
-    //     phone_number: customer.phone,
-    //   },
-    //   amount: payload.amount,
-    //   reference: purchaseReference,
-    // });
-
-    // console.log(response);
-
-    // console.log({ ...payload, purchaseReference, customer });
+    return {
+      reference,
+      token: billResponse.data.recharge_token,
+    };
   }
 
   async generateUtilityToken({
@@ -139,7 +118,11 @@ export class UtilityService {
     const tokenResponse = await this.flutterwaveService.getBillPaymentStatus({
       reference,
     });
-    if (tokenResponse.extra === null) {
+    if (!tokenResponse.success) {
+      throw new BadRequestException('Unable to generate bill token!');
+    }
+
+    if (tokenResponse.data.extra === null) {
       return {
         ...tokenResponse,
         status: 'pending',
@@ -151,7 +134,9 @@ export class UtilityService {
     });
 
     if (!transaction) {
-      throw new BadRequestException('Transaction not found!');
+      throw new BadRequestException(
+        'Unable to generate bill token! Please contact support!',
+      );
     }
 
     if (transaction?.meta?.finalResponse) {
@@ -166,11 +151,11 @@ export class UtilityService {
         status: TransactionStatus.Successful,
         meta: {
           ...transaction?.meta,
-          finalResponse: tokenResponse,
+          finalResponse: tokenResponse.data,
         },
       },
     );
 
-    return tokenResponse;
+    return tokenResponse.data;
   }
 }

@@ -95,4 +95,76 @@ export class WalletService {
       this.logger.error(error);
     }
   }
+
+  async creditWallet({
+    customer_id,
+    amount,
+    field = 'ledger_balance',
+  }: {
+    customer_id: string;
+    field?: 'ledger_balance' | 'available_balance' | 'both-balance';
+    amount: number;
+  }) {
+    const amountToCredit = amount;
+    let fieldUpdate: any = {
+      $inc: {
+        available_balance: amountToCredit,
+        ledger_balance: amountToCredit,
+      },
+    };
+    if (field === 'available_balance') {
+      fieldUpdate = {
+        $inc: {
+          available_balance: amountToCredit,
+        },
+      };
+    }
+
+    if (field === 'ledger_balance') {
+      fieldUpdate = {
+        $inc: {
+          ledger_balance: amountToCredit,
+        },
+      };
+    }
+
+    return await this.wallet.updateOne({ customer_id }, fieldUpdate);
+  }
+
+  async debitWallet({
+    customer_id,
+    amount,
+    field = 'both-balance',
+  }: {
+    customer_id: string;
+    field?: 'ledger_balance' | 'available_balance' | 'both-balance';
+    amount: number;
+  }) {
+    const amountToCredit = -amount;
+    let fieldUpdate: any = {
+      $inc: {
+        available_balance: amountToCredit,
+        ledger_balance: amountToCredit,
+      },
+    };
+    if (field === 'available_balance') {
+      fieldUpdate = {
+        $inc: {
+          available_balance: amountToCredit,
+        },
+      };
+    }
+
+    if (field === 'ledger_balance') {
+      fieldUpdate = {
+        $inc: {
+          ledger_balance: amountToCredit,
+        },
+      };
+    }
+
+    console.log({ fieldUpdate });
+
+    return await this.wallet.updateOne({ customer_id }, fieldUpdate);
+  }
 }

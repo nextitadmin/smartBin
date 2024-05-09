@@ -63,8 +63,6 @@ export class TransactionService {
     amount?: number;
   }) {
     const wallet = await this.walletModel.findOne({ customer_id });
-
-    console.log('ddd', customer_id);
     const transaction = await this.transactionModel.findOne({
       reference: referenceId,
       status: TransactionStatus.Abandoned,
@@ -78,13 +76,11 @@ export class TransactionService {
     const isFromProvider = await this.paystackService.verifyTransaction(
       referenceId,
     );
-    console.log(isFromProvider);
     if (!isFromProvider) {
       throw new BadRequestException('Invalid transaction');
     }
 
     transaction.amount = Number(isFromProvider.amount);
-    console.log(transaction);
     if (transaction.type === TransactionType.Topup) {
       const walletupdate = await this.walletModel.findByIdAndUpdate(
         wallet._id,
@@ -120,7 +116,19 @@ export class TransactionService {
   async getTransaction(query: any) {
     return this.transactionModel.findOne(query);
   }
+
   async updateTransaction(query: any, update: any) {
     return this.transactionModel.findOneAndUpdate(query, update, { new: true });
+  }
+
+  async getCustomerTransactions({ customer_id }) {
+    return this.transactionModel
+      .find({
+        customer_id,
+        status: { $ne: TransactionStatus.Abandoned },
+      })
+      .sort({
+        createdAt: -1,
+      });
   }
 }

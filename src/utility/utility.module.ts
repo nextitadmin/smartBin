@@ -9,6 +9,7 @@ import { Wallet, WalletSchema } from '@models/wallet.model';
 import { ProviderModule } from '@src/provider/provider.module';
 import { ProviderService } from '@src/provider/provider.service';
 import { TransactionModule } from '@src/transaction/transaction.module';
+import { WalletModule } from '@src/wallet/wallet.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { TransactionModule } from '@src/transaction/transaction.module';
     FlutterwaveModule,
     ProviderModule,
     TransactionModule,
+    WalletModule,
   ],
   controllers: [UtilityController],
   providers: [UtilityService],

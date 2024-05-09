@@ -48,6 +48,6 @@ export class UtilityController {
       customer_id: customer.id,
       reference: param.reference,
     });
-    return new SuccessResponse('bill purchase successful!', purchaseResponse);
+    return new SuccessResponse('bill generated successful!', purchaseResponse);
   }
 }

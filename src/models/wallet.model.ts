@@ -78,12 +78,6 @@ export class Wallet implements WalletAttributes {
     required: false,
     type: SchemaTypes.Number,
     default: 0,
-    // set(this: Wallet, val: Money) {
-    //   return setMoney(this, 'ledger_balance', val);
-    // },
-    // get(this: Wallet) {
-    //   return getMoney(this, 'ledger_balance');
-    // },
   })
   ledger_balance: number;
 

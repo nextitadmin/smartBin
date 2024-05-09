@@ -15,6 +15,15 @@ import { SuccessResponse } from '@common/http';
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) {}
 
+  @Get()
+  @CustomerAuth()
+  async getTransactions(@AuthenticatedCustomer() customer: AuthCustomer) {
+    const transactions = await this.transactionService.getCustomerTransactions({
+      customer_id: customer.id,
+    });
+    return new SuccessResponse('Transactions fetched', transactions);
+  }
+
   @Get('/reference')
   @CustomerAuth()
   async generateTransactionReference(
@@ -44,5 +53,14 @@ export class TransactionController {
     });
 
     return new SuccessResponse('Action on transaction', actionTransaction);
+  }
+
+  @Get('/:id')
+  @CustomerAuth()
+  async getTransaction(@Param() params: { id: string }) {
+    const transactions = await this.transactionService.getTransaction({
+      _id: params.id,
+    });
+    return new SuccessResponse('Transaction fetched', transactions);
   }
 }
