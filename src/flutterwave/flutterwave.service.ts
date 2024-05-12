@@ -163,12 +163,15 @@ export class FlutterwaveService {
           infer: true,
         },
       );
+      console.log({ reference });
       const response = await this.http.axiosRef.post(
         `https://api.flutterwave.com/v3/billers/${billerCode}/items/${itemCode}/payment`,
         {
           country: 'NG',
           customer_id: customer,
           amount,
+          // customer_id: '0159006370955',
+          // amount: 100,
           reference,
         },
         {
@@ -180,7 +183,7 @@ export class FlutterwaveService {
 
       return { success: true, data: response.data.data };
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(error.response);
       return {
         success: false,
         message: 'Failed to Complete bill payment',

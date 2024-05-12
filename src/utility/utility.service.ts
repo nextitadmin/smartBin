@@ -83,7 +83,7 @@ export class UtilityService {
       amount: transactionAmount / 100,
       itemCode: payload.itemCode,
       billerCode: payload.billCode,
-      reference: 'LMOhMT8HZMMQF08L3vK',
+      reference,
     };
 
     const billResponse = await this.flutterwaveService.initiateBillPayment(
@@ -102,10 +102,7 @@ export class UtilityService {
       );
     }
 
-    return {
-      reference,
-      token: billResponse.data.recharge_token,
-    };
+    return reference;
   }
 
   async generateUtilityToken({
@@ -122,9 +119,14 @@ export class UtilityService {
       throw new BadRequestException('Unable to generate bill token!');
     }
 
+    console.log({ tokenResponse });
     if (tokenResponse.data.extra === null) {
       return {
-        ...tokenResponse,
+        product: tokenResponse.data?.product,
+        product_name: tokenResponse.data?.product_name,
+        amount: tokenResponse.data?.amount,
+        transaction_date: tokenResponse.data?.transaction_date,
+        customer_id: tokenResponse.data?.customer_id,
         status: 'pending',
       };
     }
@@ -156,6 +158,13 @@ export class UtilityService {
       },
     );
 
-    return tokenResponse.data;
+    return {
+      product: tokenResponse.data?.product,
+      product_name: tokenResponse.data?.product_name,
+      amount: tokenResponse.data?.amount,
+      status: tokenResponse.data?.status,
+      transaction_date: tokenResponse.data?.transaction_date,
+      customer_id: tokenResponse.data?.customer_id,
+    };
   }
 }
