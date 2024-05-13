@@ -165,6 +165,7 @@ export class UtilityService {
       status: tokenResponse.data?.status,
       transaction_date: tokenResponse.data?.transaction_date,
       customer_id: tokenResponse.data?.customer_id,
+      extra: tokenResponse.data.extra,
     };
   }
 }
