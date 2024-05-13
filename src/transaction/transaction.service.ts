@@ -96,6 +96,7 @@ export class TransactionService {
         status: TransactionStatus.Successful,
         available_balance: walletupdate.available_balance,
         ledger_balance: walletupdate.ledger_balance,
+        amount: transaction.amount,
         meta: {
           ...meta,
           providerMeta: isFromProvider,
