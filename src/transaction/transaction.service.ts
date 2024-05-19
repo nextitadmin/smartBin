@@ -57,7 +57,7 @@ export class TransactionService {
       type,
     }).save();
 
-    return reference;
+    return transactionReference;
   }
 
   async actionReference({
