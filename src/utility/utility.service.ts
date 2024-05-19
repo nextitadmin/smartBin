@@ -124,7 +124,6 @@ export class UtilityService {
     }
 
     const wallet = await this.walletModel.findById(customerWallet._id);
-
     await this.transactionService.updateTransaction(
       {
         reference,
@@ -136,6 +135,9 @@ export class UtilityService {
         meta: billResponse.data.meta,
       },
     );
+    // Create beneficiary
+
+    console.log(billResponse.data);
 
     return billResponse.data.reference;
   }
@@ -169,6 +171,7 @@ export class UtilityService {
         transaction_date: transaction.meta.transaction_date.date,
         customer_id: transaction.meta.content.transactions.unique_element,
         extra: transaction.meta.Token,
+        fee: 100,
       };
     }
 
@@ -189,6 +192,7 @@ export class UtilityService {
       transaction_date: transaction.meta.transaction_date.date,
       customer_id: transaction.meta.content.transactions.unique_element,
       extra: transaction.meta.Token,
+      fee: 100,
     };
   }
 }

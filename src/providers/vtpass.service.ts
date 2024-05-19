@@ -76,16 +76,18 @@ export class VTPassService {
       const vtpassConfig = this.configService.get('vtpass', {
         infer: true,
       });
+      const billPayload = {
+        request_id: reference,
+        serviceID: 'ibadan-electric',
+        billersCode: customerId,
+        variation_code: type,
+        amount,
+        phone,
+      };
+
       const validationResponse = await this.httpService.axiosRef.post(
         `${vtpassConfig.baseUrl}/api/pay`,
-        {
-          request_id: reference,
-          serviceID: 'ibadan-electric',
-          billersCode: customerId,
-          variation_code: type,
-          amount,
-          phone,
-        },
+        billPayload,
         {
           headers: {
             'api-key': vtpassConfig.apiKey,
