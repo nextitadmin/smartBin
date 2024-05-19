@@ -65,3 +65,7 @@ export enum TransactionNarrations {
   WalletTopup = 'Wallet Topup',
   BillPayment = 'Bill Payment',
 }
+
+export const UtilityBillServiceCategories = [];
+
+export const REMOVE_EXTRA_CHARS_REGEX = /[^\w\s]/gi;

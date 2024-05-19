@@ -6,10 +6,9 @@ import {
   TransactionType,
 } from '@models/transaction.model';
 import { Wallet } from '@models/wallet.model';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { PaystackService } from '@src/provider/paystack.service';
-import { ProviderService } from '@src/provider/provider.service';
+import { PaystackService } from '@src/providers/paystack.service';
 import { WalletService } from '@src/wallet/wallet.service';
 import { Model } from 'mongoose';
 
@@ -23,18 +22,26 @@ export class TransactionService {
     private readonly walletService: WalletService,
   ) {}
 
+  private logger = new Logger(TransactionService.name);
+
   async generateReference({
     customer_id,
     type,
     amount,
+    reference,
     narration,
   }: {
     customer_id: string;
     amount: number;
     type: TransactionType;
+    reference?: string;
     narration?: TransactionNarrations;
   }) {
-    const reference = `LMO${generateRandomChars(16)}`;
+    let transactionReference = `LMO${generateRandomChars(24)}`.toUpperCase();
+
+    if (reference) {
+      transactionReference = reference;
+    }
 
     const wallet_id = await this.walletModel
       .findOne({ customer_id })
@@ -43,7 +50,7 @@ export class TransactionService {
     await new this.transactionModel({
       customer_id,
       currency: SupportedCurrency.NGN,
-      reference,
+      reference: transactionReference,
       amount,
       wallet_id: wallet_id._id,
       narration: narration || TransactionNarrations.WalletTopup,
@@ -54,25 +61,22 @@ export class TransactionService {
   }
 
   async actionReference({
-    customer_id,
     referenceId,
     meta,
-    amount,
   }: {
-    customer_id: string;
     referenceId: string;
     meta?: any;
-    amount?: number;
   }) {
-    const wallet = await this.walletModel.findOne({ customer_id });
     const transaction = await this.transactionModel.findOne({
       reference: referenceId,
       status: TransactionStatus.Abandoned,
-      customer_id,
     });
 
     if (!transaction) {
-      throw new BadRequestException('Transaction not found');
+      this.logger.error('Transaction not found');
+      return {
+        success: false,
+      };
     }
 
     const isFromProvider = await this.paystackService.verifyTransaction(
@@ -105,15 +109,16 @@ export class TransactionService {
     }
   }
 
-  async createTransaction({ amount, type, customer_id, narration }) {
-    const reference = await this.generateReference({
+  async createTransaction({ amount, type, customer_id, narration, reference }) {
+    const transactionReference = await this.generateReference({
       customer_id,
       amount,
       type,
       narration,
+      reference,
     });
 
-    return reference;
+    return transactionReference;
   }
 
   async getTransaction(query: any) {

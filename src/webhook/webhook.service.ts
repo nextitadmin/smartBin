@@ -1,15 +1,19 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ConsoleLogger, Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Customer } from '../models/customer.model';
 import { Wallet } from '../models/wallet.model';
 import { Money } from '../common/utils/money';
 import { Model } from 'mongoose';
+import { PaystackService } from '@src/providers/paystack.service';
+import { TransactionService } from '@src/transaction/transaction.service';
 
 @Injectable()
 export class WebhookService {
   constructor(
     @InjectModel(Customer.name) private readonly customer: Model<Customer>,
     @InjectModel(Wallet.name) private readonly wallet: Model<Wallet>,
+    private readonly paystackService: PaystackService,
+    private readonly transactionService: TransactionService,
   ) {}
 
   private logger = new Logger(WebhookService.name);
@@ -43,5 +47,14 @@ export class WebhookService {
       // send push notification
     }
     console.log({ data });
+  }
+
+  async handlePaystackPaymentNotification(payload: any) {
+    if (payload.event === 'charge.success') {
+      const { data } = payload;
+      await this.transactionService.actionReference({
+        referenceId: data.reference,
+      });
+    }
   }
 }

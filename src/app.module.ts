@@ -21,7 +21,7 @@ import { KycModule } from './kyc/kyc.module';
 import { FlutterwaveModule } from './flutterwave/flutterwave.module';
 import { WebhookModule } from './webhook/webhook.module';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ProviderModule } from './provider/provider.module';
+import { ProvidersModule } from './providers/providers.module';
 import { HttpModule } from '@nestjs/axios';
 import { TransactionModule } from './transaction/transaction.module';
 
@@ -43,7 +43,7 @@ import { TransactionModule } from './transaction/transaction.module';
     KycModule,
     FlutterwaveModule,
     WebhookModule,
-    ProviderModule,
+    ProvidersModule,
     TransactionModule,
   ],
 })

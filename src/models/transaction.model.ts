@@ -16,6 +16,7 @@ export enum TransactionType {
   Withdrawal = 'withdrawal',
   Transfer = 'transfer',
   BillPayment = 'billpayment',
+  Fee = 'fee',
 }
 
 export interface TransactionAttributes {
@@ -31,6 +32,8 @@ export interface TransactionAttributes {
   narration: string;
   status: TransactionStatus;
   meta?: any;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 @Schema({

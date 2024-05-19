@@ -1,6 +1,6 @@
 import { generateRandomChars } from '@common/utils';
 import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ConfigAttributes } from '@src/config';
 
@@ -29,7 +29,7 @@ export class PaystackService {
       !validationResponse.data.status ||
       validationResponse.data.data.status !== 'success'
     ) {
-      throw new Error('Invalid or pending transaction');
+      throw new BadRequestException('Invalid or pending transaction');
     }
 
     return validationResponse.data.data;

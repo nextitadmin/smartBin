@@ -6,6 +6,13 @@ import { SuccessResponse } from '../common/http';
 export class WebhookController {
   constructor(private readonly webhookService: WebhookService) {}
 
+  @Post('/paystack')
+  @HttpCode(200)
+  async handlePaystackWebhook(@Body() body: any) {
+    await this.webhookService.handlePaystackPaymentNotification(body);
+    return new SuccessResponse('Notification received', body);
+  }
+
   @Post('/flutterwave')
   @HttpCode(HttpStatus.OK)
   async flutterwaveHook(@Body() body: any) {

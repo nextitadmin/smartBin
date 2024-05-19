@@ -47,9 +47,7 @@ export class TransactionController {
     @Body() body: { amount: string | number },
   ) {
     const actionTransaction = await this.transactionService.actionReference({
-      customer_id: customer.id,
       referenceId: param.referenceId,
-      amount: Number(body.amount),
     });
 
     return new SuccessResponse('Action on transaction', actionTransaction);
