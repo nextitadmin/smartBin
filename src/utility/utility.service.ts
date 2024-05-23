@@ -29,23 +29,27 @@ export class UtilityService {
   }
 
   async validateBill(payload: ValidateBillAttributes) {
-    const response = await this.providersService.validateUtility({
-      serviceId: 'ibadan-electric',
-      customerId: payload.customerIdentifier,
-    });
-
-    return response;
-    // const response = await this.flutterwaveService.validateCustomerBillDetails({
-    //   // serviceId: 'ibadan-electric',
-    //   billerCode: payload.billCode,
-    //   itemCode: payload.itemCode,
-    //   customer: payload.customerIdentifier,
+    // VTPASS
+    // const response = await this.providersService.validateUtility({
+    //   serviceId: 'ibadan-electric',
+    //   customerId: payload.customerIdentifier,
     // });
 
     // return {
-    //   name: response.Customer_Name,
-    //   accountType: response.Customer_Account_Type,
+    //   ...response
     // };
+
+    // Flutterwave validation
+    const response = await this.flutterwaveService.validateCustomerBillDetails({
+      // serviceId: 'ibadan-electric',
+      billerCode: payload.billCode,
+      itemCode: payload.itemCode,
+      customer: payload.customerIdentifier,
+    });
+    console.log(response);
+    return {
+      Customer_Name: response.name,
+    };
   }
 
   async purchaseBill(payload: PurchaseBillPayload) {

@@ -24,6 +24,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ProvidersModule } from './providers/providers.module';
 import { HttpModule } from '@nestjs/axios';
 import { TransactionModule } from './transaction/transaction.module';
+import { AirtimeDataModule } from './airtime-data/airtime-data.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { TransactionModule } from './transaction/transaction.module';
     WebhookModule,
     ProvidersModule,
     TransactionModule,
+    AirtimeDataModule,
   ],
 })
 export class AppModule {
