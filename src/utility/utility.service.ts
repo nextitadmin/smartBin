@@ -108,7 +108,7 @@ export class UtilityService {
 
     const billResponse = await this.providersService.purchaseUtility({
       customerId: billPayload.customer,
-      serviceId: 'ibadan-electric',
+      serviceId: payload.serviceId,
       amount: billPayload.amount,
       phone: customer.phone,
       reference,
@@ -118,9 +118,17 @@ export class UtilityService {
       // revert money
       await this.walletService.creditWallet({
         customer_id: payload.customer_id,
-        amount: debitAmount,
+        amount: debitAmount + feeAmount,
         field: 'both_balance',
       });
+
+      await this.transactionService.updateTransaction(
+        { reference },
+        {
+          status: TransactionStatus.Failed,
+          meta: billResponse,
+        },
+      );
 
       throw new BadRequestException(
         'Unable to complete bill payment, Please try again!',

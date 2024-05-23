@@ -64,13 +64,14 @@ export class VTPassService {
     amount,
     phone,
     type = 'prepaid',
+    serviceId,
   }: {
     customerId: string;
     reference: string;
     phone: string;
     amount: number;
     type?: 'prepaid';
-    serviceId?: string;
+    serviceId: string;
   }) {
     try {
       const vtpassConfig = this.configService.get('vtpass', {
@@ -78,7 +79,7 @@ export class VTPassService {
       });
       const billPayload = {
         request_id: reference,
-        serviceID: 'ibadan-electric',
+        serviceID: serviceId,
         billersCode: customerId,
         variation_code: type,
         amount,

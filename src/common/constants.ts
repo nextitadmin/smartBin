@@ -3,47 +3,7 @@ export const events = Object.freeze({
   kyc: {
     upgraded: 'kyc.upgraded',
   },
-  // job: {
-  //   dispatched: 'job.dispatched',
-  // },
-  // offer: {
-  //   accepted: 'offer.accepted',
-  //   rejected: 'offer.rejected',
-  // },
-  // loan: {
-  //   disbursed: 'loan.disbursed',
-  // },
-  // disbursement: {
-  //   initiated: 'disbursement.initiated',
-  //   successful: 'disbursement.successful',
-  //   failed: 'disbursement.failed',
-  // },
-  // payment: {
-  //   successful: 'payment.successful',
-  //   settled: 'payment.settled',
-  // },
-  // settlement: {
-  //   initiated: 'settlement.initiated',
-  //   successful: 'settlement.successful',
-  // },
-  // downpayment: {
-  //   successful: 'downpayment.successful',
-  // },
 });
-
-// export const workers = Object.freeze({
-//   dummy: 'dummy',
-//   fetchOffers: 'fetch-offers',
-//   fetchMockLenderOffer: 'fetch-mock-lender-offer',
-//   checkLoanApplication: 'check-loan-application',
-//   paymentStatus: 'payment-status',
-//   processLoanApplication: 'process-loan-application',
-//   valueSplitProcess: 'value-split-process',
-//   monitorDueRepaymentSchedules: 'monitor-due-repayment-schedules',
-//   handleDueRepayment: 'handle-due-repayment',
-// });
-
-// export type WorkerName = (typeof workers)[keyof typeof workers];
 
 export const cacheKeys = {
   otp: (email: string) => `$$LUMEO_OTP_${email}`,
@@ -69,3 +29,90 @@ export enum TransactionNarrations {
 export const UtilityBillServiceCategories = [];
 
 export const REMOVE_EXTRA_CHARS_REGEX = /[^\w\s]/gi;
+
+export const defaultAirtimeProviders = [
+  {
+    label: 'MTN',
+    value: 'mtn',
+  },
+  {
+    label: 'GLO',
+    value: 'mtn',
+  },
+  {
+    label: 'Airtel',
+    value: 'airtel',
+  },
+  {
+    label: '9mobile',
+    value: 'etisalat',
+  },
+];
+
+export const defaultDataProviders = [
+  {
+    label: 'MTN Data',
+    value: 'mtn-data',
+  },
+  {
+    label: 'GLO Data',
+    value: 'glo-data',
+  },
+  {
+    label: 'AIRTEL Data',
+    value: 'airtel-data',
+  },
+  {
+    label: '9MOBILE Data',
+    value: 'etisalat-data',
+  },
+  {
+    label: '9MOBILE SME Data',
+    value: '9mobile-sme-data',
+  },
+  {
+    label: 'SMILE Network',
+    value: 'smile-direct',
+  },
+  {
+    label: 'SPECTRANET',
+    value: 'spectranet',
+  },
+];
+
+export const defaultUtilityCategories = [
+  {
+    label: 'IKEDC Ikeja Electric Prepaid',
+    value: 'ikeja-electric',
+    code: 'BIL113',
+    itemCode: 'UB159',
+  },
+  {
+    label: 'EKEDC Eko Electric Prepaid',
+    value: 'eko-electric',
+    itemCode: 'UB157',
+    code: 'BIL112',
+  },
+  {
+    label: 'IBEDC Ibadan Electric Prepaid',
+    value: 'ibadan-electric',
+    itemCode: 'UB161',
+    code: 'BIL114',
+  },
+  {
+    label: 'KEDCO KANO Electric Prepaid',
+    value: 'kano-electric',
+    itemCode: 'UB169',
+    code: 'BIL120',
+  },
+  // {
+  //   label: 'PHED PortHarcout Electric Prepaid',
+  //   value: 'portharcourt-electric',
+  // },
+  {
+    label: 'AEDC Abuja Electric Prepaid',
+    value: 'abuja-electric',
+    itemCode: 'UB584',
+    code: 'BIL204',
+  },
+];

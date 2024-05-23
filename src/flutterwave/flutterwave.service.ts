@@ -13,6 +13,7 @@ import { generateRandomChars } from '../common/utils';
 import { HttpService } from '@nestjs/axios';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { defaultUtilityCategories } from '@common/constants';
 
 @Injectable()
 export class FlutterwaveService {
@@ -67,21 +68,22 @@ export class FlutterwaveService {
 
   async getBillCategories() {
     try {
-      let bills: Record<string, any>[];
-      bills = JSON.parse(await this.cacheService.get('BILL_CATEGORIES'));
-      if (bills) return this.mapBillerCategories(bills);
+      return defaultUtilityCategories;
+      // let bills: Record<string, any>[];
+      // bills = JSON.parse(await this.cacheService.get('BILL_CATEGORIES'));
+      // if (bills) return this.mapBillerCategories(bills);
 
-      const billCategories =
-        await this.flutterwaveInstance.Bills.fetch_bills_Cat();
+      // const billCategories =
+      //   await this.flutterwaveInstance.Bills.fetch_bills_Cat();
 
-      bills = billCategories.data.filter(
-        (d: { country: string; name: string }) =>
-          d.country === 'NG' && d.name.toLowerCase().includes('prepaid'),
-      );
+      // bills = billCategories.data.filter(
+      //   (d: { country: string; name: string }) =>
+      //     d.country === 'NG' && d.name.toLowerCase().includes('prepaid'),
+      // );
 
-      await this.cacheService.set('BILL_CATEGORIES', JSON.stringify(bills), 0);
+      // await this.cacheService.set('BILL_CATEGORIES', JSON.stringify(bills), 0);
 
-      return this.mapBillerCategories(bills);
+      // return this.mapBillerCategories(bills);
     } catch (error) {
       this.logger.error(error.response.data);
       throw new BadRequestException('Unable to fetch bills at the moment!');

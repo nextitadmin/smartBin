@@ -2,6 +2,7 @@ export interface ValidateBillAttributes {
   itemCode: string;
   billCode: string;
   customerIdentifier: string;
+  serviceId: string;
 }
 
 export interface PurchaseBillPayload extends ValidateBillAttributes {
