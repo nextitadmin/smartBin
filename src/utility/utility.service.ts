@@ -176,13 +176,13 @@ export class UtilityService {
       return {
         customer_name: transaction.meta.CustomerName,
         customer_address: transaction.meta.CustomerAddress,
-        unit: transaction.meta.Units,
+        unit: transaction.meta.Units || transaction.meta.units, // it's being sent as lowercase sometimes
         product_name: transaction.meta.content.transactions.product_name,
         amount: (transaction.amount / 100).toFixed(2),
         status: transaction.status,
         transaction_date: transaction.meta.transaction_date.date,
         customer_id: transaction.meta.content.transactions.unique_element,
-        extra: transaction.meta.Token,
+        extra: transaction.meta.Token || transaction.meta.token,
         fee: 100,
       };
     }
