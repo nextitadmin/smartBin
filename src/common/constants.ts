@@ -3,6 +3,12 @@ export const events = Object.freeze({
   kyc: {
     upgraded: 'kyc.upgraded',
   },
+  verification: {
+    verified: 'verification.verified',
+  },
+  beneficiary: {
+    added: 'beneficiary.added',
+  },
 });
 
 export const cacheKeys = {

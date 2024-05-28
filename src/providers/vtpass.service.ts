@@ -29,11 +29,10 @@ export class VTPassService {
         infer: true,
       });
 
-      console.log({ customerId, serviceId, type });
       const validationResponse = await this.httpService.axiosRef.post(
         `${vtpassConfig.baseUrl}/api/merchant-verify`,
         {
-          billersCode: Number(customerId),
+          billersCode: customerId,
           serviceID: serviceId,
           type,
         },
@@ -44,8 +43,6 @@ export class VTPassService {
           },
         },
       );
-
-      console.log(validationResponse);
 
       if (validationResponse.data.content.error) {
         throw new BadRequestException(validationResponse.data.content.error);

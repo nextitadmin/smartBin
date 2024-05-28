@@ -25,6 +25,7 @@ import { ProvidersModule } from './providers/providers.module';
 import { HttpModule } from '@nestjs/axios';
 import { TransactionModule } from './transaction/transaction.module';
 import { AirtimeDataModule } from './airtime-data/airtime-data.module';
+import { VerificationModule } from './verification/verification.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { AirtimeDataModule } from './airtime-data/airtime-data.module';
     ProvidersModule,
     TransactionModule,
     AirtimeDataModule,
+    VerificationModule,
   ],
 })
 export class AppModule {

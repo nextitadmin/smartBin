@@ -12,16 +12,26 @@ import { TransactionStatus, TransactionType } from '@models/transaction.model';
 import { WalletService } from '@src/wallet/wallet.service';
 import { ProvidersService } from '@src/providers/providers.service';
 import { format } from 'date-fns';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { events } from '@common/constants';
+import {
+  BeneficiaryAddedEvent,
+  VerificationVerifiedEvent,
+} from '@src/verification/dto';
+import { Verification } from '@models/verification.model';
 
 @Injectable()
 export class UtilityService {
   constructor(
+    @InjectModel(Verification.name)
+    private readonly verificationModel: Model<Verification>,
     @InjectModel(Customer.name) private readonly customerModel: Model<Customer>,
     @InjectModel(Wallet.name) private readonly walletModel: Model<Wallet>,
     private readonly providersService: ProvidersService,
     private readonly flutterwaveService: FlutterwaveService,
     private readonly transactionService: TransactionService,
     private readonly walletService: WalletService,
+    private readonly ee: EventEmitter2,
   ) {}
 
   async getBills() {
@@ -30,25 +40,29 @@ export class UtilityService {
 
   async validateBill(payload: ValidateBillAttributes) {
     // VTPASS
-    // const response = await this.providersService.validateUtility({
-    //   serviceId: 'ibadan-electric',
-    //   customerId: payload.customerIdentifier,
-    // });
-
-    // return {
-    //   ...response
-    // };
-
-    // Flutterwave validation
-    const response = await this.flutterwaveService.validateCustomerBillDetails({
-      // serviceId: 'ibadan-electric',
-      billerCode: payload.billCode,
-      itemCode: payload.itemCode,
-      customer: payload.customerIdentifier,
+    const cachedVerification = await this.verificationModel.findOne({
+      identifier: payload.customerIdentifier,
     });
-    console.log(response);
+    if (cachedVerification) {
+      return {
+        ...cachedVerification.data,
+      };
+    }
+    const response = await this.providersService.validateUtility({
+      serviceId: 'ibadan-electric',
+      customerId: payload.customerIdentifier,
+    });
+
+    this.ee.emit(
+      events.verification.verified,
+      new VerificationVerifiedEvent({
+        data: response,
+        identifier: payload.customerIdentifier,
+      }),
+    );
+    const { Customer_Name } = response;
     return {
-      Customer_Name: response.name,
+      Customer_Name,
     };
   }
 
@@ -147,9 +161,15 @@ export class UtilityService {
         meta: billResponse.data.meta,
       },
     );
-    // Create beneficiary
 
-    console.log(billResponse.data);
+    // Create beneficiary
+    this.ee.emit(
+      events.beneficiary.added,
+      new BeneficiaryAddedEvent({
+        identifier: payload.customerIdentifier,
+        customerId: payload.customer_id,
+      }),
+    );
 
     return billResponse.data.reference;
   }
