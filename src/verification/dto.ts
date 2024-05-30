@@ -1,4 +1,7 @@
-import { BeneficiaryAttributes } from '@models/beneficiary.model';
+import {
+  BeneficiaryAttributes,
+  BeneficiaryProductType,
+} from '@models/beneficiary.model';
 import { VerificationAttributes } from '@models/verification.model';
 
 export class VerificationVerifiedEvent {
@@ -10,6 +13,7 @@ export type BeneficiaryAddedEventData = Pick<
   'identifier'
 > & {
   customerId: string;
+  productType: BeneficiaryProductType;
 };
 export class BeneficiaryAddedEvent {
   constructor(public data: BeneficiaryAddedEventData) {}

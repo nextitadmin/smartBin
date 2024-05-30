@@ -3,9 +3,12 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { VerificationService } from './verification.service';
 import { Beneficiary, BeneficiarySchema } from '@models/beneficiary.model';
+import { VerificationController } from './verification.controller';
+import { CustomerModule } from '@src/customer/customer.module';
 
 @Module({
   imports: [
+    CustomerModule,
     MongooseModule.forFeature([
       {
         name: Verification.name,
@@ -18,5 +21,6 @@ import { Beneficiary, BeneficiarySchema } from '@models/beneficiary.model';
     ]),
   ],
   providers: [VerificationService],
+  controllers: [VerificationController],
 })
 export class VerificationModule {}

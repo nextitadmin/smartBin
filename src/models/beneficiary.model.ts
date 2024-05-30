@@ -42,3 +42,10 @@ export class Beneficiary implements BeneficiaryAttributes {
   productType: BeneficiaryProductType;
 }
 export const BeneficiarySchema = SchemaFactory.createForClass(Beneficiary);
+
+BeneficiarySchema.virtual('detail', {
+  localField: 'verificationId',
+  foreignField: '_id',
+  justOne: true,
+  ref: Verification.name,
+});

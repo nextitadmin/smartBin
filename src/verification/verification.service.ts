@@ -5,7 +5,7 @@ import { OnEvent } from '@nestjs/event-emitter';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { BeneficiaryAddedEvent, VerificationVerifiedEvent } from './dto';
-import { Beneficiary } from '@models/beneficiary.model';
+import { Beneficiary, BeneficiaryProductType } from '@models/beneficiary.model';
 
 @Injectable()
 export class VerificationService {
@@ -17,6 +17,26 @@ export class VerificationService {
   ) {}
 
   private logger = new Logger(VerificationService.name);
+
+  async getBeneficiaries({
+    customerId,
+    productType,
+  }: {
+    customerId: string;
+    productType: BeneficiaryProductType;
+  }) {
+    const data = await this.beneficiaryModel
+      .find({ productType, customerId })
+      .populate({ path: 'verificationId', select: '-_id data' });
+
+    return data.map((dt: any) => ({
+      name:
+        dt.verificationId.data.Customer_Name ||
+        dt.verificationId.data.customerName,
+      number: dt.verificationId.data.MeterNumber,
+      address: dt.verificationId.data.Address,
+    }));
+  }
 
   @OnEvent(events.verification.verified)
   async handleVerificationVerified(event: VerificationVerifiedEvent) {
@@ -57,6 +77,7 @@ export class VerificationService {
     await new this.beneficiaryModel({
       customerId: event.data.customerId,
       verificationId: String(verificationId._id),
+      productType: event.data.productType,
     }).save();
   }
 }

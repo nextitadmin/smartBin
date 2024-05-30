@@ -94,8 +94,14 @@ export class VTPassService {
         },
       );
 
+      console.log(validationResponse.data);
+
       return {
-        success: true,
+        success:
+          validationResponse.data?.code === '000' &&
+          (validationResponse.data.content.transactions.status ===
+            'delivered' ||
+            validationResponse.data.content.transactions.status === 'pending'),
         data: validationResponse.data,
       };
     } catch (error) {

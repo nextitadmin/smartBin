@@ -19,6 +19,7 @@ import {
   VerificationVerifiedEvent,
 } from '@src/verification/dto';
 import { Verification } from '@models/verification.model';
+import { BeneficiaryProductType } from '@models/beneficiary.model';
 
 @Injectable()
 export class UtilityService {
@@ -75,18 +76,21 @@ export class UtilityService {
       customer_id: payload.customer_id,
     });
 
-    if (!customerWallet || customerWallet.available_balance < payload.amount) {
+    const feeAmount = 10000; // 15000 is transaction fee and in kobo
+    const transactionAmount = payload.amount + feeAmount;
+    if (
+      !customerWallet ||
+      customerWallet.available_balance < transactionAmount
+    ) {
       throw new BadRequestException('Insufficient funds to complete purchase!');
     }
-    const debitAmount = payload.amount;
 
     // Debit customer wallet
     await this.walletService.debitWallet({
       customer_id: payload.customer_id,
-      amount: debitAmount,
+      amount: transactionAmount,
       field: 'both_balance',
     });
-    const feeAmount = 10000; // 15000 is transaction fee and in kobo
     await this.walletService.debitWallet({
       customer_id: payload.customer_id,
       amount: feeAmount,
@@ -128,11 +132,13 @@ export class UtilityService {
       reference,
     });
 
+    console.log(billResponse);
+
     if (!billResponse.success) {
       // revert money
       await this.walletService.creditWallet({
         customer_id: payload.customer_id,
-        amount: debitAmount + feeAmount,
+        amount: transactionAmount,
         field: 'both_balance',
       });
 
@@ -158,7 +164,12 @@ export class UtilityService {
         status: TransactionStatus.Successful,
         available_balance: wallet.available_balance,
         ledger_balance: wallet.ledger_balance,
-        meta: billResponse.data.meta,
+        meta: {
+          ...billResponse.data.meta,
+          // CustomerName: billResponse.data.meta.CustomerName || billResponse.data.meta.CustomerName,
+          // Token: billResponse.data.meta.Token || billResponse.data.meta.token,
+          // Units: billResponse.data.meta.Units || billResponse.data.meta.units
+        },
       },
     );
 
@@ -168,6 +179,7 @@ export class UtilityService {
       new BeneficiaryAddedEvent({
         identifier: payload.customerIdentifier,
         customerId: payload.customer_id,
+        productType: BeneficiaryProductType.Utility,
       }),
     );
 
@@ -193,18 +205,7 @@ export class UtilityService {
     }
 
     if (transaction.meta !== null) {
-      return {
-        customer_name: transaction.meta.CustomerName,
-        customer_address: transaction.meta.CustomerAddress,
-        unit: transaction.meta.Units || transaction.meta.units, // it's being sent as lowercase sometimes
-        product_name: transaction.meta.content.transactions.product_name,
-        amount: (transaction.amount / 100).toFixed(2),
-        status: transaction.status,
-        transaction_date: transaction.meta.transaction_date.date,
-        customer_id: transaction.meta.content.transactions.unique_element,
-        extra: transaction.meta.Token || transaction.meta.token,
-        fee: 100,
-      };
+      return formatUtilityResponse(transaction);
     }
 
     const tokenResponse = await this.providersService.requeryUtilityPurchase({
@@ -214,17 +215,23 @@ export class UtilityService {
       throw new BadRequestException('Unable to generate bill token!');
     }
 
-    return {
-      customer_name: transaction.meta.CustomerName,
-      customer_address: transaction.meta.CustomerAddress,
-      unit: transaction.meta.Units,
-      product_name: transaction.meta.content.transactions.product_name,
-      amount: transaction.amount.toFixed(2),
-      status: transaction.status,
-      transaction_date: transaction.meta.transaction_date.date,
-      customer_id: transaction.meta.content.transactions.unique_element,
-      extra: transaction.meta.Token,
-      fee: 100,
-    };
+    return formatUtilityResponse(transaction);
   }
 }
+
+const formatToken = (token: string) =>
+  token.includes('Token') ? token.split(':')[1].trim() : token;
+
+const formatUtilityResponse = (transaction: any) => ({
+  customer_name: transaction.meta.CustomerName || transaction.meta.customerName,
+  customer_address:
+    transaction.meta.CustomerAddress || transaction.meta.customerAddress,
+  unit: transaction.meta.Units || transaction.meta.units, // it's being sent as lowercase sometimes
+  product_name: transaction.meta.content.transactions.product_name,
+  amount: (transaction.amount / 100).toFixed(2),
+  status: transaction.status,
+  transaction_date: transaction.meta.transaction_date.date,
+  customer_id: transaction.meta.content.transactions.unique_element,
+  extra: formatToken(transaction.meta.Token || transaction.meta.token),
+  fee: 100,
+});
