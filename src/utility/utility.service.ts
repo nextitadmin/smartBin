@@ -90,7 +90,7 @@ export class UtilityService {
     // Debit customer wallet
     await this.walletService.debitWallet({
       customer_id: payload.customer_id,
-      amount: transactionAmount,
+      amount: payload.amount,
       field: 'both_balance',
     });
     await this.walletService.debitWallet({
@@ -118,7 +118,6 @@ export class UtilityService {
       reference: utilityReference,
     });
 
-    let beneficiary;
     if (payload.beneficiary) {
       const beneficiaryDetails = await this.beneficiaryModel.findById(
         payload.beneficiary,
@@ -219,23 +218,28 @@ export class UtilityService {
       );
     }
 
-    if (transaction.meta !== null) {
+    if (
+      Object.keys(transaction.meta).find((tm) => tm.toLowerCase() === 'token')
+    ) {
       return formatUtilityResponse(transaction);
     }
 
     const tokenResponse = await this.providersService.requeryUtilityPurchase({
       reference,
     });
+
     if (!tokenResponse.success) {
       throw new BadRequestException('Unable to generate bill token!');
     }
 
-    return formatUtilityResponse(transaction);
+    console.log(tokenResponse.data.meta);
+
+    return formatUtilityResponse(tokenResponse.data);
   }
 }
 
 const formatToken = (token: string) =>
-  token.includes('Token') ? token.split(':')[1].trim() : token;
+  token && token.includes('Token') ? token.split(':')[1].trim() : token;
 
 const formatUtilityResponse = (transaction: any) => ({
   customer_name: transaction.meta.CustomerName || transaction.meta.customerName,
@@ -243,10 +247,15 @@ const formatUtilityResponse = (transaction: any) => ({
     transaction.meta.CustomerAddress || transaction.meta.customerAddress,
   unit: transaction.meta.Units || transaction.meta.units, // it's being sent as lowercase sometimes
   product_name: transaction.meta.content.transactions.product_name,
-  amount: (transaction.amount / 100).toFixed(2),
-  status: transaction.status,
+  amount: transaction.meta.amount,
+  // status: transaction.status,
   transaction_date: transaction.meta.transaction_date.date,
   customer_id: transaction.meta.content.transactions.unique_element,
   extra: formatToken(transaction.meta.Token || transaction.meta.token),
   fee: 100,
+  status:
+    transaction.meta.content.transactions.status !== 'pending' &&
+    transaction.meta.content.transactions.status !== 'failed'
+      ? 'successful'
+      : 'pending',
 });
