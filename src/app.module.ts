@@ -26,6 +26,7 @@ import { HttpModule } from '@nestjs/axios';
 import { TransactionModule } from './transaction/transaction.module';
 import { AirtimeDataModule } from './airtime-data/airtime-data.module';
 import { VerificationModule } from './verification/verification.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { VerificationModule } from './verification/verification.module';
     MongooseModule.forRootAsync(mongodbConfigOptions),
     JwtModule.registerAsync(jwtConfigOpts),
     CacheModule.registerAsync(cacheModuleConfigOpts),
+    ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
     HttpModule,
     AuthenticationModule,

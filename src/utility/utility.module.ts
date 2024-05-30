@@ -10,6 +10,7 @@ import { ProvidersModule } from '@src/providers/providers.module';
 import { TransactionModule } from '@src/transaction/transaction.module';
 import { WalletModule } from '@src/wallet/wallet.module';
 import { Verification, VerificationSchema } from '@models/verification.model';
+import { Beneficiary, BeneficiarySchema } from '@models/beneficiary.model';
 
 @Module({
   imports: [
@@ -25,6 +26,10 @@ import { Verification, VerificationSchema } from '@models/verification.model';
       {
         name: Verification.name,
         schema: VerificationSchema,
+      },
+      {
+        name: Beneficiary.name,
+        schema: BeneficiarySchema,
       },
     ]),
     CustomerModule,

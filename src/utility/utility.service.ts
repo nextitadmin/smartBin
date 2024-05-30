@@ -19,7 +19,7 @@ import {
   VerificationVerifiedEvent,
 } from '@src/verification/dto';
 import { Verification } from '@models/verification.model';
-import { BeneficiaryProductType } from '@models/beneficiary.model';
+import { Beneficiary, BeneficiaryProductType } from '@models/beneficiary.model';
 
 @Injectable()
 export class UtilityService {
@@ -28,6 +28,8 @@ export class UtilityService {
     private readonly verificationModel: Model<Verification>,
     @InjectModel(Customer.name) private readonly customerModel: Model<Customer>,
     @InjectModel(Wallet.name) private readonly walletModel: Model<Wallet>,
+    @InjectModel(Beneficiary.name)
+    private readonly beneficiaryModel: Model<Beneficiary>,
     private readonly providersService: ProvidersService,
     private readonly flutterwaveService: FlutterwaveService,
     private readonly transactionService: TransactionService,
@@ -40,7 +42,6 @@ export class UtilityService {
   }
 
   async validateBill(payload: ValidateBillAttributes) {
-    // VTPASS
     const cachedVerification = await this.verificationModel.findOne({
       identifier: payload.customerIdentifier,
     });
@@ -50,7 +51,7 @@ export class UtilityService {
       };
     }
     const response = await this.providersService.validateUtility({
-      serviceId: 'ibadan-electric',
+      serviceId: payload.serviceId,
       customerId: payload.customerIdentifier,
     });
 
@@ -59,6 +60,7 @@ export class UtilityService {
       new VerificationVerifiedEvent({
         data: response,
         identifier: payload.customerIdentifier,
+        serviceId: payload.serviceId,
       }),
     );
     const { Customer_Name } = response;
@@ -116,6 +118,21 @@ export class UtilityService {
       reference: utilityReference,
     });
 
+    let beneficiary;
+    if (payload.beneficiary) {
+      const beneficiaryDetails = await this.beneficiaryModel.findById(
+        payload.beneficiary,
+      );
+      if (!beneficiaryDetails) {
+        throw new BadRequestException('Invalid Beneficiary selected!');
+      }
+
+      const verification = await this.verificationModel.findById(
+        beneficiaryDetails.verificationId,
+      );
+      payload.customerIdentifier = verification.identifier;
+      payload.serviceId = verification.serviceId;
+    }
     const billPayload = {
       customer: payload.customerIdentifier,
       amount: payload.amount / 100,
@@ -131,8 +148,6 @@ export class UtilityService {
       phone: customer.phone,
       reference,
     });
-
-    console.log(billResponse);
 
     if (!billResponse.success) {
       // revert money

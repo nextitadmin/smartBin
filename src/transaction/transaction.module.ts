@@ -7,6 +7,7 @@ import { Wallet, WalletSchema } from '@models/wallet.model';
 import { CustomerModule } from '@src/customer/customer.module';
 import { ProvidersModule } from '@src/providers/providers.module';
 import { WalletModule } from '@src/wallet/wallet.module';
+import { TransactionWorker } from './transaction.worker';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { WalletModule } from '@src/wallet/wallet.module';
       },
     ]),
   ],
-  providers: [TransactionService],
+  providers: [TransactionService, TransactionWorker],
   controllers: [TransactionController],
   exports: [TransactionService],
 })

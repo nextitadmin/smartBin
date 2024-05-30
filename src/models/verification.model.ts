@@ -3,6 +3,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 export interface VerificationAttributes {
   identifier: string;
+  serviceId: string;
   data: any;
 }
 
@@ -17,6 +18,12 @@ export class Verification implements VerificationAttributes {
     type: SchemaTypes.String,
   })
   identifier: string;
+
+  @Prop({
+    required: false,
+    type: SchemaTypes.String,
+  })
+  serviceId: string;
 
   @Prop({
     required: false,

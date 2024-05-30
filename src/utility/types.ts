@@ -8,4 +8,5 @@ export interface ValidateBillAttributes {
 export interface PurchaseBillPayload extends ValidateBillAttributes {
   amount: number;
   customer_id: string;
+  beneficiary: string;
 }

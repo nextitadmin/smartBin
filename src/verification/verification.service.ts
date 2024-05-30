@@ -27,7 +27,7 @@ export class VerificationService {
   }) {
     const data = await this.beneficiaryModel
       .find({ productType, customerId })
-      .populate({ path: 'verificationId', select: '-_id data' });
+      .populate({ path: 'verificationId', select: '_id data' });
 
     return data.map((dt: any) => ({
       name:
@@ -35,6 +35,7 @@ export class VerificationService {
         dt.verificationId.data.customerName,
       number: dt.verificationId.data.MeterNumber,
       address: dt.verificationId.data.Address,
+      id: dt._id,
     }));
   }
 
