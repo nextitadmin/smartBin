@@ -90,7 +90,7 @@ export class TransactionService {
     if (transaction.type === TransactionType.Topup) {
       await this.walletService.creditWallet({
         customer_id: transaction.customer_id,
-        amount: Number(isFromProvider.amount),
+        amount: Number(isFromProvider.amount - 10000),
       });
 
       const walletupdate = await this.walletModel.findById(
