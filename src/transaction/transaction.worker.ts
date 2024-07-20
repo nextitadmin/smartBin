@@ -18,11 +18,11 @@ export class TransactionWorker {
 
   @Cron(CronExpression.EVERY_10_SECONDS)
   async clearAbandonedTransactions() {
-    const onehourago = subHours(new Date(), 1).toISOString();
+    const oneHourAgo = subHours(new Date(), 1).toISOString();
 
     await this.transactionModel.deleteMany({
       status: TransactionStatus.Abandoned,
-      createdAt: { $lte: onehourago },
+      createdAt: { $lte: oneHourAgo },
       type: { $in: [TransactionType.Topup] },
     });
   }

@@ -7,7 +7,7 @@ import { Wallet, WalletStatus } from '../models/wallet.model';
 import { KycUpgradedEvent } from '../kyc/kyc.event';
 import { KycTier } from '../models/kyc.model';
 import { Customer } from '../models/customer.model';
-import { Model } from 'mongoose';
+import { ClientSession, Model } from 'mongoose';
 
 @Injectable()
 export class WalletService {
@@ -100,10 +100,12 @@ export class WalletService {
     customer_id,
     amount,
     field = 'both_balance',
+    session,
   }: {
     customer_id: string;
     field?: 'ledger_balance' | 'available_balance' | 'both_balance';
     amount: number;
+    session?: ClientSession;
   }) {
     const amountToCredit = amount;
     let fieldUpdate: any = {
@@ -128,7 +130,9 @@ export class WalletService {
       };
     }
 
-    return await this.wallet.updateOne({ customer_id }, fieldUpdate);
+    return await this.wallet
+      .updateOne({ customer_id }, fieldUpdate)
+      .session(session);
   }
 
   async debitWallet({

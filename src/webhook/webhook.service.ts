@@ -6,14 +6,21 @@ import { Money } from '../common/utils/money';
 import { Model } from 'mongoose';
 import { PaystackService } from '@src/providers/paystack.service';
 import { TransactionService } from '@src/transaction/transaction.service';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
+import { events } from '@common/constants';
+import { TransactionEvent } from '@src/transaction/dto/transaction.dto';
+import { WebhookRequest } from '@models/webhook-request.model';
 
 @Injectable()
 export class WebhookService {
   constructor(
     @InjectModel(Customer.name) private readonly customer: Model<Customer>,
     @InjectModel(Wallet.name) private readonly wallet: Model<Wallet>,
+    @InjectModel(WebhookRequest.name)
+    private readonly webhookRequest: Model<WebhookRequest>,
     private readonly paystackService: PaystackService,
     private readonly transactionService: TransactionService,
+    private readonly ee: EventEmitter2,
   ) {}
 
   private logger = new Logger(WebhookService.name);
@@ -56,5 +63,36 @@ export class WebhookService {
         referenceId: data.reference,
       });
     }
+  }
+
+  async handleBillPaymentsWebhook(payload: any) {
+    // log
+    this.ee.emit(events.webhook.requestReceived, {
+      url: payload.url,
+      data: payload.data,
+    });
+
+    if (payload.type === 'transaction-update') {
+      // Do transaction update
+      return this.ee.emit(
+        events.transactions.updated,
+        new TransactionEvent({
+          reference: payload.data.requestId,
+          data: payload.data,
+        }),
+      );
+    }
+
+    if (payload.type === 'variations-update') {
+      // TODO: should be handled by the utility service
+    }
+  }
+
+  @OnEvent(events.webhook.requestReceived)
+  async handleWebhookRequest(payload: { url: string; data: any }) {
+    await this.webhookRequest.create({
+      requestedUrl: payload.url,
+      data: payload.data,
+    });
   }
 }

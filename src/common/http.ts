@@ -23,17 +23,11 @@ interface ResponseObject<T = unknown> {
 }
 
 abstract class BaseResponse implements ResponseObject {
-  constructor(
-    public success: boolean,
-    public message: string,
-  ) {}
+  constructor(public success: boolean, public message: string) {}
 }
 
 export class SuccessResponse<T = unknown> extends BaseResponse {
-  constructor(
-    message: string,
-    public data: T,
-  ) {
+  constructor(message: string, public data: T) {
     super(true, message);
   }
 }
@@ -48,10 +42,7 @@ export class PaginatedSuccessResponse<T = unknown> extends SuccessResponse<T> {
 }
 
 export class ErrorResponseObject extends BaseResponse {
-  constructor(
-    public message: string,
-    public errors: Error[] = [],
-  ) {
+  constructor(public message: string, public errors: Error[] = []) {
     super(false, message);
   }
 }

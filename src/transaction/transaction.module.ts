@@ -8,6 +8,7 @@ import { CustomerModule } from '@src/customer/customer.module';
 import { ProvidersModule } from '@src/providers/providers.module';
 import { WalletModule } from '@src/wallet/wallet.module';
 import { TransactionWorker } from './transaction.worker';
+import { Commission, CommissionSchema } from '@models/commission.model';
 
 @Module({
   imports: [
@@ -22,6 +23,10 @@ import { TransactionWorker } from './transaction.worker';
       {
         name: Wallet.name,
         schema: WalletSchema,
+      },
+      {
+        name: Commission.name,
+        schema: CommissionSchema,
       },
     ]),
   ],

@@ -1,4 +1,12 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { WebhookService } from './webhook.service';
 import { SuccessResponse } from '../common/http';
 
@@ -18,5 +26,15 @@ export class WebhookController {
   async flutterwaveHook(@Body() body: any) {
     await this.webhookService.handleFlutterwaveWebhook(body);
     return new SuccessResponse('hook handled', null);
+  }
+
+  @Post('/bill-payments')
+  @HttpCode(HttpStatus.OK)
+  async utilityHook(@Body() body: any, @Res() res: any, @Req() req: any) {
+    await this.webhookService.handleBillPaymentsWebhook({
+      url: req.url,
+      ...body,
+    });
+    return res.json({ response: 'success' });
   }
 }

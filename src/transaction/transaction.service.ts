@@ -1,4 +1,8 @@
-import { SupportedCurrency, TransactionNarrations } from '@common/constants';
+import {
+  events,
+  SupportedCurrency,
+  TransactionNarrations,
+} from '@common/constants';
 import { generateRandomChars } from '@common/utils';
 import {
   Transaction,
@@ -7,17 +11,24 @@ import {
 } from '@models/transaction.model';
 import { Wallet } from '@models/wallet.model';
 import { BadRequestException, Injectable, Logger } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
+import { OnEvent } from '@nestjs/event-emitter';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { PaystackService } from '@src/providers/paystack.service';
 import { WalletService } from '@src/wallet/wallet.service';
-import { Model } from 'mongoose';
+import mongoose, { ClientSession, Model } from 'mongoose';
+import { TransactionEvent } from './dto/transaction.dto';
+import { Commission } from '@models/commission.model';
+import { Money, toSubUnit } from '@common/utils/money';
 
 @Injectable()
 export class TransactionService {
   constructor(
+    @InjectConnection() private readonly dbConnection: mongoose.Connection,
     @InjectModel(Transaction.name)
     private readonly transactionModel: Model<Transaction>,
     @InjectModel(Wallet.name) private readonly walletModel: Model<Transaction>,
+    @InjectModel(Commission.name)
+    private readonly commission: Model<Commission>,
     private readonly paystackService: PaystackService,
     private readonly walletService: WalletService,
   ) {}
@@ -79,15 +90,14 @@ export class TransactionService {
       };
     }
 
-    const isFromProvider = await this.paystackService.verifyTransaction(
-      referenceId,
-    );
-    if (!isFromProvider) {
-      throw new BadRequestException('Invalid transaction');
-    }
-
-    transaction.amount = Number(isFromProvider.amount);
     if (transaction.type === TransactionType.Topup) {
+      const isFromProvider = await this.paystackService.verifyTransaction(
+        referenceId,
+      );
+      if (!isFromProvider) {
+        throw new BadRequestException('Invalid transaction');
+      }
+      transaction.amount = Number(isFromProvider.amount);
       await this.walletService.creditWallet({
         customer_id: transaction.customer_id,
         amount: Number(isFromProvider.amount - 10000),
@@ -107,6 +117,9 @@ export class TransactionService {
         },
       });
     }
+    if (transaction.type === TransactionType.BillPayment) {
+      return this.updateTransaction({ reference: referenceId }, meta);
+    }
   }
 
   async createTransaction({ amount, type, customer_id, narration, reference }) {
@@ -125,8 +138,10 @@ export class TransactionService {
     return this.transactionModel.findOne(query);
   }
 
-  async updateTransaction(query: any, update: any) {
-    return this.transactionModel.findOneAndUpdate(query, update, { new: true });
+  async updateTransaction(query: any, update: any, session?: ClientSession) {
+    return this.transactionModel
+      .findOneAndUpdate(query, update, { new: true })
+      .session(session);
   }
 
   async getCustomerTransactions({ customer_id }) {
@@ -138,5 +153,67 @@ export class TransactionService {
       .sort({
         createdAt: -1,
       });
+  }
+
+  @OnEvent(events.transactions.updated)
+  async handleTransactionUpdated(event: TransactionEvent) {
+    const { reference, data } = event.data;
+    const updatePayload = {
+      meta: data,
+      status: TransactionStatus.Successful,
+    };
+
+    const [transaction, feeTransaction] = await this.transactionModel.find({
+      reference,
+    });
+    if (transaction.status !== TransactionStatus.Pending) {
+      console.log('transaction already processed');
+      return this.logger.log('Transaction already processed');
+    }
+
+    if (data.content.transactions.status === 'reversed') {
+      updatePayload.status = TransactionStatus.Failed;
+    }
+
+    const session = await this.dbConnection.startSession();
+    await session.withTransaction(async () => {
+      try {
+        await this.updateTransaction(
+          { reference, type: TransactionType.BillPayment },
+          updatePayload,
+          session,
+        );
+        if (updatePayload.status === TransactionStatus.Successful) {
+          const commission = toSubUnit(data.content.transactions.commission);
+          await new this.commission({
+            transactionReference: reference,
+            amount: commission,
+          }).save({ session });
+        }
+
+        if (updatePayload.status === TransactionStatus.Failed) {
+          await this.walletService.creditWallet({
+            customer_id: transaction.customer_id,
+            amount: transaction.amount + feeTransaction.amount,
+            field: 'both_balance',
+            session,
+          });
+
+          await this.updateTransaction(
+            { reference, type: TransactionType.Fee },
+            {
+              status: TransactionStatus.Failed,
+            },
+            session,
+          );
+        }
+      } catch (error) {
+        this.logger.error(error);
+        throw error;
+      }
+    });
+    return this.logger.log('Transaction updated event received and processed', {
+      reference,
+    });
   }
 }

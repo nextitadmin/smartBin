@@ -6,7 +6,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Customer } from '@models/customer.model';
 import { Model } from 'mongoose';
 import { Wallet } from '@models/wallet.model';
-import { VTPassService } from '@src/providers/vtpass.service';
 import { TransactionService } from '@src/transaction/transaction.service';
 import { TransactionStatus, TransactionType } from '@models/transaction.model';
 import { WalletService } from '@src/wallet/wallet.service';
@@ -20,6 +19,7 @@ import {
 } from '@src/verification/dto';
 import { Verification } from '@models/verification.model';
 import { Beneficiary, BeneficiaryProductType } from '@models/beneficiary.model';
+import { formatUtilityResponse } from './utils';
 
 @Injectable()
 export class UtilityService {
@@ -218,8 +218,10 @@ export class UtilityService {
       );
     }
 
+    console.log(JSON.stringify(transaction, null, 4));
     if (
-      Object.keys(transaction.meta).find((tm) => tm.toLowerCase() === 'token')
+      transaction.meta.content.transactions.status !== 'pending' &&
+      transaction.meta.content.transactions.status !== 'reversed'
     ) {
       return formatUtilityResponse(transaction);
     }
@@ -232,30 +234,6 @@ export class UtilityService {
       throw new BadRequestException('Unable to generate bill token!');
     }
 
-    console.log(tokenResponse.data.meta);
-
     return formatUtilityResponse(tokenResponse.data);
   }
 }
-
-const formatToken = (token: string) =>
-  token && token.includes('Token') ? token.split(':')[1].trim() : token;
-
-const formatUtilityResponse = (transaction: any) => ({
-  customer_name: transaction.meta.CustomerName || transaction.meta.customerName,
-  customer_address:
-    transaction.meta.CustomerAddress || transaction.meta.customerAddress,
-  unit: transaction.meta.Units || transaction.meta.units, // it's being sent as lowercase sometimes
-  product_name: transaction.meta.content.transactions.product_name,
-  amount: transaction.meta.amount,
-  // status: transaction.status,
-  transaction_date: transaction.meta.transaction_date.date,
-  customer_id: transaction.meta.content.transactions.unique_element,
-  extra: formatToken(transaction.meta.Token || transaction.meta.token),
-  fee: 100,
-  status:
-    transaction.meta.content.transactions.status !== 'pending' &&
-    transaction.meta.content.transactions.status !== 'failed'
-      ? 'successful'
-      : 'pending',
-});

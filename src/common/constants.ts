@@ -9,6 +9,12 @@ export const events = Object.freeze({
   beneficiary: {
     added: 'beneficiary.added',
   },
+  transactions: {
+    updated: 'transaction.updated',
+  },
+  webhook: {
+    requestReceived: 'webhook.request.received',
+  },
 });
 
 export const cacheKeys = {
