@@ -492,7 +492,7 @@ export const utilityPurchaseSuccessfulEmail = ({
                         
                         <table class="body-action" align="left" width="100%" cellpadding="0" cellspacing="0" role="presentation">
                           <tr>
-                            <td align="left"><p>Trasaction ID:</p></td>
+                            <td align="left"><p>Transaction ID:</p></td>
                             <td align="left"><p>${transactionId}</p></td>
                           </tr>
                             <tr>
@@ -502,6 +502,12 @@ export const utilityPurchaseSuccessfulEmail = ({
                             <tr>
                             <td align="left"><p>Unit Value:</p></td>
                             <td align="left"><p>${unitValue}</p></td>
+                          </tr>
+                        </table>
+
+                        <table class="body-action" align="left" width="100%" cellpadding="0" cellspacing="0" role="presentation">
+                          <tr>
+                            <td align="left"><p>Thank you for using Lumeo</p></td>
                           </tr>
                         </table>
                       </div>
