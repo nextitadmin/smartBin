@@ -114,14 +114,11 @@ export class FlutterwaveService {
     itemCode: string;
   }) {
     try {
-      console.log({ itemCode, billerCode, customer });
       const response = await this.flutterwaveInstance.Bills.validate({
         item_code: itemCode,
         code: billerCode,
         customer,
       });
-
-      console.log(response);
 
       return response.data;
     } catch (error) {
@@ -165,15 +162,12 @@ export class FlutterwaveService {
           infer: true,
         },
       );
-      console.log({ reference });
       const response = await this.http.axiosRef.post(
         `https://api.flutterwave.com/v3/billers/${billerCode}/items/${itemCode}/payment`,
         {
           country: 'NG',
           customer_id: customer,
           amount,
-          // customer_id: '0159006370955',
-          // amount: 100,
           reference,
         },
         {

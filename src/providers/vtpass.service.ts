@@ -24,6 +24,7 @@ export class VTPassService {
     serviceId: string;
     type?: 'prepaid';
   }) {
+    console.log({ customerId, serviceId, type });
     try {
       const vtpassConfig = this.configService.get('vtpass', {
         infer: true,
@@ -70,6 +71,7 @@ export class VTPassService {
     type?: 'prepaid';
     serviceId: string;
   }) {
+    console.log({ customerId, reference, amount, type, serviceId });
     try {
       const vtpassConfig = this.configService.get('vtpass', {
         infer: true,
@@ -93,8 +95,6 @@ export class VTPassService {
           },
         },
       );
-
-      console.log(validationResponse.data);
 
       return {
         success:

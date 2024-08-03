@@ -1,3 +1,4 @@
+import { getHashedPassword } from '@common/utils';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Model, SchemaTypes, Types } from 'mongoose';
 

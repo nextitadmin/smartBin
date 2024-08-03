@@ -4,6 +4,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
 } from '@nestjs/common';
 import { BodySchema } from '@common/joi';
@@ -63,5 +64,19 @@ export class CustomerController {
   async getCustomerProfile(@AuthenticatedCustomer() customer: AuthCustomer) {
     const response = await this.customerService.getCustomerProfile(customer.id);
     return new SuccessResponse('profile retrieved successfully!', response);
+  }
+
+  @Patch('/profile')
+  @CustomerAuth()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async updateCustomerProfile(
+    @AuthenticatedCustomer() customer: AuthCustomer,
+    @Body() body: CustomerAttributes,
+  ) {
+    const response = await this.customerService.updateCustomerProfile({
+      ...body,
+      id: customer.id,
+    });
+    return new SuccessResponse('profile updated successfully!', response);
   }
 }

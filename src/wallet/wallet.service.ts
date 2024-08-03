@@ -20,8 +20,6 @@ export class WalletService {
   private logger = new Logger(WalletService.name);
 
   async getCustomerWallets(customer_id: string) {
-    console.log(customer_id);
-    // await this.flutterwaveService.getBillCategories();
     return this.wallet
       .findOne({
         customer_id,
@@ -166,8 +164,6 @@ export class WalletService {
         },
       };
     }
-
-    console.log({ fieldUpdate });
 
     return await this.wallet.updateOne({ customer_id }, fieldUpdate);
   }

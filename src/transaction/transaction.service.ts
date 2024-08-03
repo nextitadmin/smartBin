@@ -167,7 +167,6 @@ export class TransactionService {
       reference,
     });
     if (transaction.status !== TransactionStatus.Pending) {
-      console.log('transaction already processed');
       return this.logger.log('Transaction already processed');
     }
 

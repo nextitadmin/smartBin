@@ -15,6 +15,9 @@ export const events = Object.freeze({
   webhook: {
     requestReceived: 'webhook.request.received',
   },
+  bills: {
+    purchased: 'bills.purchased',
+  },
 });
 
 export const cacheKeys = {
@@ -24,6 +27,7 @@ export const cacheKeys = {
 
 export enum EmailTemplates {
   VerifyOtp = 'verify-otp',
+  ResetPassword = 'reset-password',
 }
 
 export enum SupportedCurrency {

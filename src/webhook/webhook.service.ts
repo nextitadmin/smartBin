@@ -53,7 +53,6 @@ export class WebhookService {
 
       // send push notification
     }
-    console.log({ data });
   }
 
   async handlePaystackPaymentNotification(payload: any) {

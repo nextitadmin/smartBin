@@ -23,7 +23,9 @@ import {
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { Model } from 'mongoose';
-import { AuthenticationService } from '@src/authentication/authentication.service';
+import { resetPasswordEmail } from '@src/emails/reset-passcode';
+import { ConfigService } from '@nestjs/config';
+import { ConfigAttributes } from '@src/config';
 
 @Injectable()
 export class CustomerService {
@@ -32,6 +34,7 @@ export class CustomerService {
     @InjectModel(Customer.name) private customer: Model<Customer>,
     private jwtService: JwtService,
     private ee: EventEmitter2,
+    private configService: ConfigService<ConfigAttributes>,
   ) {}
   private logger = new Logger(CustomerService.name);
 
@@ -125,7 +128,7 @@ export class CustomerService {
   async getCustomerProfile(customerId: string) {
     const customerDetails = await this.customer
       .findById(customerId)
-      .select('first_name last_name email status id');
+      .select('first_name last_name email phone status id');
     return customerDetails;
   }
 
@@ -133,28 +136,50 @@ export class CustomerService {
     id,
     first_name,
     email,
+    isResetPassword,
+    token,
   }: {
-    id: number;
+    id: string;
     first_name: string;
     email: string;
+    isResetPassword?: boolean;
+    token?: string;
   }) {
     const otp_code = generateOtpCode();
-    // Send OTP
-    const emailbody = compileTemplateWithData(EmailTemplates.VerifyOtp, {
-      first_name,
-      otp_code,
+    if (!isResetPassword) {
+      const emailbody = compileTemplateWithData(EmailTemplates.VerifyOtp, {
+        first_name,
+        otp_code,
+      });
+      this.ee.emit(
+        events.sendEmail,
+        new SendEmailEvent({
+          to: email,
+          subject: 'Lumeo OTP Code',
+          html: emailbody,
+        }),
+      );
+      // Set OTP code in cache
+      await this.cacheService.set(cacheKeys.otp(email), otp_code, 60000);
+      return otp_code;
+    }
+    // Send OTP Reset
+    const emailbody = resetPasswordEmail({
+      resetLink: `${this.configService.get('frontendUrl', {
+        infer: true,
+      })}/dashboard/reset-passcode?token=${token}`,
+      firstname: first_name,
     });
     this.ee.emit(
       events.sendEmail,
       new SendEmailEvent({
         to: email,
-        subject: 'Lumeo OTP Code',
+        subject: 'Reset Your Passcode',
         html: emailbody,
       }),
     );
-
-    // Set OTP code in cache
-    await this.cacheService.set(cacheKeys.otp(email), otp_code, 60000);
+    await this.cacheService.set(cacheKeys.otp(email), token, 60000);
+    return otp_code;
   }
 
   async getCustomerDetailsbyToken(token: string) {
@@ -166,5 +191,17 @@ export class CustomerService {
     });
 
     return customerDetails;
+  }
+
+  async updateCustomerProfile(payload: CustomerAttributes) {
+    const customer = await this.customer.findByIdAndUpdate(
+      payload.id,
+      { ...payload },
+      {
+        new: true,
+      },
+    );
+
+    return customer;
   }
 }

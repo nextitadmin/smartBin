@@ -6,7 +6,5 @@ export const mongodbConfigOptions: MongooseModuleAsyncOptions = {
   inject: [ConfigService],
   useFactory: async (configService: ConfigService) => ({
     uri: configService.get<string>('DATABASE_URI'),
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
   }),
 };

@@ -1,7 +1,7 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
 import { FlutterwaveService } from '@src/flutterwave/flutterwave.service';
 import { PurchaseBillPayload, ValidateBillAttributes } from './types';
-import { generateRandomChars } from '@common/utils';
+import { generateRandomChars, parseAmountToNumber } from '@common/utils';
 import { InjectModel } from '@nestjs/mongoose';
 import { Customer } from '@models/customer.model';
 import { Model } from 'mongoose';
@@ -11,7 +11,7 @@ import { TransactionStatus, TransactionType } from '@models/transaction.model';
 import { WalletService } from '@src/wallet/wallet.service';
 import { ProvidersService } from '@src/providers/providers.service';
 import { format } from 'date-fns';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { events } from '@common/constants';
 import {
   BeneficiaryAddedEvent,
@@ -20,6 +20,9 @@ import {
 import { Verification } from '@models/verification.model';
 import { Beneficiary, BeneficiaryProductType } from '@models/beneficiary.model';
 import { formatUtilityResponse } from './utils';
+import { BillPurchasedEvent } from './dto/bill-purchase';
+import { SendEmailEvent } from '@src/notification/dto/event';
+import { utilityPurchaseSuccessfulEmail } from '@src/emails/utility/purchase-successful';
 
 @Injectable()
 export class UtilityService {
@@ -36,6 +39,8 @@ export class UtilityService {
     private readonly walletService: WalletService,
     private readonly ee: EventEmitter2,
   ) {}
+
+  private logger = new Logger(UtilityService.name);
 
   async getBills() {
     return await this.flutterwaveService.getBillCategories();
@@ -180,11 +185,15 @@ export class UtilityService {
         ledger_balance: wallet.ledger_balance,
         meta: {
           ...billResponse.data.meta,
-          // CustomerName: billResponse.data.meta.CustomerName || billResponse.data.meta.CustomerName,
-          // Token: billResponse.data.meta.Token || billResponse.data.meta.token,
-          // Units: billResponse.data.meta.Units || billResponse.data.meta.units
         },
       },
+    );
+
+    this.ee.emit(
+      events.bills.purchased,
+      new BillPurchasedEvent({
+        reference,
+      }),
     );
 
     // Create beneficiary
@@ -218,7 +227,6 @@ export class UtilityService {
       );
     }
 
-    console.log(JSON.stringify(transaction, null, 4));
     if (
       transaction.meta.content.transactions.status !== 'pending' &&
       transaction.meta.content.transactions.status !== 'reversed'
@@ -235,5 +243,47 @@ export class UtilityService {
     }
 
     return formatUtilityResponse(tokenResponse.data);
+  }
+
+  @OnEvent(events.bills.purchased)
+  async onBillPurchased(event: BillPurchasedEvent) {
+    const { reference } = event.data;
+    const transaction = await this.transactionService.getTransaction({
+      reference,
+    });
+
+    if (!transaction) {
+      throw new BadRequestException(
+        'Unable to generate bill token! Please contact support!',
+      );
+    }
+
+    if (
+      transaction.meta.content.transactions.status == 'pending' ||
+      transaction.meta.content.transactions.status == 'reversed'
+    ) {
+      return this.logger.warn('Payment not successful');
+    }
+
+    const customer = await this.customerModel.findById(transaction.customer_id);
+
+    const transactionMeta = formatUtilityResponse(transaction);
+    // Send email
+    const emailPayload = {
+      amount: parseAmountToNumber(transactionMeta.amount),
+      transactionId: transaction.reference,
+      token: transactionMeta.extra,
+      unitValue: transactionMeta.unit,
+      firstname: customer.first_name,
+    };
+
+    this.ee.emit(
+      events.sendEmail,
+      new SendEmailEvent({
+        to: customer.email,
+        subject: 'Token Purchase Successful 🎉',
+        html: utilityPurchaseSuccessfulEmail(emailPayload),
+      }),
+    );
   }
 }

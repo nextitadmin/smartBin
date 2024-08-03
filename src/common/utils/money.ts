@@ -24,7 +24,6 @@ export const setMoney = <M extends Model>(
   amount: Money,
 ) => {
   if (Number.isNaN(amount)) return;
-  console.log({ amount });
   model.setDataValue(field, amount.getAmount());
 };
 

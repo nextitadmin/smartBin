@@ -41,6 +41,7 @@ export interface ConfigAttributes {
     publicKey: string;
     secretKey: string;
   };
+  frontendUrl: string;
 }
 
 const config = (): ConfigAttributes => ({
@@ -83,6 +84,7 @@ const config = (): ConfigAttributes => ({
     secretKey: process.env.PAYSTACK_SEC_KEY,
     baseUrl: process.env.PAYSTACK_BASE_URL,
   },
+  frontendUrl: process.env.FRONTEND_URL,
 });
 
 const schema = Joi.object<Record<string, string>>({
@@ -116,6 +118,8 @@ const schema = Joi.object<Record<string, string>>({
   PAYSTACK_PUB_KEY: Joi.string().required(),
   PAYSTACK_SEC_KEY: Joi.string().required(),
   PAYSTACK_BASE_URL: Joi.string().required(),
+
+  FRONTEND_URL: Joi.string().required(),
 });
 
 export const configModuleOpts: ConfigModuleOptions = {

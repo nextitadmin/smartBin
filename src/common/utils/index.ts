@@ -1,7 +1,7 @@
 import * as crypto from 'crypto';
 import { customAlphabet, nanoid } from 'nanoid';
 import * as bcrypt from 'bcrypt';
-import { readFileSync } from 'fs';
+import { access, readFileSync } from 'fs';
 import { join } from 'path';
 import * as nunjucks from 'nunjucks';
 import { CustomerAttributes } from '../../models/customer.model';
@@ -53,7 +53,7 @@ export const getHashedPassword = (password: string) => {
 };
 
 export const getCustomerToken = (
-  customer: CustomerAttributes,
+  customer: Partial<CustomerAttributes> & { accessType?: string },
   jwtService: JwtService,
 ) => {
   const payload = {
@@ -62,6 +62,7 @@ export const getCustomerToken = (
       id: String(customer._id),
       tag: customer.tag,
       status: customer.status,
+      ...(customer.accessType && { accessType: customer.accessType }),
     },
   };
   return jwtService.sign(payload);
@@ -78,4 +79,8 @@ export const compileTemplateWithData = (templateName: string, data: any) => {
 
   const compiledData = nunjucks.renderString(templateString, data);
   return compiledData;
+};
+
+export const parseAmountToNumber = (amount: string) => {
+  return Number(amount.replace(/[^0-9.-]+/g, ''));
 };
