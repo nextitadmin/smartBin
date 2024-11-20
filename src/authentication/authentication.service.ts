@@ -35,6 +35,7 @@ export class AuthenticationService {
   private logger = new Logger(AuthenticationService.name);
 
   async login({ email, passcode }: { email: string; passcode: string }) {
+    throw new BadRequestException('Service is currently under maintenance. Please check back later.')
     // Validate user
     const customer = await this.customerModel.findOne({
       email,
