@@ -1,6 +1,6 @@
 import express from 'express';
 import cookieSession from 'cookie-session';
-import connectDB from './config/conn.js';
+import connectDB from './src/config/conn.js';
 import cors from 'cors';
 import flash from 'connect-flash';
 const app = express();
