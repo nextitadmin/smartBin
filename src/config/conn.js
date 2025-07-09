@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 dotenv.config()
 
 const isProduction = process.env.NODE_ENV === 'production'
-const dbUri = isProduction ? process.env.DB_URI : process.env.DB_URI_LOCAL
+const dbUri = isProduction ? process.env.DB_URI : process.env.DB_URI
 
 const connectDB = async () => {
     mongoose.set('strictQuery', true)
