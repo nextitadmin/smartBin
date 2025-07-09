@@ -4,6 +4,8 @@ import connectDB from './src/config/conn.js';
 import cors from 'cors';
 import flash from 'connect-flash';
 const app = express();
+import  payerRoute from './src/routes/payer.js'
+import residentRoute from './src/routes/resident.js'
 const PORT = process.env.PORT || 5000;
 
 //DBConn
@@ -25,6 +27,11 @@ app.use(cookieSession({
         secure: true
     }
 }))
+
+
+// Routes
+app.use ('/api/payers',payerRoute)
+app.use ('/api/resident',residentRoute)
 
 // Default route
 app.get('/', (req, res) => {
