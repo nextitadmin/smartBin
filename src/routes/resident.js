@@ -1,5 +1,5 @@
 import express from 'express';
-import { registerResident,login,requestPasswordReset,resetPassword } from '../controllers/resident.js'
+import { registerResident,login,requestPasswordReset,resetPassword } from '../controllers/auth/resident.js'
 
 const router = express.Router();
 
