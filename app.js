@@ -5,6 +5,7 @@ import cors from 'cors';
 import flash from 'connect-flash';
 const app = express();
 import  payerRoute from './src/routes/payer.js'
+import agentRoute from './src/routes/agent.js';
 import residentRoute from './src/routes/resident.js'
 import facilityRoute from './src/routes/facility.manager.js';
 const PORT = process.env.PORT || 5000;
@@ -22,8 +23,7 @@ app.use(cookieSession({
     secret: 'secret',
     saveUninitialized: true,
     resave: true,
-    // Cookie Options
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours,
+    maxAge: 24 * 60 * 60 * 1000,
     cookie: {
         secure: true
     }
@@ -32,6 +32,7 @@ app.use(cookieSession({
 
 // Routes
 app.use ('/api/payers',payerRoute)
+app.use ('/api/agent',agentRoute)
 app.use ('/api/resident',residentRoute)
 app.use ('/api/facility', facilityRoute);
 

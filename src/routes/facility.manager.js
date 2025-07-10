@@ -1,5 +1,5 @@
+import { regManager, loginManager } from '../controllers/auth/facility.manager.js';
 import express from 'express';
-import {regManager, loginManager}  from '../../controllers/auth/facility.manager.js';
 
 const router = express.Router();
 router.post('/register', regManager);
