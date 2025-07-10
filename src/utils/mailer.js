@@ -26,20 +26,21 @@ const loadTemplate = (filename) => {
         user:process.env.MAIL_USERNAME,
         pass:process.env.MAIL_PASSWORD,
     },
-    logger: true, 
-    debug: true 
+    logger: process.env.NODE_ENV !== 'production',
+    debug: process.env.NODE_ENV !== 'production'
 });
 
 
 
 export async function sendPayerIdEmail(email, firstName, payerId) {
-  const template =loadTemplate('payer.html');
-  let html = populateTemplate(templatePath,{ 
+  const template = await loadTemplate('payer.html');
+  let html = populateTemplate(template,{ 
     firstName, payerId
   });
+  console.log(html)
 
   const mailOptions = {
-    from: `"LAWMA KYC" <${process.env.MAIL_USER}>`,
+    from: `"LAWMA KYC" <${process.env.MAIL_USERNAME}>`,
     to:email,
     subject: 'Your LAWMA Payer ID',
     html,
@@ -54,13 +55,13 @@ export async function sendPayerIdEmail(email, firstName, payerId) {
 }
 
 
-export  async function sendConfirmationMail (email, name){
-    const template = loadTemplate('welcome.html');
+export  async function sendConfirmationMail (email, firstName){
+    const template = await loadTemplate('welcome.html');
     const html =populateTemplate(template, {
-        name,
+      firstName
     })
     const mailOptions = {
-        from:process.env.EMAIL_FROM, 
+        from: `"LAWMA REG" <${process.env.MAIL_USERNAME}>`,
         to:email,
         subject:"Registration Successful",
         html:html,
@@ -76,14 +77,14 @@ export  async function sendConfirmationMail (email, name){
 }
 
 
-export  async function  sendResetEmail (email,name, resetToken)  {
-  const template = loadTemplate('forgotpassword.html');
+export  async function  sendResetEmail (email,firstName, resetToken)  {
+  const template = await loadTemplate('forgotpassword.html');
   const html = populateTemplate(template,{
-    name,
+    firstName,
     resetPasswordLink : `https://smartbin.com.ng/reset-password?token=${resetToken}`
   })
   const mailOptions = {
-    from:process.env.EMAIL_FROM,
+    from: `"LAWMA KYC" <${process.env.MAIL_USERNAME}>`,
         to:email,
     subject: "Password Reset Request",
     html: html,
