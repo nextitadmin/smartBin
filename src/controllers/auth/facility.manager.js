@@ -7,7 +7,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 
 export async function regManager(req, res) {
-  const { payerId, password, confirmPassword} = req.body;
+  const { payerId, password, organizationName, confirmPassword} = req.body;
   try {
     if (password !== confirmPassword) {
       return res.status(400).json({ message: 'Password and confirm password do not match' });
@@ -23,6 +23,7 @@ export async function regManager(req, res) {
     const hashedPassword = await bcrypt.hash(password, 10); 
     const newManager = await Facility.create({
       payerId,
+      organizationName,
       firstName: payer.firstName,
       lastName: payer.lastName,
       email: payer.email,
@@ -37,6 +38,7 @@ export async function regManager(req, res) {
         payerId: newManager.payerId,
         fullName: `${newManager.firstName} ${newManager.lastName}`,
         email: newManager.email,
+        organizationName: newManager.organizationName,
         phoneNumber: newManager.phoneNumber
       }
     });
@@ -72,7 +74,7 @@ export async function loginManager(req, res) {
     return res.status(200).json({
       message: 'Login successful',
       token,
-      manager: {
+      facilityManager: {
         id: manager._id,
         payerId: manager.payerId,
         fullName: `${manager.firstName} ${manager.lastName}`,
