@@ -2,8 +2,7 @@ import bcrypt from 'bcryptjs';
 import Resident from '../../models/resident.js';
 import Payer from '../../models/payer.js';
 import jwt from 'jsonwebtoken';
-import crypto from 'crypto';
-import {sendResetEmail, sendConfirmationMail} from '../../utils/mailer.js';
+import {sendResetEmail, sendConfirmationMail, sendLoginCodeEmail} from '../../utils/mailer.js';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -147,6 +146,48 @@ export async function verifyLoginCode(req, res) {
 }
 
 
+// update profile picture
+export async function updateProfilePicture(req, res) {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded.' });
+    }
+
+    const resident = await Resident.findById(req.user.id);
+    if (!resident) {
+      return res.status(404).json({ message: 'Resident not found' });
+    }
+
+    resident.profilePicture = req.file.path;
+    await resident.save();
+
+    return res.status(200).json({ message: 'Profile picture updated successfully', profilePicture: resident.profilePicture });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error updating profile picture', error: error.message });
+  }
+}
+
+
+
+
+// get profile for onboarding
+export async function getResidentProfile(req, res) {
+  try {
+  
+    const resident = await Resident.findById(req.user.id).select('firstName lastName profilePicture');
+
+    if (!resident) {
+      return res.status(404).json({ message: 'Resident not found' });
+    }
+ const defaultAvatar = 'https://res.cloudinary.com/demo/image/upload/avatar.png';
+    return res.status(200).json({ fullName: `${resident.firstName} ${resident.lastName}`, profilePicture: resident.profilePicture || defaultAvatar  });
+  } catch (error){
+      return res.status(500).json({ error: error.message });
+  }
+}
+
+
+
 // request reset
 export async function requestPasswordReset (req, res) {
   try {
@@ -183,58 +224,63 @@ export async function requestPasswordReset (req, res) {
 // verify resetcode
 export async function verifyPasswordResetCode(req, res) {
   try {
-    const { email, resetCode } = req.body;
-
-    if (!email || !resetCode) {
-      return res.status(400).json({ message: 'Email and reset code are required.' });
+    const { resetCode } = req.body;
+    if (!resetCode) {
+      return res.status(400).json({ message: 'Please input reset code' });
     }
-
     const resident = await Resident.findOne({
-      email,
       resetToken: resetCode,
       resetTokenExpiry: { $gt: Date.now() }
     });
 
     if (!resident) {
-      return res.status(400).json({ message: 'Invalid email or reset code, or the code has expired.' });
+      return res.status(400).json({ message: 'Invalid reset code, or the code has expired.' });
     }
-
     req.session.passwordResetUserId = resident._id;
-    req.session.passwordResetUserType = 'resident';
-
+  
     return res.status(200).json({ message: 'Code verified successfully. You can now set a new password.' });
   } catch (error) {
     console.error('Error in verifyPasswordResetCode (resident):', error);
+    return res.status(500).json({ message: 'Error verifying reset code', error: error.message });
   } 
 }
 
 // Reset password
 export async function  resetPassword(req, res) {
-try {
-  const { token } = req.params;
-  const { newPassword, confirmPassword } = req.body;
+    try {
+        const { newPassword, confirmPassword } = req.body;
+        const userId = req.session.passwordResetUserId;
+        const userType = req.session.passwordResetUserType;
 
-  if (!newPassword || newPassword !== confirmPassword) {
-    return res.status(400).json({ message: 'Passwords do not match or are not provided.' });
-  }
+        if (!userId || userType !== 'resident') {
+            return res.status(401).json({ message: 'Password reset not authorized or session expired. Please verify your reset code first.' });
+        }
 
+        if (!newPassword || newPassword !== confirmPassword || newPassword.length < 6) {
+            return res.status(400).json({ message: 'Passwords do not match or are less than 6 characters.' });
+        }
 
-  if (newPassword.length < 6) {
-    return res.status(400).json({ message: 'Password must be at least 6 characters long.' });
-  }
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-  const resident = await Resident.findOne({ resetToken: token, resetTokenExpiry: { $gt: Date.now() } });
-  if (!resident) {
-    return res.status(400).json({ message: 'Invalid or expired token' });
-  }
-  const hashedPassword = await bcrypt.hash(newPassword, 10);
-  resident.password = hashedPassword;
-  resident.resetToken = null;
-  resident.resetTokenExpiry = null;
-  await resident.save();
+        await Resident.updateOne({ _id: userId }, { $set: { password: hashedPassword, resetToken: null, resetTokenExpiry: null } });
 
-  return res.status(200).json({ message: 'Password reset successful' });
-} catch (error) {
-  return res.status(500).json({ error: error.message });
+        req.session.passwordResetUserId = null;
+        req.session.passwordResetUserType = null;
+
+        return res.status(200).json({ message: 'Password has been reset successfully.' });
+    } catch (error) {
+        console.error('Error in resetPassword (resident):', error);
+        return res.status(500).json({ message: 'Error resetting password', error: error.message });
+    }
 }
+
+
+// logout
+export async function logout(req, res) {
+  try {
+    req.session = null;
+    return res.status(200).json({ message: 'Logged out successfully' });
+  } catch (error) {
+    return res.status(500).json({ message: 'Error logging out', error: error.message });
+  }
 }
