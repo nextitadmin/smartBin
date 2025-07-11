@@ -1,6 +1,6 @@
 import express from 'express';
 const router = express.Router();
-import   {createPayer,getPayer}  from '../controllers/payer.js';
+import   {createPayer,getPayer}  from '../controllers/auth/payer.js';
 
 // POST /api/payers
 router.post('/create', createPayer);

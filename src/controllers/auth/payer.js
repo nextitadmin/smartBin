@@ -1,5 +1,5 @@
-import Payer from '../models/payer.js';
-import { sendPayerIdEmail } from '../utils/mailer.js';
+import Payer from '../../models/payer.js';
+import { sendPayerIdEmail } from '../../utils/mailer.js';
 
 
  export async function createPayer(req, res) {
@@ -55,4 +55,3 @@ export async function  getPayer(req, res) {
 };
 
 
-// export default createPayer, getPayer

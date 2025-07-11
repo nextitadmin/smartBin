@@ -34,6 +34,10 @@ const residentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+    loginCode: String,
+  loginCodeExpiry: Date,
+    resetToken: String,
+  resetTokenExpiry: Date
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
