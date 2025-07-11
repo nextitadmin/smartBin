@@ -8,6 +8,7 @@ import  payerRoute from './src/routes/payer.js'
 import agentRoute from './src/routes/agent.js';
 import residentRoute from './src/routes/resident.js'
 import facilityRoute from './src/routes/facility.manager.js';
+import corporateRoutes from './src/routes/corporate.js';
 const PORT = process.env.PORT || 5000;
 
 //DBConn
@@ -35,6 +36,7 @@ app.use ('/api/payers',payerRoute)
 app.use ('/api/agent',agentRoute)
 app.use ('/api/resident',residentRoute)
 app.use ('/api/facility', facilityRoute);
+app.use ('/api/corporate', corporateRoutes);
 
 // Default route
 app.get('/', (req, res) => {
