@@ -1,11 +1,12 @@
-import bcrypt from 'bcryptjs';
 import Facility from '../../models/facility.manager.js';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import Payer from '../../models/payer.js';
-import jwt from 'jsonwebtoken'
-
+import { sendConfirmationMail, sendResetEmail, sendLoginCodeEmail } from '../../utils/mailer.js';
 const JWT_SECRET = process.env.JWT_SECRET;
 
-
+const codes = {}; 
+// Registration
 export async function regManager(req, res) {
   const { payerId, password, organizationName, confirmPassword} = req.body;
   try {
@@ -31,6 +32,9 @@ export async function regManager(req, res) {
       password: hashedPassword
     });
 
+    // Send confirmation email
+    await sendConfirmationMail(payer.email);
+
     return res.status(201).json({
       message: 'Facility manager registered successfully',
       manager: {
@@ -51,41 +55,106 @@ export async function regManager(req, res) {
   }
 }
 
+// Login & send code
 export async function loginManager(req, res) {
   const { email, password } = req.body;
   try {
-    const manager = await Facility.findOne({ email });
-    if (!manager) {
-      return res.status(404).json({ message: 'Facility manager not found' });
-    }
-    const isValid = await bcrypt.compare(password, manager.password);
-    if (!isValid) {
-      return res.status(401).json({ message: 'Invalid email or password' });
-    }
-    const token = jwt.sign(
-      {
-        id: manager._id,
-        payerId: manager.payerId,
-        email: manager.email
-      },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
-    return res.status(200).json({
-      message: 'Login successful',
-      token,
-      facilityManager: {
-        id: manager._id,
-        payerId: manager.payerId,
-        fullName: `${manager.firstName} ${manager.lastName}`,
-        email: manager.email,
-        phoneNumber: manager.phoneNumber
-      }
-    })
-  } catch (error) { 
-    return res.status(500).json({
-      message: 'Error logging in facility manager',
-      error: error.message
-    });
+    const user = await Facility.findOne({ email });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
+
+    // Generate login code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires = Date.now() + 10 * 60 * 1000; // 10 min expiry
+
+    // Store code
+    user.loginCode = code;
+    user.loginCodeExpires = expires;
+    await user.save();
+
+    // Send code to email
+    await sendLoginCodeEmail(email, code);
+
+    res.json({ message: 'Login code sent to email.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
+}
+
+// Verify login code
+export async function verifyLogin(req, res) {
+  try {
+    const { email, code } = req.body;
+    const user = await Facility.findOne({ email });
+    if (
+      !user ||
+      user.loginCode !== code ||
+      !user.loginCodeExpires ||
+      Date.now() > user.loginCodeExpires
+    ) {
+      return res.status(400).json({ error: 'Invalid or expired code' });
+    }
+
+    // Clear code after use
+    user.loginCode = undefined;
+    user.loginCodeExpires = undefined;
+    await user.save();
+
+    // Generate JWT
+    const token = jwt.sign({ id: user._id }, JWT_SECRET, { expiresIn: '1h' });
+
+    res.json({ message: 'Login successful', token, redirect: '/dashboard' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+// Request password reset
+export async function requestPasswordReset(req, res) {
+  try {
+    const { email } = req.body;
+    const user = await Facility.findOne({ email });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const token = Math.random().toString(36).substring(2, 15);
+    codes[email] = { token, expires: Date.now() + 15 * 60 * 1000 }; // 15 min expiry
+
+    await sendResetEmail(email, token);
+
+    res.json({ message: 'Password reset token sent to email.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+// Reset password
+export async function resetPassword(req, res) {
+  try {
+    const { email, token, newPassword } = req.body;
+    const record = codes[email];
+    if (!record || record.token !== token || Date.now() > record.expires) {
+      return res.status(400).json({ error: 'Invalid or expired token' });
+    }
+    delete codes[email];
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await Facility.updateOne({ email }, { password: hashedPassword });
+
+    await mailer({
+      to: email,
+      subject: 'Password Reset Successful',
+      text: 'Your password has been reset successfully.'
+    });
+
+    res.json({ message: 'Password reset successful. Confirmation email sent.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+// Logout (for JWT, just delete token on client)
+export function logoutManager(req, res) {
+  res.json({ message: 'Logged out successfully.' });
 }

@@ -33,6 +33,22 @@ const facilityManagerSchema = new mongoose.Schema({
     type: String, 
     required: true 
 },
+  loginCode: {
+    type: String,
+    default: null
+  },
+  loginCodeExpires: {
+    type: Date,
+    default: null
+  },
+  resetToken: {
+    type: String,
+    default: null
+  },
+  resetTokenExpires: {
+    type: Date,
+    default: null
+  }
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
