@@ -25,10 +25,8 @@ const facilityManagerSchema = new mongoose.Schema({
     lowercase: true,
     unique: true,
 },
-  phoneNumber: { 
-    type: String, 
-    required: true
- },
+  profilePicture: String,
+  phoneNumber:String,
   password: { 
     type: String, 
     required: true 

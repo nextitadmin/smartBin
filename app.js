@@ -10,8 +10,6 @@ import residentRoute from './src/routes/resident.js'
 import facilityRoute from './src/routes/facility.manager.js';
 const PORT = process.env.PORT || 5000;
 
-//DBConn
-connectDB();
 
 // Middleware
 app.use(express.urlencoded({extended: true}))
@@ -57,7 +55,14 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// Start server
-app.listen(process.env.PORT || PORT, () => {
-    console.log(`serving on http://localhost:${PORT}`)
-})
+
+// Start server and connect to the database
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server is running on http://localhost:${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.log('Invalid database connection...', error);
+  });

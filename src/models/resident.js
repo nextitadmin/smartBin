@@ -13,6 +13,7 @@ const residentSchema = new mongoose.Schema({
     lowercase: true,
     unique: true,
   },
+   profilePicture: String,
   phoneNumber: {
     type: String,
   },

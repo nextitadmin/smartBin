@@ -79,7 +79,7 @@ export  async function sendConfirmationMail (email, firstName){
 
 // for forgot password
 export  async function  sendResetEmail (email,firstName, resetCode)  {
-  const template = await loadTemplate('resetcode.html');
+  const template = await loadTemplate('forgotPassword.html');
   const html = populateTemplate(template,{
     firstName,
     resetCode

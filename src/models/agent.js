@@ -72,7 +72,8 @@ const agentSchema = new mongoose.Schema({
   resetToken: String,
   resetTokenExpiry: Date,
   loginCode: String,
-  loginCodeExpiry: Date
+  loginCodeExpiry: Date,
+  profilePicture: String
 }, {
   timestamps: true,
   toJSON: { virtuals: true },
