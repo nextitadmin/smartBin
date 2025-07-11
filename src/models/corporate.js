@@ -33,6 +33,10 @@ const corporateSchema = new mongoose.Schema ({
         type: String,
         required: true,
     },
+    loginCode: String,
+    loginCodeExpires: Date,
+    resetToken: String,
+    resetTokenExpires: Date,
 }, {
     timestamps: true,
     toJSON: { virtuals: true },
