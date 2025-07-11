@@ -7,7 +7,6 @@ const app = express();
 import  payerRoute from './src/routes/payer.js'
 import residentRoute from './src/routes/resident.js'
 import facilityRoute from './src/routes/facility.manager.js';
-import corporateRoutes from './src/routes/corporate.js';
 const PORT = process.env.PORT || 5000;
 
 //DBConn
@@ -35,7 +34,6 @@ app.use(cookieSession({
 app.use ('/api/payers',payerRoute)
 app.use ('/api/resident',residentRoute)
 app.use ('/api/facility', facilityRoute);
-app.use ('/api/corporate', corporateRoutes);
 
 // Default route
 app.get('/', (req, res) => {
