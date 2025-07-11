@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const corporateSchema = new mongoose.Schema ({
     payerId:{
         type: String,
-        required: true,
+        required: trrue,
         unique: true,
     },
     businessName:{
@@ -33,10 +33,6 @@ const corporateSchema = new mongoose.Schema ({
         type: String,
         required: true,
     },
-    loginCode: { type: String },
-    loginCodeExpires: { type: Date },
-    resetPasswordToken: { type: String },
-    resetPasswordExpires: { type: Date },
 }, {
     timestamps: true,
     toJSON: { virtuals: true },
