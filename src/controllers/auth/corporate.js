@@ -9,7 +9,7 @@ import { sendConfirmationMail, sendResetEmail, sendLoginCodeEmail } from '../../
 
 // Registration
 export async function regCorporate(req, res) {
-  const { payerId, businessName, password, confirmPassword } = req.body;
+  const { payerId, businessName, password, phoneNumber, confirmPassword } = req.body;
   try {
     if (password !== confirmPassword) {
       return res.status(400).json({ message: 'Password and confirm password do not match' });
@@ -25,15 +25,15 @@ export async function regCorporate(req, res) {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newCorporate = await Corporate.create({
       payerId,
+      phoneNumber,
       businessName,
       firstName: payer.firstName,
       lastName: payer.lastName,
       email: payer.email,
-      phoneNumber: payer.phoneNumber,
       password: hashedPassword
     });
-   await sendConfirmationMail(newCorporate.email, newCorporate.firstName);
 
+    await sendConfirmationMail(newCorporate.email, newCorporate.firstName);
     return res.status(201).json({
       message: 'business registered successfully, confirmation email sent',
       corporate: {
@@ -59,23 +59,26 @@ export async function regCorporate(req, res) {
 export async function  loginCorporate(req, res) {
   const { email, password } = req.body;
   try {
-    const user = await Corporate.findOne({ email });
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    const business = await Corporate.findOne({ email });
+    if (!business) return res.status(404).json({ error: 'business not found' });
 
-    const valid = await bcrypt.compare(password, user.password);
+    const valid = await bcrypt.compare(password, business.password);
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
 
   
     const code = Math.floor(10000 + Math.random() * 90000).toString();
     const expires = Date.now() + 10 * 60 * 1000;
 
-    user.loginCode = code;
-    user.loginCodeExpires = expires;
-    await user.save();
+    business.loginCode = code;
+    business.loginCodeExpires = expires;
+    await business.save();
 
-    req.session.loginVerificationUserId = user._id;
-    await sendLoginCodeEmail(user.email,user.firstName, code);
-    res.json({ message: 'Login code sent to email.' });
+    req.session.loginVerificationUserId = business._id;
+    await sendLoginCodeEmail(business.email, business.firstName, code);
+    res.json({ 
+      message: 'A verification code has been sent to your email.',
+      email: business.email
+     });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -97,33 +100,33 @@ export async function verifyLogin(req, res) {
       return res.status(401).json({ message: 'No login attempt in progress or session expired. Please try logging in again.' });
     }
 
-    const user= await Corporate.findOne({
+    const business = await Corporate.findOne({
       _id: userId,
       loginCode,
       loginCodeExpires: { $gt: Date.now() }
     });
 
-    if (!user) {
+    if (!business) {
       return res.status(400).json({ message: 'Invalid or expired login code.' });
     }
 
     req.session.loginVerificationUserId = null;
-    user.loginCode = undefined;
-    user.loginCodeExpires= undefined;
-    await user.save();
+    business.loginCode = undefined;
+    business.loginCodeExpires= undefined;
+    await business.save();
 
     const token = jwt.sign(
-      { id: user._id, payerId:user.payerId, email: user.email, role: 'corporate' },
+      { id: business._id, payerId: business.payerId, email: business.email, role: 'corporate business' },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
 
-    const userResponse = { ...user.toObject() };
-    delete userResponse.password;
-    delete userResponse.loginCode;
-    delete userResponse.loginCodeExpires;
+    const businessResponse = { ...business.toObject() };
+    delete businessResponse.password;
+    delete businessResponse.loginCode;
+    delete businessResponse.loginCodeExpires;
 
-    return res.status(200).json({ message: 'Login successful', token, user: userResponse });
+    return res.status(200).json({ message: 'Login successful', token, business: businessResponse });
   } catch (error) {
     return res.status(500).json({ message: 'Error verifying login code', error: error.message });
   }
@@ -135,15 +138,15 @@ export async function updateProfilePicture(req, res) {
       return res.status(400).json({ message: 'No file uploaded.' });
     }
 
-    const user = await Corporate.findById(req.user.id);
-    if (!user) {
+    const business = await Corporate.findById(req.user.id);
+    if (!business) {
       return res.status(404).json({ message: 'Corporate not found' });
     }
 
-    user.profilePicture = req.file.path; 
-    await user.save();
+    business.profilePicture = req.file.path; 
+    await business.save();
 
-    return res.status(200).json({ message: 'Profile picture updated successfully', profilePicture: user.profilePicture });
+    return res.status(200).json({ message: 'Profile picture updated successfully', profilePicture: business.profilePicture });
   } catch (error) {
     return res.status(500).json({ message: 'Error updating profile picture', error: error.message });
   }
@@ -151,13 +154,13 @@ export async function updateProfilePicture(req, res) {
 
 export async function getCorporateProfile(req, res) {
   try {
-    const user = await Corporate.findById(req.user.id).select('firstName lastName profilePicture');
+    const business = await Corporate.findById(req.business.id).select('firstName lastName profilePicture');
 
-    if (!user) {
+    if (!business) {
       return res.status(404).json({ message: 'Corporate body not found' });
     }
     const defaultAvatar = 'https://res.cloudinary.com/demo/image/upload/avatar.png';
-    return res.status(200).json({ fullName: `${user.firstName} ${user.lastName}`, profilePicture: user.profilePicture || defaultAvatar });
+    return res.status(200).json({ fullName: `${business.firstName} ${business.lastName}`, profilePicture: business.profilePicture || defaultAvatar });
   } catch (error) {
     return res.status(500).json({ message: 'Error fetching agent profile', error: error.message });
   }
@@ -175,14 +178,14 @@ export async function requestPasswordReset (req, res) {
         const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
         const resetTokenExpiry = new Date(Date.now() + 20 * 60 * 1000);
 
-        const user = await Corporate.findOneAndUpdate(
+        const business = await Corporate.findOneAndUpdate(
             { email },
             { $set: { resetToken: resetCode, resetTokenExpiry: resetTokenExpiry } },
             { new: false }
         );
 
-        if (user) {
-            await sendResetEmail(user.email, user.firstName, resetCode);
+        if (business) {
+            await sendResetEmail(business.email, business.firstName, resetCode);
         }
 
         return res.status(200).json({
@@ -190,7 +193,7 @@ export async function requestPasswordReset (req, res) {
             email: email
         });
     } catch (error) {
-        console.error('Error in requestPasswordReset (user):', error);
+        console.error('Error in requestPasswordReset (business):', error);
         return res.status(500).json({ message: 'Error requesting password reset', error: error.message });
  }
 };
@@ -203,21 +206,21 @@ export async function verifyPasswordResetCode(req, res) {
     if (!resetCode) {
       return res.status(400).json({ message: 'Email and reset code are required.' });
     }
-    const user = await Corporate.findOne({
+    const business = await Corporate.findOne({
       
       resetToken: resetCode,
       resetTokenExpiry: { $gt: Date.now() }
     });
 
-    if (!user) {
+    if (!business) {
       return res.status(400).json({ message: 'Invalid email or reset code, or the code has expired.' });
     }
 
-    req.session.passwordResetUserId =user._id;
+    req.session.passwordResetUserId =business._id;
   
     return res.status(200).json({ message: 'Code verified successfully. You can now set a new password.' });
   } catch (error) {
-    console.error('Error in verifyPasswordResetCode (user):', error);
+    console.error('Error in verifyPasswordResetCode (business):', error);
     return res.status(500).json({ message: 'Error verifying reset code', error: error.message });
   } 
 }
@@ -227,10 +230,10 @@ export async function verifyPasswordResetCode(req, res) {
 export async function  resetPassword(req, res) {
     try {
         const { newPassword, confirmPassword } = req.body;
-        const userId = req.session.passwordResetUserId;
+        const businessId = req.session.passwordResetUserId;
      
 
-        if (!userId ) {
+        if (!businessId ) {
             return res.status(401).json({ message: 'Password reset not authorized or session expired. Please verify your reset code first.' });
         }
 
@@ -239,7 +242,7 @@ export async function  resetPassword(req, res) {
         }
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
-        await Facility.updateOne({ _id: userId }, { $set: { password: hashedPassword, resetToken: null, resetTokenExpiry: null } });
+        await Corporate.updateOne({ _id: businessId }, { $set: { password: hashedPassword, resetToken: null, resetTokenExpiry: null } });
 
         req.session.passwordResetUserId = null;
         req.session.passwordResetUserType = null;

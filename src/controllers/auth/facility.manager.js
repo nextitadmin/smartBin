@@ -5,10 +5,9 @@ import Payer from '../../models/payer.js';
 import { sendConfirmationMail, sendResetEmail, sendLoginCodeEmail } from '../../utils/mailer.js';
 const JWT_SECRET = process.env.JWT_SECRET;
 
-const codes = {}; 
 // Registration
 export async function regManager(req, res) {
-  const { payerId, password, organizationName, confirmPassword} = req.body;
+  const { payerId, password, organizationName, phoneNumber, confirmPassword} = req.body;
   try {
     if (password !== confirmPassword) {
       return res.status(400).json({ message: 'Password and confirm password do not match' });
@@ -25,10 +24,10 @@ export async function regManager(req, res) {
     const newManager = await Facility.create({
       payerId,
       organizationName,
+      phoneNumber,
       firstName: payer.firstName,
       lastName: payer.lastName,
       email: payer.email,
-      phoneNumber: payer.phoneNumber,
       password: hashedPassword
     });
 
@@ -58,23 +57,26 @@ export async function regManager(req, res) {
 export async function loginManager(req, res) {
   const { email, password } = req.body;
   try {
-    const user = await Facility.findOne({ email });
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    const manager = await Facility.findOne({ email });
+    if (!manager) return res.status(404).json({ error: 'manager not found' });
 
-    const valid = await bcrypt.compare(password, user.password);
+    const valid = await bcrypt.compare(password, manager.password);
     if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
 
   
     const code = Math.floor(10000 + Math.random() * 90000).toString();
     const expires = Date.now() + 10 * 60 * 1000;
 
-    user.loginCode = code;
-    user.loginCodeExpires = expires;
-    await user.save();
+    manager.loginCode = code;
+    manager.loginCodeExpires = expires;
+    await manager.save();
 
-    req.session.loginVerificationUserId = user._id;
-    await sendLoginCodeEmail(user.email,user.firstName, code);
-    res.json({ message: 'Login code sent to email.' });
+    req.session.loginVerificationUserId = manager._id;
+    await sendLoginCodeEmail(manager.email, manager.firstName, code);
+    res.json({ 
+      message: 'A verification code has been sent to your email.', 
+      email: manager.email
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -96,33 +98,33 @@ export async function verifyLogin(req, res) {
       return res.status(401).json({ message: 'No login attempt in progress or session expired. Please try logging in again.' });
     }
 
-    const user= await Facility.findOne({
+    const manager= await Facility.findOne({
       _id: userId,
       loginCode,
       loginCodeExpires: { $gt: Date.now() }
     });
 
-    if (!user) {
+    if (!manager) {
       return res.status(400).json({ message: 'Invalid or expired login code.' });
     }
 
     req.session.loginVerificationUserId = null;
-    user.loginCode = undefined;
-    user.loginCodeExpires= undefined;
-    await user.save();
+    manager.loginCode = undefined;
+    manager.loginCodeExpires= undefined;
+    await manager.save();
 
     const token = jwt.sign(
-      { id: user._id, payerId:user.payerId, email: user.email, role: 'facility manager' },
+      { id: manager._id, payerId: manager.payerId, email: manager.email, role: 'facility manager' },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
 
-    const userResponse = { ...user.toObject() };
-    delete userResponse.password;
-    delete userResponse.loginCode;
-    delete userResponse.loginCodeExpires;
+    const managerResponse = { ...manager.toObject() };
+    delete managerResponse.password;
+    delete managerResponse.loginCode;
+    delete managerResponse.loginCodeExpires;
 
-    return res.status(200).json({ message: 'Login successful', token, user: userResponse });
+    return res.status(200).json({ message: 'Login successful', token, manager: managerResponse });
   } catch (error) {
     return res.status(500).json({ message: 'Error verifying login code', error: error.message });
   }
@@ -134,15 +136,15 @@ export async function updateProfilePicture(req, res) {
       return res.status(400).json({ message: 'No file uploaded.' });
     }
 
-    const user = await Facility.findById(req.user.id);
-    if (!user) {
+    const manager = await Facility.findById(req.user.id);
+    if (!manager) {
       return res.status(404).json({ message: 'Manager not found' });
     }
 
-    user.profilePicture = req.file.path; // URL from Cloudinary
-    await user.save();
+    manager.profilePicture = req.file.path; // URL from Cloudinary
+    await manager.save();
 
-    return res.status(200).json({ message: 'Profile picture updated successfully', profilePicture: user.profilePicture });
+    return res.status(200).json({ message: 'Profile picture updated successfully', profilePicture: manager.profilePicture });
   } catch (error) {
     return res.status(500).json({ message: 'Error updating profile picture', error: error.message });
   }
@@ -150,13 +152,13 @@ export async function updateProfilePicture(req, res) {
 
 export async function getManagerProfile(req, res) {
   try {
-    const user = await Facility.findById(req.user.id).select('firstName lastName profilePicture');
+    const manager = await Facility.findById(req.user.id).select('firstName lastName profilePicture');
 
-    if (!user) {
+    if (!manager) {
       return res.status(404).json({ message: 'Manager not found' });
     }
     const defaultAvatar = 'https://res.cloudinary.com/demo/image/upload/avatar.png';
-    return res.status(200).json({ fullName: `${user.firstName} ${user.lastName}`, profilePicture: user.profilePicture || defaultAvatar });
+    return res.status(200).json({ fullName: `${manager.firstName} ${manager.lastName}`, profilePicture: manager.profilePicture || defaultAvatar });
   } catch (error) {
     return res.status(500).json({ message: 'Error fetching agent profile', error: error.message });
   }
@@ -166,7 +168,7 @@ export async function getManagerProfile(req, res) {
 // Request password reset
 export async function requestPasswordReset (req, res) {
     try {
-        const { email } = req.body;
+        const { email } = req.body;  
         if (!email) {
             return res.status(400).json({ message: 'Email is required.' });
         }
@@ -174,14 +176,14 @@ export async function requestPasswordReset (req, res) {
         const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
         const resetTokenExpiry = new Date(Date.now() + 20 * 60 * 1000);
 
-        const user = await Facility.findOneAndUpdate(
+        const manager = await Facility.findOneAndUpdate(
             { email },
             { $set: { resetToken: resetCode, resetTokenExpiry: resetTokenExpiry } },
             { new: false }
         );
 
-        if (user) {
-            await sendResetEmail(user.email, user.firstName, resetCode);
+        if (manager) {
+            await sendResetEmail(manager.email, manager.firstName, resetCode);
         }
 
         return res.status(200).json({
@@ -189,7 +191,7 @@ export async function requestPasswordReset (req, res) {
             email: email
         });
     } catch (error) {
-        console.error('Error in requestPasswordReset (user):', error);
+        console.error('Error in requestPasswordReset (manager):', error);
         return res.status(500).json({ message: 'Error requesting password reset', error: error.message });
  }
 };
@@ -202,21 +204,21 @@ export async function verifyPasswordResetCode(req, res) {
     if (!resetCode) {
       return res.status(400).json({ message: 'Email and reset code are required.' });
     }
-    const user = await Facility.findOne({
+    const manager = await Facility.findOne({
       
       resetToken: resetCode,
       resetTokenExpiry: { $gt: Date.now() }
     });
 
-    if (!user) {
+    if (!manager) {
       return res.status(400).json({ message: 'Invalid email or reset code, or the code has expired.' });
     }
 
-    req.session.passwordResetUserId =user._id;
+    req.session.passwordResetUserId =manager._id;
   
     return res.status(200).json({ message: 'Code verified successfully. You can now set a new password.' });
   } catch (error) {
-    console.error('Error in verifyPasswordResetCode (user):', error);
+    console.error('Error in verifyPasswordResetCode (manager):', error);
     return res.status(500).json({ message: 'Error verifying reset code', error: error.message });
   } 
 }
@@ -226,10 +228,10 @@ export async function verifyPasswordResetCode(req, res) {
 export async function  resetPassword(req, res) {
     try {
         const { newPassword, confirmPassword } = req.body;
-        const userId = req.session.passwordResetUserId;
+        const managerId = req.session.passwordResetUserId;
      
 
-        if (!userId ) {
+        if (!managerId ) {
             return res.status(401).json({ message: 'Password reset not authorized or session expired. Please verify your reset code first.' });
         }
 
@@ -238,14 +240,14 @@ export async function  resetPassword(req, res) {
         }
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
-        await Facility.updateOne({ _id: userId }, { $set: { password: hashedPassword, resetToken: null, resetTokenExpiry: null } });
+        await Facility.updateOne({ _id: managerId }, { $set: { password: hashedPassword, resetToken: null, resetTokenExpiry: null } });
 
         req.session.passwordResetUserId = null;
         req.session.passwordResetUserType = null;
 
         return res.status(200).json({ message: 'Password has been reset successfully.' });
     } catch (error) {
-        console.error('Error in resetPassword (agent):', error);
+        console.error('Error in resetPassword (manager):', error);
         return res.status(500).json({ message: 'Error resetting password', error: error.message });
     }
 }
