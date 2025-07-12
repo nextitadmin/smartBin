@@ -1,8 +1,6 @@
 import Wallet from '../../models/bills/wallet.js';
 import crypto from 'crypto';
 
-
-
 export async function getWallet  (req, res)  {
   try {
     if (!req.user || !req.user.id) {
