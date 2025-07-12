@@ -14,7 +14,7 @@ const residentSchema = new mongoose.Schema({
     unique: true,
   },
    profilePicture: String,
-  phoneNumber: {
+   phoneNumber: {
     type: String,
   },
   nationality: {
@@ -35,9 +35,9 @@ const residentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-    loginCode: String,
+  loginCode: String,
   loginCodeExpiry: Date,
-    resetToken: String,
+  resetToken: String,
   resetTokenExpiry: Date
 }, {
   timestamps: true,

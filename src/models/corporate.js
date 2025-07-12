@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 const corporateSchema = new mongoose.Schema ({
     payerId:{
         type: String,
-        required: trrue,
+        required: true,
         unique: true,
     },
     businessName:{
