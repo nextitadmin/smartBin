@@ -1,18 +1,16 @@
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import Agent from '../../models/agent.js';
+import Resident from '../../models/resident.js';
 import Payer from '../../models/payer.js';
-import { sendConfirmationMail, sendResetEmail, sendLoginCodeEmail } from '../../utils/mailer.js';
+import jwt from 'jsonwebtoken';
+import {sendResetEmail, sendConfirmationMail, sendLoginCodeEmail} from '../../utils/mailer.js';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-
-// sign up
-export async function registerAgent(req, res) {
+// register
+export async function registerResident(req, res) {
   try {
     const {
       payerId,
-       agencyName,
       password,
       confirmPassword,
     } = req.body;
@@ -21,9 +19,9 @@ export async function registerAgent(req, res) {
       return res.status(400).json({ message: 'Password and confirm password do not match' });
     }
 
-    const existingAgent = await Agent.findOne({ payerId });
-    if (existingAgent) {
-      return res.status(409).json({ message: 'Agent already registered with this payerId and email' });
+    const existingResident = await Resident.findOne({ payerId });
+    if (existingResident) {
+      return res.status(409).json({ message: 'Resident already registered with this payerId' });
     }
 
     const payer = await Payer.findOne({ payerId });
@@ -33,48 +31,45 @@ export async function registerAgent(req, res) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newAgent = await Agent.create({
+    const newResident = await Resident.create({
       payerId,
-      agencyName,
       firstName: payer.firstName,
       lastName: payer.lastName,
       email: payer.email,
       password: hashedPassword
     });
 
-    sendConfirmationMail(newAgent.email, newAgent.firstName);
+    sendConfirmationMail(newResident.email, newResident.firstName);
+
     return res.status(201).json({
-      message: 'Agent registered successfully',
-      agent: {
-        id:newAgent._id,
-        payerId: newAgent.payerId,
-        fullName: `${newAgent.firstName} ${newAgent.lastName}`,
-        email: newAgent.email,
+      message: 'Resident registered successfully',
+      resident: {
+        id: newResident._id,
+        payerId: newResident.payerId,
+        fullName: `${newResident.firstName} ${newResident.lastName}`,
+        email: newResident.email,
       }
     });
   } catch (error) {
     return res.status(500).json({
-      message: 'Error registering agent',
+      message: 'Error registering resident',
       error: error.message
     });
   }
 }
 
-
-
 // login
-
 export async function login(req,res){
   console.log('incoming body:', req.body)
   try {
     const { email, password } = req.body;
 
-    const agent = await Agent.findOne({email});
-    if(!agent){
+    const resident = await Resident.findOne({email});
+    if(!resident){
       return res.status(401).json({message:"Invalid email or password"})
     }
 
-    const isMatch = await bcrypt.compare(password, agent.password);
+    const isMatch = await bcrypt.compare(password, resident.password);
     if(!isMatch){
       return   res.status(401).json({message:"Invalid email or password"});
     }
@@ -83,18 +78,18 @@ export async function login(req,res){
   
     const loginCodeExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
-    agent.loginCode = loginCode;
-    agent.loginCodeExpiry = loginCodeExpiry;
-    await agent.save();
+    resident.loginCode = loginCode;
+    resident.loginCodeExpiry = loginCodeExpiry;
+    await resident.save();
 
-    req.session.loginVerificationUserId = agent._id;
+    req.session.loginVerificationUserId = resident._id;
 
-    await sendLoginCodeEmail(agent.email, agent.firstName, loginCode);
+    await sendLoginCodeEmail(resident.email, resident.firstName, loginCode);
 
     return res.status(200).json({
       message: 'A verification code has been sent to your email',
 
-      email: agent.email
+      email: resident.email
     });
   } catch (error) {
     return res.status(500).json({
@@ -118,129 +113,134 @@ export async function verifyLoginCode(req, res) {
       return res.status(401).json({ message: 'No login attempt in progress or session expired. Please try logging in again.' });
     }
 
-    const agent = await Agent.findOne({
+    const resident = await Resident.findOne({
       _id: userId,
       loginCode,
       loginCodeExpiry: { $gt: Date.now() }
     });
 
-    if (!agent) {
+    if (!resident) {
       return res.status(400).json({ message: 'Invalid or expired login code.' });
     }
 
     req.session.loginVerificationUserId = null;
-    agent.loginCode = undefined;
-    agent.loginCodeExpiry = undefined;
-    await agent.save();
+    resident.loginCode = undefined;
+    resident.loginCodeExpiry = undefined;
+    await resident.save();
 
     const token = jwt.sign(
-      { id: agent._id, payerId: agent.payerId, email: agent.email, role: 'agent' },
+      { id: resident._id, payerId: resident.payerId, email: resident.email, role: 'resident' },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
 
-    const agentResponse = { ...agent.toObject() };
-    delete agentResponse.password;
-    delete agentResponse.loginCode;
-    delete agentResponse.loginCodeExpiry;
+    const residentResponse = { ...resident.toObject() };
+    delete residentResponse.password;
+    delete residentResponse.loginCode;
+    delete residentResponse.loginCodeExpiry;
 
-    return res.status(200).json({ message: 'Login successful', token, agent: agentResponse });
+    return res.status(200).json({ message: 'Login successful', token, resident: residentResponse });
   } catch (error) {
     return res.status(500).json({ message: 'Error verifying login code', error: error.message });
   }
 }
 
+
+// update profile picture
 export async function updateProfilePicture(req, res) {
   try {
     if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded.' });
     }
 
-    const agent = await Agent.findById(req.user.id);
-    if (!agent) {
-      return res.status(404).json({ message: 'Agent not found' });
+    const resident = await Resident.findById(req.user.id);
+    if (!resident) {
+      return res.status(404).json({ message: 'Resident not found' });
     }
 
-    agent.profilePicture = req.file.path; // URL from Cloudinary
-    await agent.save();
+    resident.profilePicture = req.file.path;
+    await resident.save();
 
-    return res.status(200).json({ message: 'Profile picture updated successfully', profilePicture: agent.profilePicture });
+    return res.status(200).json({ message: 'Profile picture updated successfully', profilePicture: resident.profilePicture });
   } catch (error) {
     return res.status(500).json({ message: 'Error updating profile picture', error: error.message });
   }
 }
 
-export async function getAgentProfile(req, res) {
-  try {
-    const agent = await Agent.findById(req.user.id).select('firstName lastName profilePicture');
 
-    if (!agent) {
-      return res.status(404).json({ message: 'Agent not found' });
+
+
+// get profile for onboarding
+export async function getResidentProfile(req, res) {
+  try {
+  
+    const resident = await Resident.findById(req.user.id).select('firstName lastName profilePicture');
+
+    if (!resident) {
+      return res.status(404).json({ message: 'Resident not found' });
     }
-    const defaultAvatar = 'https://res.cloudinary.com/demo/image/upload/avatar.png';
-    return res.status(200).json({ fullName: `${agent.firstName} ${agent.lastName}`, profilePicture: agent.profilePicture || defaultAvatar });
-  } catch (error) {
-    return res.status(500).json({ message: 'Error fetching agent profile', error: error.message });
+ const defaultAvatar = 'https://res.cloudinary.com/demo/image/upload/avatar.png';
+    return res.status(200).json({ fullName: `${resident.firstName} ${resident.lastName}`, profilePicture: resident.profilePicture || defaultAvatar  });
+  } catch (error){
+      return res.status(500).json({ error: error.message });
   }
 }
 
 
+
 // request reset
 export async function requestPasswordReset (req, res) {
-    try {
-        const { email } = req.body;
-        if (!email) {
-            return res.status(400).json({ message: 'Email is required.' });
-        }
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: 'Email is required.' });
+    }
 
-        const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
-        const resetTokenExpiry = new Date(Date.now() + 20 * 60 * 1000);
+    const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
+    const resetTokenExpiry = new Date(Date.now() + 20 * 60 * 1000);
 
-        const agent = await Agent.findOneAndUpdate(
-            { email },
-            { $set: { resetToken: resetCode, resetTokenExpiry: resetTokenExpiry } },
-            { new: false }
-        );
+    const resident = await Resident.findOneAndUpdate(
+      { email },
+      { $set: { resetToken: resetCode, resetTokenExpiry: resetTokenExpiry } },
+      { new: false }
+    );
 
-        if (agent) {
-            await sendResetEmail(agent.email, agent.firstName, resetCode);
-        }
+    if (resident) {
+      await sendResetEmail(resident.email, resident.firstName, resetCode);
+    }
 
-        return res.status(200).json({
-            message: 'If an account with that email exists, a password reset code has been sent.',
-            email: email
-        });
-    } catch (error) {
-        console.error('Error in requestPasswordReset (agent):', error);
-        return res.status(500).json({ message: 'Error requesting password reset', error: error.message });
+    return res.status(200).json({
+      message: 'If an account with that email exists, a password reset code has been sent.',
+      email: email
+    });
+  } catch (error) {
+    console.error('Error in requestPasswordReset (resident):', error);
+    return res.status(500).json({ message: 'Error requesting password reset', error: error.message});
  }
 };
 
 
+
+// verify resetcode
 export async function verifyPasswordResetCode(req, res) {
   try {
-    const {resetCode } = req.body;
-
+    const { resetCode } = req.body;
     if (!resetCode) {
-      return res.status(400).json({ message: 'Email and reset code are required.' });
+      return res.status(400).json({ message: 'Please input reset code' });
     }
-
-    const agent = await Agent.findOne({
-      
+    const resident = await Resident.findOne({
       resetToken: resetCode,
       resetTokenExpiry: { $gt: Date.now() }
     });
 
-    if (!agent) {
-      return res.status(400).json({ message: 'Invalid email or reset code, or the code has expired.' });
+    if (!resident) {
+      return res.status(400).json({ message: 'Invalid reset code, or the code has expired.' });
     }
-
-    req.session.passwordResetUserId = agent._id;
+    req.session.passwordResetUserId = resident._id;
   
-
     return res.status(200).json({ message: 'Code verified successfully. You can now set a new password.' });
   } catch (error) {
-    console.error('Error in verifyPasswordResetCode (agent):', error);
+    console.error('Error in verifyPasswordResetCode (resident):', error);
     return res.status(500).json({ message: 'Error verifying reset code', error: error.message });
   } 
 }
@@ -250,9 +250,9 @@ export async function  resetPassword(req, res) {
     try {
         const { newPassword, confirmPassword } = req.body;
         const userId = req.session.passwordResetUserId;
-     
+        const userType = req.session.passwordResetUserType;
 
-        if (!userId ) {
+        if (!userId || userType !== 'resident') {
             return res.status(401).json({ message: 'Password reset not authorized or session expired. Please verify your reset code first.' });
         }
 
@@ -261,20 +261,21 @@ export async function  resetPassword(req, res) {
         }
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
-        await Agent.updateOne({ _id: userId }, { $set: { password: hashedPassword, resetToken: null, resetTokenExpiry: null } });
+
+        await Resident.updateOne({ _id: userId }, { $set: { password: hashedPassword, resetToken: null, resetTokenExpiry: null } });
 
         req.session.passwordResetUserId = null;
         req.session.passwordResetUserType = null;
 
         return res.status(200).json({ message: 'Password has been reset successfully.' });
     } catch (error) {
-        console.error('Error in resetPassword (agent):', error);
+        console.error('Error in resetPassword (resident):', error);
         return res.status(500).json({ message: 'Error resetting password', error: error.message });
     }
 }
 
 
-
+// logout
 export async function logout(req, res) {
   try {
     req.session = null;

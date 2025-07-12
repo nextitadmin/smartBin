@@ -31,7 +31,7 @@ const loadTemplate = (filename) => {
 });
 
 
-
+//  for payerid
 export async function sendPayerIdEmail(email, firstName, payerId) {
   const template = await loadTemplate('payer.html');
   let html = populateTemplate(template,{ 
@@ -54,7 +54,7 @@ export async function sendPayerIdEmail(email, firstName, payerId) {
   }
 }
 
-
+// for succesful registration
 export  async function sendConfirmationMail (email, firstName){
     const template = await loadTemplate('welcome.html');
     const html =populateTemplate(template, {
@@ -77,11 +77,12 @@ export  async function sendConfirmationMail (email, firstName){
 }
 
 
-export  async function  sendResetEmail (email,firstName, resetToken)  {
-  const template = await loadTemplate('forgotpassword.html');
+// for forgot password
+export  async function  sendResetEmail (email,firstName, resetCode)  {
+  const template = await loadTemplate('forgotPassword.html');
   const html = populateTemplate(template,{
     firstName,
-    resetPasswordLink : `https://smartbin.com.ng/reset-password?token=${resetToken}`
+    resetCode
   })
   const mailOptions = {
     from: `"LAWMA KYC" <${process.env.MAIL_USERNAME}>`,
@@ -97,4 +98,28 @@ export  async function  sendResetEmail (email,firstName, resetToken)  {
     console.error("Error sending reset email:", error);
   }
 
+}
+
+
+// for login
+export async function sendLoginCodeEmail(email, firstName, loginCode) {
+  const template = await loadTemplate('logincode.html');
+  const html = populateTemplate(template, {
+    firstName,
+    loginCode
+  });
+
+  const mailOptions = {
+    from: `"LAWMA LOGIN" <${process.env.MAIL_USERNAME}>`,
+    to: email,
+    subject: 'Your Login Verification Code',
+    html,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("Login code sent: " + email);
+  } catch (error) {
+    console.error("Error sending login code:", error);
+  }
 }

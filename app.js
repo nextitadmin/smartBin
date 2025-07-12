@@ -5,11 +5,15 @@ import cors from 'cors';
 import flash from 'connect-flash';
 const app = express();
 import  payerRoute from './src/routes/payer.js'
-import residentRoute from './src/routes/resident.js'
+import agentRoute from './src/routes/agent.js';
+import residentRoute from './src/routes/resident.js';
+import corporateRoute from './src/routes/corporate.js';
+import facilityRoute from './src/routes/facility.manager.js';
+import corporate from './src/routes/corporate.js';
+import walletRoute from './src/routes/bills/wallet.js';
+
 const PORT = process.env.PORT || 5000;
 
-//DBConn
-connectDB();
 
 // Middleware
 app.use(express.urlencoded({extended: true}))
@@ -21,8 +25,7 @@ app.use(cookieSession({
     secret: 'secret',
     saveUninitialized: true,
     resave: true,
-    // Cookie Options
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours,
+    maxAge: 24 * 60 * 60 * 1000,
     cookie: {
         secure: true
     }
@@ -31,7 +34,13 @@ app.use(cookieSession({
 
 // Routes
 app.use ('/api/payers',payerRoute)
+app.use ('/api/agent',agentRoute)
 app.use ('/api/resident',residentRoute)
+app.use ('/api/corporate',corporateRoute)
+app.use ('/api/facility', facilityRoute);
+app.use ('/api/corporate', corporate);
+app.use ('/api/wallet', walletRoute);
+
 
 // Default route
 app.get('/', (req, res) => {
@@ -54,7 +63,14 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// Start server
-app.listen(process.env.PORT || PORT, () => {
-    console.log(`serving on http://localhost:${PORT}`)
-})
+
+// Start server and connect to the database
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server is running on http://localhost:${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.log('Invalid database connection...', error);
+  });

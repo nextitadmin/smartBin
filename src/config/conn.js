@@ -8,10 +8,13 @@ const dbUri = isProduction ? process.env.DB_URI : process.env.DB_URI
 
 const connectDB = async () => {
     mongoose.set('strictQuery', true)
+    
     try {
         const conn = await mongoose.connect(dbUri, {
+        
             family:4
         });
+                console.log('mongoDB connected successfully');
     } catch (err) {
         throw err
     }
