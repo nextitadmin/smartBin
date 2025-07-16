@@ -1,4 +1,4 @@
-import Payer from '../../models/payer.js';
+import Payer from '../../models/users/payer.js';
 import { sendPayerIdEmail } from '../../utils/mailer.js';
 
 

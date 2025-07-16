@@ -69,6 +69,11 @@ const agentSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  role: {
+    type: String,
+    enum: ['Agent'],
+    default: 'Agent'
+  },
   resetToken: String,
   resetTokenExpiry: Date,
   loginCode: String,

@@ -31,6 +31,11 @@ const facilityManagerSchema = new mongoose.Schema({
     type: String, 
     required: true 
 },
+role: {
+    type: String,
+    enum: ['Facility'],
+    default: 'Facility'
+  },
   loginCode: {
     type: String,
     default: null

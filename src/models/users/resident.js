@@ -31,6 +31,11 @@ const residentSchema = new mongoose.Schema({
     default: 'Returning'
    
   },
+  role: {
+    type: String,
+    enum: ['Resident'],
+    default: 'Resident'
+  },
   password: {
     type: String,
     required: true,

@@ -32,6 +32,11 @@ const corporateSchema = new mongoose.Schema ({
         type: String,
         required: true,
     },
+    role: {
+        type: String,
+        enum: ['Corporate'],
+        default: 'Corporate'
+    },
     loginCode: String,
     loginCodeExpires: Date,
     resetToken: String,

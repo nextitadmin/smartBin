@@ -1,10 +1,14 @@
 import express from 'express';
-import { getWallet, topUpWallet } from '../../controllers/bills/wallet.js';
+import { getWallet, initiateTopUp, verifyTopUpTransaction  } from '../../controllers/bills/wallet.js';
 import { authMiddleware } from '../../middleware/auth.js';
 
 const router = express.Router();
 
 router.get('/',authMiddleware, getWallet);
-router.post('/topup',authMiddleware, topUpWallet);
+router.post('/initiate-topup',authMiddleware, initiateTopUp);
+router.get('/verify',authMiddleware, verifyTopUpTransaction );
+
+
+
 
 export default router;

@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
-import Resident from '../../models/resident.js';
-import Payer from '../../models/payer.js';
+import Resident from '../../models/users/resident.js';
+import Payer from '../../models/users/payer.js';
 import jwt from 'jsonwebtoken';
 import {sendResetEmail, sendConfirmationMail, sendLoginCodeEmail} from '../../utils/mailer.js';
 
@@ -129,7 +129,7 @@ export async function verifyLoginCode(req, res) {
     await resident.save();
 
     const token = jwt.sign(
-      { id: resident._id, payerId: resident.payerId, email: resident.email, role: 'resident' },
+      { id: resident._id, payerId: resident.payerId, email: resident.email, role: 'Resident' },
       JWT_SECRET,
       { expiresIn: '7d' }
     );

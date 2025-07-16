@@ -1,9 +1,9 @@
 import jwt from 'jsonwebtoken';
-import Payer from '../models/payer.js';
-import Resident from '../models/resident.js';
-import Agent from '../models/agent.js';
-import Corporate from '../models/corporate.js';
-import FacilityManager from '../models/facility.manager.js';
+import Payer from '../models/users/payer.js';
+import Resident from '../models/users/resident.js';
+import Agent from '../models/users/agent.js';
+import Corporate from '../models/users/corporate.js';
+import FacilityManager from '../models/users/facility.manager.js';
 
 
 const userModels = { payer: Payer, resident: Resident, agent: Agent, corporate: Corporate, facilityManager: FacilityManager };
@@ -17,7 +17,6 @@ export const authMiddleware = async (req, res, next) => {
     }
 
     const token = authHeader.split(' ')[1];
-
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
 
