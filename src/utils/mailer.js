@@ -21,7 +21,7 @@ const loadTemplate = (filename) => {
   const transporter =nodemailer.createTransport({
     host:process.env.MAIL_SERVICE,
     port:process.env.MAIL_PORT,
-    secure:false,
+    secure:true,
     auth:{
         user:process.env.MAIL_USERNAME,
         pass:process.env.MAIL_PASSWORD,

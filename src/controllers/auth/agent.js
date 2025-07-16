@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import Agent from '../../models/agent.js';
-import Payer from '../../models/payer.js';
+import Agent from '../../models/users/agent.js';
+import Payer from '../../models/users/payer.js';
 import { sendConfirmationMail, sendResetEmail, sendLoginCodeEmail } from '../../utils/mailer.js';
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -134,7 +134,7 @@ export async function verifyLoginCode(req, res) {
     await agent.save();
 
     const token = jwt.sign(
-      { id: agent._id, payerId: agent.payerId, email: agent.email, role: 'agent' },
+      { id: agent._id, payerId: agent.payerId, email: agent.email, role: 'Agent' },
       JWT_SECRET,
       { expiresIn: '7d' }
     );

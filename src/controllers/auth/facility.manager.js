@@ -1,7 +1,7 @@
-import Facility from '../../models/facility.manager.js';
+import Facility from '../../models/users/facility.manager.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import Payer from '../../models/payer.js';
+import Payer from '../../models/users/payer.js';
 import { sendConfirmationMail, sendResetEmail, sendLoginCodeEmail } from '../../utils/mailer.js';
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -114,7 +114,7 @@ export async function verifyLogin(req, res) {
     await manager.save();
 
     const token = jwt.sign(
-      { id: manager._id, payerId: manager.payerId, email: manager.email, role: 'facility manager' },
+      { id: manager._id, payerId: manager.payerId, email: manager.email, role: 'Facility' },
       JWT_SECRET,
       { expiresIn: '7d' }
     );

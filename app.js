@@ -10,6 +10,7 @@ import residentRoute from './src/routes/resident.js';
 import corporateRoute from './src/routes/corporate.js';
 import facilityRoute from './src/routes/facility.manager.js';
 import walletRoute from './src/routes/bills/wallet.js';
+import billRoutes from './src/routes/bills/bill.js';
 import paymentRoute from './src/routes/bills/payment.js'
 const PORT = process.env.PORT || 5000;
 
@@ -39,7 +40,9 @@ app.use ('/api/corporate',corporateRoute)
 app.use ('/api/facility', facilityRoute);
 app.use ('/api/corporate', corporateRoute);
 app.use ('/api/wallet', walletRoute);
+app.use('/api/bills', billRoutes);
 app.use('/api/payment', paymentRoute)
+
 
 
 // Default route
