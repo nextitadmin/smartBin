@@ -1,0 +1,108 @@
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, SchemaTypes, Types } from 'mongoose';
+import { getHashedPassword } from '@common/utils';
+import { Gender, UserRole } from '@models/types';
+
+export enum LawmaCustomerType {
+  Returning = 'Returning',
+  New = 'New',
+}
+
+export interface ResidentAttributes {
+  payerId: Types.ObjectId | string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  profilePicture?: string;
+  phoneNumber?: string;
+  nationality?: string;
+  gender?: Gender;
+  lawmaCustomerType?: LawmaCustomerType;
+  role: UserRole.Resident;
+  password: string;
+  loginCode?: string;
+  loginCodeExpiry?: Date;
+  resetToken?: string;
+  resetTokenExpiry?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+@Schema({
+  collection: 'residents',
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true },
+})
+export class Resident implements ResidentAttributes {
+  @Prop({
+    type: SchemaTypes.ObjectId,
+    ref: 'Payer',
+    required: true,
+    unique: true,
+  })
+  payerId: Types.ObjectId | string;
+
+  @Prop()
+  firstName?: string;
+
+  @Prop()
+  lastName?: string;
+
+  @Prop({ lowercase: true, unique: true })
+  email?: string;
+
+  @Prop()
+  profilePicture?: string;
+
+  @Prop()
+  phoneNumber?: string;
+
+  @Prop()
+  nationality?: string;
+
+  @Prop({
+    type: String,
+    enum: Object.values(Gender),
+    default: Gender.Other,
+  })
+  gender?: Gender;
+
+  @Prop({
+    type: String,
+    enum: Object.values(LawmaCustomerType),
+    default: LawmaCustomerType.Returning,
+  })
+  lawmaCustomerType?: LawmaCustomerType;
+
+  @Prop({
+    type: String,
+    enum: [UserRole.Resident],
+    default: UserRole.Resident,
+  })
+  role: UserRole.Resident;
+
+  @Prop({
+    required: true,
+    set: (val: string) => getHashedPassword(val),
+  })
+  password: string;
+
+  @Prop()
+  loginCode?: string;
+
+  @Prop()
+  loginCodeExpiry?: Date;
+
+  @Prop()
+  resetToken?: string;
+
+  @Prop()
+  resetTokenExpiry?: Date;
+
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export type ResidentDocument = Resident & Document;
+export const ResidentSchema = SchemaFactory.createForClass(Resident);

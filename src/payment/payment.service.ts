@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { FlutterwaveService } from '../flutterwave/flutterwave.service';
 
 @Injectable()
 export class PaymentService {

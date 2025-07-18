@@ -1,6 +1,4 @@
-import { Money } from '../common/utils/money';
-import { Customer } from './customer.model';
-import { Model, SchemaTypes } from 'mongoose';
+import { Model, SchemaTypes, Types } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
 export enum WalletStatus {
@@ -11,23 +9,21 @@ export enum WalletStatus {
 
 export enum SupportedCurrency {
   NGN = 'NGN',
-  USD = 'USD',
-  GBP = 'GBP',
-  EUR = 'EUR',
+  // USD = 'USD',
+  // GBP = 'GBP',
+  // EUR = 'EUR',
 }
 
 export interface WalletAttributes {
   _id?: string;
-  customer_id: string;
-  wallet_id: string;
-  external_wallet_id: string;
-  bank_name: string;
-  account_number: string;
-  currency: SupportedCurrency;
-  available_balance: Money;
-  ledger_balance: Money;
-  note?: string;
+  userId: Types.ObjectId;
+  available_balance: number;
+  ledger_balance: number;
   status: WalletStatus;
+  // bank_name: string;
+  // account_number: string;
+  // currency: SupportedCurrency;
+  // note?: string;
 }
 
 @Schema({
@@ -39,33 +35,8 @@ export class Wallet implements WalletAttributes {
   @Prop({
     required: true,
     type: SchemaTypes.ObjectId,
-    ref: Customer.name,
   })
-  customer_id: string;
-
-  @Prop({
-    required: false,
-    type: SchemaTypes.String,
-  })
-  bank_name: string;
-
-  @Prop({
-    required: false,
-    type: SchemaTypes.String,
-  })
-  account_number: string;
-
-  @Prop({
-    required: false,
-    type: SchemaTypes.String,
-  })
-  wallet_id: string;
-
-  @Prop({
-    required: false,
-    type: SchemaTypes.String,
-  })
-  external_wallet_id: string;
+  userId: Types.ObjectId;
 
   @Prop({
     required: false,
@@ -87,12 +58,6 @@ export class Wallet implements WalletAttributes {
     default: SupportedCurrency.NGN,
   })
   currency: SupportedCurrency;
-
-  @Prop({
-    required: true,
-    type: SchemaTypes.String,
-  })
-  note: string;
 
   @Prop({
     required: false,

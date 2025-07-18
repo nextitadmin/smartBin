@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
 import { PaymentService } from './payment.service';
-import { FlutterwaveModule } from '../flutterwave/flutterwave.module';
+import { PaymentController } from './payment.controller';
 
 @Module({
   providers: [PaymentService],
+  controllers: [PaymentController],
 })
 export class PaymentModule {}

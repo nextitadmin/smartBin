@@ -1,11 +1,11 @@
-import { BillPurchase } from '@src/utility/types';
+// import { BillPurchase } from '@src/utility/types';
 
-export type TransactionEventDataTypes = BillPurchase | any;
-export interface TransactionEventData {
-  reference: string;
-  data: TransactionEventDataTypes;
-}
+// export type TransactionEventDataTypes = BillPurchase | any;
+// export interface TransactionEventData {
+//   reference: string;
+//   data: TransactionEventDataTypes;
+// }
 
-export class TransactionEvent {
-  constructor(public data?: TransactionEventData) {}
-}
+// export class TransactionEvent {
+//   constructor(public data?: TransactionEventData) {}
+// }

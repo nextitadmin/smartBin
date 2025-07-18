@@ -4,7 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { access, readFileSync } from 'fs';
 import { join } from 'path';
 import * as nunjucks from 'nunjucks';
-import { CustomerAttributes } from '../../models/customer.model';
+// import { CustomerAttributes } from '../../models/customer.model';
 import { JwtService } from '@nestjs/jwt';
 
 export const encoder = {
@@ -53,7 +53,7 @@ export const getHashedPassword = (password: string) => {
 };
 
 export const getCustomerToken = (
-  customer: Partial<CustomerAttributes> & { accessType?: string },
+  customer: Partial<any> & { accessType?: string },
   jwtService: JwtService,
 ) => {
   const payload = {

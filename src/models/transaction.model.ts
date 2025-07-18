@@ -1,8 +1,12 @@
-import { Money } from '../common/utils/money';
-import { Customer } from './customer.model';
-import { SchemaTypes } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { SupportedCurrency } from '@common/constants';
+import { Document, SchemaTypes, Types } from 'mongoose';
+
+export enum UserType {
+  Resident = 'Resident',
+  Corporate = 'Corporate',
+  Facility = 'Facility',
+  Agent = 'Agent',
+}
 
 export enum TransactionStatus {
   Abandoned = 'abandoned',
@@ -11,113 +15,96 @@ export enum TransactionStatus {
   Failed = 'failed',
 }
 
-export enum TransactionType {
-  Topup = 'topup',
-  Withdrawal = 'withdrawal',
-  Transfer = 'transfer',
-  BillPayment = 'billpayment',
-  Fee = 'fee',
+export enum TransactionAction {
+  PayNow = 'pay now',
+  Paid = 'paid',
+  WalletTopUp = 'wallet_topup',
+}
+
+export enum PaymentMethod {
+  AlatByWema = 'Alat',
+  Wallet = 'wallet',
+}
+
+export enum ServiceType {
+  WasteDisposal = 'Waste Bin Disposal',
+  Subscription = 'Subscription',
+  SmartBinPurchase = 'Smart Bin Purchase',
+  WalletTopUp = 'Wallet Top-Up',
 }
 
 export interface TransactionAttributes {
-  _id?: string;
-  type: TransactionType;
-  customer_id: string;
-  wallet_id: string;
-  reference: string;
-  external_reference?: string;
-  currency: SupportedCurrency;
-  available_balance?: Money;
-  ledger_balance?: Money;
-  narration: string;
+  userId: Types.ObjectId;
+  userType: UserType;
+  amount: number;
+  transactionReference: string;
+  transactionID: string;
   status: TransactionStatus;
-  meta?: any;
-  createdAt?: string;
-  updatedAt?: string;
+  // action: TransactionAction;
+  service: ServiceType;
+  paymentMethod: PaymentMethod;
+  gatewayResponse?: Record<string, any>;
+  description?: string;
+  createdAt?: Date;
+  completedAt?: Date;
 }
 
-@Schema({
-  collection: 'transactions',
-  timestamps: true,
-  versionKey: false,
-})
+@Schema({ timestamps: { createdAt: true, updatedAt: false } })
 export class Transaction implements TransactionAttributes {
   @Prop({
-    required: true,
     type: SchemaTypes.ObjectId,
-    ref: Customer.name,
-  })
-  customer_id: string;
-  @Prop({
     required: true,
-    enum: Object.values(TransactionType),
   })
-  type: TransactionType;
+  userId: Types.ObjectId;
 
   @Prop({
+    type: String,
     required: true,
-    type: SchemaTypes.ObjectId,
-    ref: Customer.name,
+    enum: Object.values(UserType),
   })
-  wallet_id: string;
+  userType: UserType;
 
-  @Prop({
-    required: true,
-    type: SchemaTypes.Number,
-  })
+  @Prop({ required: true })
   amount: number;
 
-  @Prop({
-    required: true,
-    type: SchemaTypes.String,
-  })
-  reference: string;
+  @Prop({ required: true, unique: true })
+  transactionReference: string;
+
+  @Prop({ required: true, unique: true })
+  transactionID: string;
 
   @Prop({
-    required: false,
-    type: SchemaTypes.String,
-  })
-  external_reference: string;
-
-  @Prop({
-    required: false,
-    type: SchemaTypes.Number,
-    default: 0,
-  })
-  available_balance: number;
-
-  @Prop({
-    required: false,
-    type: SchemaTypes.Number,
-    default: 0,
-    // set(this: Wallet, val: Money) {
-    //   return setMoney(this, 'ledger_balance', val);
-    // },
-    // get(this: Wallet) {
-    //   return getMoney(this, 'ledger_balance');
-    // },
-  })
-  ledger_balance: number;
-
-  @Prop({
-    required: false,
-    enum: Object.values(SupportedCurrency),
-    default: SupportedCurrency.NGN,
-  })
-  currency: SupportedCurrency;
-
-  @Prop({
-    required: true,
-    type: SchemaTypes.String,
-  })
-  narration: string;
-
-  @Prop({
-    required: false,
+    type: String,
     enum: Object.values(TransactionStatus),
-    default: TransactionStatus.Abandoned,
+    default: TransactionStatus.Pending,
   })
   status: TransactionStatus;
+
+  @Prop({
+    type: String,
+    enum: Object.values(ServiceType),
+    required: true,
+  })
+  service: ServiceType;
+
+  @Prop({
+    type: String,
+    enum: Object.values(PaymentMethod),
+    required: true,
+  })
+  paymentMethod: PaymentMethod;
+
+  @Prop({ type: Object })
+  gatewayResponse?: Record<string, any>;
+
+  @Prop()
+  description?: string;
+
+  @Prop({ default: Date.now })
+  createdAt?: Date;
+
+  @Prop()
+  completedAt?: Date;
 
   @Prop({
     required: false,
@@ -125,9 +112,10 @@ export class Transaction implements TransactionAttributes {
   })
   meta: any;
 }
+
+export type TransactionDocument = Transaction & Document;
 export const TransactionSchema = SchemaFactory.createForClass(Transaction);
-// Indexes
 TransactionSchema.index({
-  customer_id: 1,
-  reference: 1,
+  userId: 1,
+  transactionReference: 1,
 });

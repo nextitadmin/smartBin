@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { AuthenticationModule } from './authentication/authentication.module';
-import { UtilityModule } from './utility/utility.module';
 import { mongodbConfigOptions } from './config/mongo.config';
 import { ConfigModule } from '@nestjs/config';
 import { configModuleOpts } from './config';
@@ -9,7 +8,6 @@ import { JwtModule } from '@nestjs/jwt';
 import { jwtConfigOpts } from './config/jwt.config';
 import { LoggerModule } from 'nestjs-pino';
 import { loggerModuleOpts } from './config/logger.config';
-import { CustomerModule } from './customer/customer.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 
 import { CacheModule } from '@nestjs/cache-manager';
@@ -17,16 +15,17 @@ import { cacheModuleConfigOpts } from './config/cache.config';
 import { exec } from 'child_process';
 import { WalletModule } from './wallet/wallet.module';
 import { PaymentModule } from './payment/payment.module';
-import { KycModule } from './kyc/kyc.module';
-import { FlutterwaveModule } from './flutterwave/flutterwave.module';
-import { WebhookModule } from './webhook/webhook.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ProvidersModule } from './providers/providers.module';
 import { HttpModule } from '@nestjs/axios';
 import { TransactionModule } from './transaction/transaction.module';
-import { AirtimeDataModule } from './airtime-data/airtime-data.module';
-import { VerificationModule } from './verification/verification.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { AgentModule } from './agent/agent.module';
+import { CorporateModule } from './corporate/corporate.module';
+import { PayerModule } from './payer/payer.module';
+import { ResidentModule } from './resident/resident.module';
+import { FacilityManagerModule } from './facility-manager/facility-manager.module';
+import { BillModule } from './bill/bill.module';
 
 @Module({
   imports: [
@@ -38,19 +37,20 @@ import { ScheduleModule } from '@nestjs/schedule';
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
     HttpModule,
-    AuthenticationModule,
-    UtilityModule,
+    // AuthenticationModule,
     NotificationModule,
-    CustomerModule,
     WalletModule,
     PaymentModule,
-    KycModule,
-    FlutterwaveModule,
-    WebhookModule,
+    // WebhookModule,
     ProvidersModule,
     TransactionModule,
-    AirtimeDataModule,
-    VerificationModule,
+    // VerificationModule,
+    AgentModule,
+    CorporateModule,
+    PayerModule,
+    ResidentModule,
+    FacilityManagerModule,
+    BillModule,
   ],
 })
 export class AppModule {
