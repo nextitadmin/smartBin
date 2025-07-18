@@ -20,7 +20,7 @@ export const getBills = async (req, res) => {
     const bills = await Bill.find({ userId, userType }).sort({ dueDate: -1 }).lean();
 
     let user;
-    switch (userType.toLowerCase()) {
+    switch (userType) {
       case 'Resident':
         user = await Resident.findById(userId).lean();
         break;
