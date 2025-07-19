@@ -1,11 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { TransactionController } from './transaction.controller';
-import { MongooseModule } from '@nestjs/mongoose';
-import { Transaction, TransactionSchema } from '@models/transaction.model';
-import { Wallet, WalletSchema } from '@models/wallet.model';
-import { ProvidersModule } from '@src/providers/providers.module';
-import { WalletModule } from '@src/wallet/wallet.module';
 import { TransactionWorker } from './transaction.worker';
 
 @Module({

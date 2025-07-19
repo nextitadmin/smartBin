@@ -16,7 +16,6 @@ import { exec } from 'child_process';
 import { WalletModule } from './wallet/wallet.module';
 import { PaymentModule } from './payment/payment.module';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ProvidersModule } from './providers/providers.module';
 import { HttpModule } from '@nestjs/axios';
 import { TransactionModule } from './transaction/transaction.module';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -42,7 +41,6 @@ import { BillModule } from './bill/bill.module';
     WalletModule,
     PaymentModule,
     // WebhookModule,
-    ProvidersModule,
     TransactionModule,
     // VerificationModule,
     AgentModule,

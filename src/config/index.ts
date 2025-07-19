@@ -26,7 +26,7 @@ export interface ConfigAttributes {
     fromName?: string;
     fromEmail?: string;
   };
- 
+
   alatpay: {
     publicKey: string;
     secretKey: string;
@@ -59,7 +59,6 @@ const config = (): ConfigAttributes => ({
     fromEmail: process.env.MAIL_EMAIL,
     fromName: process.env.MAIL_USERNAME,
   },
-  
 
   alatpay: {
     publicKey: process.env.ALAT_CLIENT_ID,
@@ -75,7 +74,7 @@ const schema = Joi.object<Record<string, string>>({
   LOG_LEVEL: Joi.string().default('info'),
   DISABLE_REQUEST_LOGGING: Joi.string().allow('0', '1').default('0'),
 
-  DATABASE_URI: Joi.string().required(),
+  DB_URI: Joi.string().required(),
 
   JWT_SECRET: Joi.string().default('N8kNKyW36E9cv1EOLlTjsgDwR9uX'),
   JWT_EXPIRY: Joi.string().default('48h'),
@@ -84,12 +83,9 @@ const schema = Joi.object<Record<string, string>>({
     'hpuVxHk-vJfr8Nlk8hY2Y6S6Zz0NDiCeoujmZ55u8_nmV6EMyP7x8YNv5-jycyOs',
   ),
 
-   MAIL_PASSWORD: Joi.string().required(),
-  MAILGUN_DOMAIN: Joi.string().required(),
+  MAIL_PASSWORD: Joi.string().required(),
   MAIL_USERNAME: Joi.string().default('Smartbin'),
   MAIL_EMAIL: Joi.string().default('test-lawma@serene-dev.xyz'),
-
-
 
   ALAT_CLIENT_ID: Joi.string().required(),
   ALAT_CLIENT_SECRET: Joi.string().required(),
