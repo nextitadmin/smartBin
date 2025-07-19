@@ -26,20 +26,11 @@ export interface ConfigAttributes {
     fromName?: string;
     fromEmail?: string;
   };
-  flutterwave: {
-    publicKey: string;
-    secretKey: string;
-  };
-  paystack: {
+
+  alatpay: {
     publicKey: string;
     secretKey: string;
     baseUrl: string;
-  };
-  vtpass: {
-    baseUrl: string;
-    apiKey: string;
-    publicKey: string;
-    secretKey: string;
   };
   frontendUrl: string;
 }
@@ -52,7 +43,7 @@ const config = (): ConfigAttributes => ({
     disableRequestLogging: Boolean(+process.env.DISABLE_REQUEST_LOGGING),
   },
   database: {
-    uri: process.env.DATABASE_URI,
+    uri: process.env.DB_URI,
     pool: {
       min: +process.env.DATABASE_POOL_MIN,
       max: +process.env.DATABASE_POOL_MAX,
@@ -63,26 +54,16 @@ const config = (): ConfigAttributes => ({
     expiry: process.env.JWT_EXPIRY,
   },
   mailgun: {
-    apiKey: process.env.MAILGUN_API_KEY,
-    domain: process.env.MAILGUN_DOMAIN,
-    fromEmail: process.env.MAILGUN_FROM_EMAIL,
-    fromName: process.env.MAILGUN_FROM_NAME,
-  },
-  flutterwave: {
-    publicKey: process.env.FLW_PUB_KEY,
-    secretKey: process.env.FLW_SEC_KEY,
-  },
-  vtpass: {
-    baseUrl: process.env.VTPASS_BASE_URL,
-    apiKey: process.env.VTPASS_API_KEY,
-    publicKey: process.env.VTPASS_PUBLIC_KEY,
-    secretKey: process.env.VTPASS_SECRET_KEY,
+    apiKey: process.env.MAIL_PASSWORD,
+    domain: process.env.MAIL_SERVICE,
+    fromEmail: process.env.MAIL_EMAIL,
+    fromName: process.env.MAIL_USERNAME,
   },
 
-  paystack: {
-    publicKey: process.env.PAYSTACK_PUB_KEY,
-    secretKey: process.env.PAYSTACK_SEC_KEY,
-    baseUrl: process.env.PAYSTACK_BASE_URL,
+  alatpay: {
+    publicKey: process.env.ALAT_CLIENT_ID,
+    secretKey: process.env.ALAT_CLIENT_SECRET,
+    baseUrl: process.env.ALAT_BASE_URL,
   },
   frontendUrl: process.env.FRONTEND_URL,
 });
@@ -93,7 +74,7 @@ const schema = Joi.object<Record<string, string>>({
   LOG_LEVEL: Joi.string().default('info'),
   DISABLE_REQUEST_LOGGING: Joi.string().allow('0', '1').default('0'),
 
-  DATABASE_URI: Joi.string().required(),
+  DB_URI: Joi.string().required(),
 
   JWT_SECRET: Joi.string().default('N8kNKyW36E9cv1EOLlTjsgDwR9uX'),
   JWT_EXPIRY: Joi.string().default('48h'),
@@ -102,22 +83,13 @@ const schema = Joi.object<Record<string, string>>({
     'hpuVxHk-vJfr8Nlk8hY2Y6S6Zz0NDiCeoujmZ55u8_nmV6EMyP7x8YNv5-jycyOs',
   ),
 
-  MAILGUN_API_KEY: Joi.string().required(),
-  MAILGUN_DOMAIN: Joi.string().required(),
-  MAILGUN_FROM_NAME: Joi.string().default('Lumeo'),
-  MAILGUN_FROM_EMAIL: Joi.string().default('no-reply@uselumeo.com'),
-  FLW_PUB_KEY: Joi.string().required(),
-  FLW_SEC_KEY: Joi.string().required(),
-  // FLW_ENC_KEY: Joi.string().optional(),
+  MAIL_PASSWORD: Joi.string().required(),
+  MAIL_USERNAME: Joi.string().default('Smartbin'),
+  MAIL_EMAIL: Joi.string().default('test-lawma@serene-dev.xyz'),
 
-  VTPASS_BASE_URL: Joi.string().required(),
-  VTPASS_API_KEY: Joi.string().required(),
-  VTPASS_PUBLIC_KEY: Joi.string().required(),
-  VTPASS_SECRET_KEY: Joi.string().required(),
-
-  PAYSTACK_PUB_KEY: Joi.string().required(),
-  PAYSTACK_SEC_KEY: Joi.string().required(),
-  PAYSTACK_BASE_URL: Joi.string().required(),
+  ALAT_CLIENT_ID: Joi.string().required(),
+  ALAT_CLIENT_SECRET: Joi.string().required(),
+  ALAT_BASE_URL: Joi.string().required(),
 
   FRONTEND_URL: Joi.string().required(),
 });
