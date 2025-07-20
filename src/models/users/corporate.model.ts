@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, SchemaTypes, Types } from 'mongoose';
 import { UserRole } from '@models/types'; // Adjust this path as needed
 import { getHashedPassword } from '@common/utils'; // Adjust if needed
 
@@ -13,6 +13,8 @@ export interface CorporateAttributes {
   phoneNumber?: string;
   password: string;
   role: UserRole.Corporate;
+    registeredBy?: Types.ObjectId;
+  registeredByModel?: 'Agent';
   loginCode?: string;
   loginCodeExpires?: Date;
   resetToken?: string;
@@ -56,6 +58,12 @@ export class Corporate implements CorporateAttributes {
 
   @Prop({ enum: [UserRole.Corporate], default: UserRole.Corporate })
   role: UserRole.Corporate;
+
+    @Prop({ type: Types.ObjectId, refPath: 'registeredByModel', default: null })
+  registeredBy?: Types.ObjectId;
+
+  @Prop({ type: String, enum: ['Agent'], default: null })
+  registeredByModel?: 'Agent';
 
   @Prop()
   loginCode?: string;

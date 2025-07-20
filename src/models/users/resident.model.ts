@@ -20,6 +20,8 @@ export interface ResidentAttributes {
   lawmaCustomerType?: LawmaCustomerType;
   role: UserRole.Resident;
   password: string;
+    registeredBy?: Types.ObjectId;
+  registeredByModel?: 'Agent' | 'FacilityManager';
   loginCode?: string;
   loginCodeExpiry?: Date;
   resetToken?: string;
@@ -81,6 +83,12 @@ export class Resident implements ResidentAttributes {
     default: UserRole.Resident,
   })
   role: UserRole.Resident;
+  
+  @Prop({ type: Types.ObjectId })
+  registeredBy?: Types.ObjectId;
+
+  @Prop({ enum: ['Agent', 'FacilityManager'], required: false })
+  registeredByModel?: 'Agent' | 'FacilityManager';
 
   @Prop({
     required: true,
