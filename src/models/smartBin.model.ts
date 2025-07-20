@@ -89,7 +89,7 @@ export class SmartBin extends Document {
     @Prop({
         type: String,
         enum: Object.values(CustomerType),
-        required: true,
+        default: CustomerType.Resident,
     })
     customerType: CustomerType;
     

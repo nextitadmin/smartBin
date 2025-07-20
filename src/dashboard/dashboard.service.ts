@@ -45,19 +45,19 @@ export class DashboardService {
 
  async getResidentDashboard(userId: string) {
   const [
-    resident, // if you actually need the resident document
+    resident,
     bills,
     wallet,
     smartbin,
     // pickups,
     // disposals,
   ] = await Promise.all([
-    this.residentModel.findById(userId).lean(), // 1
-    this.billModel.find({ userId, userType: 'Resident' }).lean(), // 2
-    this.walletModel.findOne({ userId }).lean(), // 3
-    this.smartbinModel.find({ userId, userType: 'Resident' }).sort({ createdAt: -1 }).lean(), // 4
-    // this.pickupModel.find({ userId, userType: 'resident' }).sort({ scheduledDate: 1 }).lean(), // 5
-    // this.disposalModel.find({ userId, userType: 'resident' }).lean(), // 6
+    this.residentModel.findById(userId).lean(),
+    this.billModel.find({ userId, userType: 'Resident' }).lean(),
+    this.walletModel.findOne({ userId }).lean(), 
+    this.smartbinModel.find({ userId, userType: 'Resident' }).sort({ createdAt: -1 }).lean(), 
+    // this.pickupModel.find({ userId, userType: 'resident' }).sort({ scheduledDate: 1 }).lean(), 
+    // this.disposalModel.find({ userId, userType: 'resident' }).lean(), 
   ]);
 
   const outstandingBills = bills.filter(b => b.status !== 'completed');
@@ -98,6 +98,8 @@ private estimateAnnualSubscription(bills: any[]) {
 
 
 
+
+// get facility manager dashboard
   async getFacilityManagerDashboard(facilityManagerId: string) {
   const [facilityManager, residents, wallet, bills, smartbin] = await Promise.all([
     this.facilityModel.findById(facilityManagerId),
@@ -124,6 +126,7 @@ private estimateAnnualSubscription(bills: any[]) {
 }
 
 
+// get agent dashboard
  async getAgentDashboard(agentId: string) {
   const [agent, residents, corporates, wallet, bills, smartbin] = await Promise.all([
     this.agentModel.findById(agentId),
@@ -153,7 +156,7 @@ private estimateAnnualSubscription(bills: any[]) {
 
 
 
-
+// get Corporate Dashboard
  async getCorporateDashboard(userId: string) {
   const [
     corporate,

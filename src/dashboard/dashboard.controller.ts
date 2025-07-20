@@ -1,11 +1,18 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { DashboardService } from './dashboard.service';
+import { Resident } from '../models/users/resident.model';
+import { Model } from 'mongoose';
 // import { AuthGuard } from '../auth/auth.guard'; 
 
-@Controller('dashboard')
+@Controller({
+  path: 'dashboard',
+  version: '1',
+})
 // @UseGuards(AuthGuard)
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
+    private readonly residentModel: Model<Resident>
+
 
   @Get()
   async getDashboard(@Req() req) {
@@ -16,7 +23,7 @@ export class DashboardController {
         return this.dashboardService.getResidentDashboard(userId);
 
       case 'Facility':
-        return this.dashboardService.getFacilityDashboard(userId);
+        return this.dashboardService.getFacilityManagerDashboard(userId);
 
       case 'Agent':
         return this.dashboardService.getAgentDashboard(userId);
@@ -30,4 +37,11 @@ export class DashboardController {
         };
     }
   }
+
+
+  @Get('test-dashboard')
+async testDashboard() {
+  const testResident = await this.residentModel.findOne({ email: 'test@example.com' }); // Use actual test data
+  return this.dashboardService.getResidentDashboard(testResident._id.toString());
+}
 }

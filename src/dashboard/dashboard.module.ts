@@ -5,9 +5,10 @@ import { Agent,AgentSchema } from '../models/users/agent.model';
 import { Corporate,CorporateSchema } from '../models/users/corporate.model';
 import { FacilityManager,FacilityManagerSchema } from '../models/users/facility-manager';
 import { Bill, BillSchema } from '../models/bill.model';
-// import { SmartBin, SmartBinSchema } from '../smartbin/smartbin.model';
+import { SmartBin, SmartBinSchema } from '../models/smartbin.model';
 import { Transaction, TransactionSchema } from '../models/transaction.model';
 import {Wallet,WalletSchema} from "../models/wallet.model"
+
 import { DashboardController } from './dashboard.controller';
 import { DashboardService } from './dashboard.service';
 
@@ -21,6 +22,7 @@ import { DashboardService } from './dashboard.service';
       { name: Wallet.name, schema: WalletSchema },
       { name: Bill.name, schema: BillSchema },
       { name: Transaction.name, schema: TransactionSchema },
+      { name: SmartBin.name, schema: SmartBinSchema },
     ]),
   ],
   controllers: [DashboardController],
