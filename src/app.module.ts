@@ -25,6 +25,7 @@ import { PayerModule } from './payer/payer.module';
 import { ResidentModule } from './resident/resident.module';
 import { FacilityManagerModule } from './facility-manager/facility-manager.module';
 import { BillModule } from './bill/bill.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -49,6 +50,7 @@ import { BillModule } from './bill/bill.module';
     ResidentModule,
     FacilityManagerModule,
     BillModule,
+    DashboardModule,
   ],
 })
 export class AppModule {
