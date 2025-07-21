@@ -3,10 +3,10 @@ import { AppModule } from '../src/app.module';
 import { getModelToken } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import { Resident } from '../src/models/users/resident.model';
-import { Wallet } from '../src/models/wallet.model';
-import { Bill } from '../src/models/bill.model'
-import { SmartBin } from '../src/models/smartbin.model';
+import { Resident } from '@models/users/resident.model';
+import { Wallet } from '@models/wallet.model';
+import { Bill } from '@models/bill.model';
+import { SmartBin } from '@models/smartbin.model';
 
 async function bootstrap() {
   const app = await NestFactory.createApplicationContext(AppModule);
@@ -43,7 +43,7 @@ async function bootstrap() {
     {
       userId: testResident._id,
       billId: 'RES1234587',
-       service:"Waste Disposal",
+      service: 'Waste Disposal',
       userType: 'Resident',
       status: 'pending',
       amount: 2500,
@@ -52,7 +52,7 @@ async function bootstrap() {
     },
     {
       userId: testResident._id,
-       service:"Waste Disposal",
+      service: 'Waste Disposal',
       billId: 'RES1234589',
       userType: 'Resident',
       status: 'completed',
@@ -65,7 +65,7 @@ async function bootstrap() {
   // 4. Create smartbin application
   await smartBinModel.create({
     userId: testResident._id,
-     payerId: 'RES1234587', 
+    payerId: 'RES1234587',
 
     userType: 'Resident',
     status: 'approved',
@@ -75,7 +75,6 @@ async function bootstrap() {
   console.log('✅ Test resident seeded successfully.');
   await app.close();
 }
-
 
 // Run the seeding
 bootstrap().catch((err) => {
