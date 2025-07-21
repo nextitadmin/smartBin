@@ -1,10 +1,10 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
-import {
-  AuthenticatedCustomer,
-  CustomerAuth,
-} from '@common/decorators/auth.decorator';
-import { AuthCustomer } from '@common/types';
+// import {
+//   AuthenticatedCustomer,
+//   CustomerAuth,
+// } from '@common/decorators/auth.decorator';
+// import { AuthCustomer } from '@common/types';
 // import { TransactionType } from '@models/transaction.model';
 import { SuccessResponse } from '@common/http';
 

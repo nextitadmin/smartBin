@@ -1,3 +1,4 @@
+import { UserRole } from '@models/types';
 import { InferAttributes, WhereOptions } from 'sequelize';
 import { Model } from 'sequelize-typescript';
 
@@ -13,6 +14,8 @@ export type RawModelWithAttributes<
   A extends keyof RawModelAttributes<T>,
 > = Pick<RawModel<T>, A>;
 
-export type AuthCustomer = {
+export type AuthUser = {
   id: string;
+  email: string;
+  role: UserRole;
 };

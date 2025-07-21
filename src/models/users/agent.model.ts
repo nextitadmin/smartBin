@@ -43,6 +43,8 @@ export interface AgentAtributes {
   password: string;
   profilePicture: string;
   status: AgentStatus;
+  loginCode: string;
+  loginCodeExpiry: Date;
   deleted_at?: Date;
 }
 
@@ -117,6 +119,12 @@ export class Agent implements AgentAtributes {
 
   @Prop({ type: SchemaTypes.String })
   profilePicture: string;
+
+  @Prop({ type: SchemaTypes.String })
+  loginCode: string;
+
+  @Prop({ type: SchemaTypes.String })
+  loginCodeExpiry: Date;
 
   @Prop({
     type: SchemaTypes.String,

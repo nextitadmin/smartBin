@@ -21,6 +21,7 @@
     "paths": {
       "@models/*": ["src/models/*"],
       "@common/*": ["src/common/*"],
+      "@utils/*": ["src/utils/*"],
       "@src/*": ["src/*"]
     }
   },
