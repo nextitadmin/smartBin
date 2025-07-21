@@ -48,9 +48,8 @@ export interface AgentAtributes {
   deleted_at?: Date;
 }
 
-// ✅ Mongoose schema class
 @Schema({
-  collection: 'customers',
+  collection: 'agents',
   id: true,
   timestamps: true,
   versionKey: false,
@@ -137,8 +136,23 @@ export class Agent implements AgentAtributes {
   deleted_at?: Date;
 }
 
-// ✅ Mongoose Document type
+
 export type AgentDocument = Agent & Document;
 
-// ✅ Schema factory
 export const AgentSchema = SchemaFactory.createForClass(Agent);
+
+
+AgentSchema.virtual('residents', {
+  ref: 'Resident',
+  localField: '_id',
+  foreignField: 'registeredBy',
+  match: { registeredByModel: 'Agent' },
+});
+
+// Virtual for Corporates registered by this Agent
+AgentSchema.virtual('corporates', {
+  ref: 'Corporate',
+  localField: '_id',
+  foreignField: 'registeredBy',
+  match: { registeredByModel: 'Agent' },
+});

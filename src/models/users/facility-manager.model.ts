@@ -77,3 +77,10 @@ export class FacilityManager implements FacilityManagerAttributes {
 export type FacilityManagerDocument = FacilityManager & Document;
 export const FacilityManagerSchema =
   SchemaFactory.createForClass(FacilityManager);
+
+
+  FacilityManagerSchema.virtual('residents', {
+  ref: 'Resident',
+  localField: '_id',
+  foreignField: 'registeredBy',
+});
