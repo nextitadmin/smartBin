@@ -7,32 +7,35 @@ import {
 } from '@nestjs/common';
 // import { CustomerService } from '../../customer/customer.service';
 import { Request } from 'express';
-import { AuthCustomer } from '../types';
+import { AuthUser } from '../types';
+import { AgentService } from '@src/agent/agent.service';
+import { UserRole } from '@models/types';
 
 @Injectable()
-export class CustomerAuthGuard implements CanActivate {
-  // constructor(private readonly customerService: CustomerService) {}
+export class AgentAuthGuard implements CanActivate {
+  constructor(private readonly agentService: AgentService) {}
 
-  private logger = new Logger(CustomerAuthGuard.name);
+  private logger = new Logger(AgentAuthGuard.name);
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
     const req: Request & {
       user: Record<string, any>;
-      customer?: AuthCustomer;
+      agent?: AuthUser;
     } = ctx.switchToHttp().getRequest();
 
     const request = ctx.switchToHttp().getRequest();
     const [type, token] = request.headers?.authorization?.split(' ') ?? [];
-    // const customer = await this.customerService.getCustomerDetailsbyToken(
-    // token,
-    // );
+
+    const agent = await this.agentService.getAgentDetailsByToken(token);
     if (!true) {
       this.logger.warn('failed to auth: no user object in request');
       throw new UnauthorizedException('not authenticated!');
     }
 
-    req.user = {
-      // id: customer.id,
+    req.agent = {
+      id: String(agent._id),
+      email: agent.email,
+      role: UserRole.Agent,
     };
 
     return true;

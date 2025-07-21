@@ -25,6 +25,8 @@ import { PayerModule } from './payer/payer.module';
 import { ResidentModule } from './resident/resident.module';
 import { FacilityManagerModule } from './facility-manager/facility-manager.module';
 import { BillModule } from './bill/bill.module';
+import { AppController } from './app.controller';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -44,12 +46,14 @@ import { BillModule } from './bill/bill.module';
     TransactionModule,
     // VerificationModule,
     AgentModule,
-    CorporateModule,
+    // CorporateModule,
     PayerModule,
-    ResidentModule,
-    FacilityManagerModule,
+    // ResidentModule,
+    // FacilityManagerModule,
     BillModule,
+    DashboardModule,
   ],
+  controllers: [AppController],
 })
 export class AppModule {
   onApplicationBootstrap() {
