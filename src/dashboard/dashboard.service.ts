@@ -12,7 +12,7 @@ import { Corporate } from '@models/users/corporate.model';
 import { FacilityManager } from '@models/users/facility-manager.model';
 import { Bill } from '@models/bill.model';
 import { Wallet } from '@models/wallet.model';
-import { SmartBin } from '@models/smartbin.model';
+import { SmartBin } from '@models/smart-bin.model';
 import { Transaction } from '@models/transaction.model';
 
 @Injectable()
