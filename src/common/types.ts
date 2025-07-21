@@ -19,3 +19,8 @@ export type AuthUser = {
   email: string;
   role: UserRole;
 };
+
+export type CorporateUser = {};
+export type FacilityManagerUser = {};
+export type AgentUser = {};
+export type ResidentUser = {};
