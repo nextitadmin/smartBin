@@ -1,9 +1,9 @@
 import { Controller, Get } from '@nestjs/common';
-import {
-  AuthenticatedCustomer,
-  CustomerAuth,
-} from '../common/decorators/auth.decorator';
-import { AuthCustomer } from '../common/types';
+// import {
+//   AuthenticatedCustomer,
+//   CustomerAuth,
+// } from '../common/decorators/auth.decorator';
+// import { AuthCustomer } from '../common/types';
 import { WalletService } from './wallet.service';
 import { SuccessResponse } from '../common/http';
 
