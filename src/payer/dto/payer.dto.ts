@@ -18,6 +18,10 @@ export class CreatePayerDto {
   @IsString()
   dateOfBirth: string;
 
+  @ApiProperty()
+  @IsString()
+  phoneNumber: string;
+
   @ApiProperty({
     maxLength: 11,
   })

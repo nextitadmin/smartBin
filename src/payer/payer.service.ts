@@ -18,7 +18,7 @@ export class PayerService {
   ) {}
 
   async createPayer(dto: CreatePayerDto) {
-    const { firstName, lastName, email, dateOfBirth, nin } = dto;
+    const { firstName, lastName, email, dateOfBirth, nin, phoneNumber } = dto;
 
     const existing = await this.payerModel
       .findOne({ email })
@@ -37,6 +37,7 @@ export class PayerService {
         email,
         dateOfBirth,
         nin,
+        phoneNumber,
       });
 
       await sendPayerIdEmail({
