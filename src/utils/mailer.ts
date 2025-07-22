@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url';
 import { generateRandomChars } from '@common/utils';
 
 const loadTemplate = (filename) => {
-  const filepath = path.join(__dirname, '..', 'views', filename);
+  const filepath = path.join(process.cwd(), 'assets', filename);
   return fs.readFile(filepath, 'utf-8');
 };
 
@@ -129,4 +129,4 @@ export const generateOTP = () => {
   return generateRandomChars(6, 'number');
 };
 
-export const sendOTPEmail = (email, name, otp) => {};
+export const sendOTPEmail = (email, name, otp) => { };

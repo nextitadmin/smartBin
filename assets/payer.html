@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Your LAWMA Payer ID</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 30px;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+
+        h2 {
+            color: #2e6a31;
+        }
+
+        code {
+            background: #f1f1f1;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Hello {{firstName}},</h2>
+        <p>Your <strong>Payer ID</strong> has been successfully generated:</p>
+        <p><code>{{payerId}}</code></p>
+        <p>Please keep this safe, as you'll need it to complete your KYC registration with LAWMA.</p>
+        <br />
+        <p>Thank you,<br />LAWMA KYC Team</p>
+    </div>
+</body>
+
+</html>

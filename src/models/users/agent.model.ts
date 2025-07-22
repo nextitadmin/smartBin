@@ -61,28 +61,28 @@ export class Agent implements AgentAtributes {
   @Prop({ type: SchemaTypes.String, required: true })
   agencyName: string;
 
-  @Prop({ type: SchemaTypes.String, required: true })
+  @Prop({ type: SchemaTypes.String, })
   businessEmail: string;
 
-  @Prop({ type: [Object], required: true })
+  @Prop({ type: [Object], })
   addresses: AgentAddressAttributes[];
 
-  @Prop({ type: SchemaTypes.String, required: true })
+  @Prop({ type: SchemaTypes.String, })
   regNumber: string;
 
-  @Prop({ type: SchemaTypes.String, required: true })
+  @Prop({ type: SchemaTypes.String, })
   firstName: string;
 
-  @Prop({ type: SchemaTypes.String, required: true })
+  @Prop({ type: SchemaTypes.String })
   lastName: string;
 
   @Prop({ type: SchemaTypes.String, required: true })
   email: string;
 
-  @Prop({ type: SchemaTypes.String, required: true })
+  @Prop({ type: SchemaTypes.String, })
   phoneNumber: string;
 
-  @Prop({ type: SchemaTypes.String, required: true })
+  @Prop({ type: SchemaTypes.String })
   nationality: string;
 
   @Prop({
@@ -99,7 +99,7 @@ export class Agent implements AgentAtributes {
   })
   idType: AgentIdType;
 
-  @Prop({ type: SchemaTypes.String, required: true })
+  @Prop({ type: SchemaTypes.String, })
   idNumber: string;
 
   @Prop({
