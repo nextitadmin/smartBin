@@ -61,7 +61,7 @@ export class PayerService {
   async getPayerByPayerId(payerId: string) {
     const payer = await this.payerModel
       .findOne({ payerId })
-      .select('firstName lastName email phone');
+      .select('firstName lastName email phoneNumber');
 
     if (!payer) throw new NotFoundException('Payer not found');
 
