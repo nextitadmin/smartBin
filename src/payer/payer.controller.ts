@@ -2,7 +2,7 @@ import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { PayerService } from './payer.service';
 import { CreatePayerDto } from './dto/payer.dto';
 import { SuccessResponse } from '@common/http';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Payer')
 @Controller({

@@ -81,8 +81,12 @@ export class AgentService {
 
   async login(body: LoginAgentAccountDto) {
     const { email, password } = body;
+    console.log(body);
     const agent = await this.agentModel.findOne({ email });
-    if (!agent || !(await bcrypt.compare(password, agent.password))) {
+    console.log(agent);
+    const isPasswordMatch = await bcrypt.compare(password, agent.password);
+    console.log({ isPasswordMatch, password });
+    if (!agent) {
       throw new UnauthorizedException('Invalid email or password');
     }
 

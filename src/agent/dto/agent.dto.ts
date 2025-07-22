@@ -12,6 +12,10 @@ export class CreateAgentAccountDto {
 
   @ApiProperty()
   @IsString()
+  phoneNumber: string;
+
+  @ApiProperty()
+  @IsString()
   password: string;
 
   @ApiProperty()

@@ -58,11 +58,12 @@ export class PayerService {
   }
 
   async getPayerByPayerId(payerId: string) {
-    const payer = await this.payerModel.findOne({ payerId });
+    const payer = await this.payerModel
+      .findOne({ payerId })
+      .select('firstName lastName email phone');
 
     if (!payer) throw new NotFoundException('Payer not found');
 
-    const { firstName, lastName, email } = payer;
-    return { firstName, lastName, email };
+    return payer;
   }
 }
