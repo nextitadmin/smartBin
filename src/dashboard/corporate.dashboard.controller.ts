@@ -1,7 +1,7 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { DashboardService } from './dashboard.service'
 import { CorporateAuthGuard } from '../common/guards/corporate.guard';
-
+import { SuccessResponse } from '@common/http';
 
 
 @Controller('dashboard/corporate')
@@ -12,6 +12,7 @@ export class CorporateDashboardController {
     @Get()
     async getCorporateDashboard(@Req() req) {
         const userId = req.user.id;
-        return this.dashboardService.getCorporateDashboard(userId);
+        const data = this.dashboardService.getCorporateDashboard(userId);
+        return new SuccessResponse('Corporate Dashboard retrieved', data)
     }
 }

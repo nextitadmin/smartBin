@@ -11,7 +11,8 @@ import { Bill, BillSchema } from '@models/bill.model';
 import { SmartBin, SmartBinSchema } from '@models/smart-bin.model';
 import { Transaction, TransactionSchema } from '@models/transaction.model';
 import { Wallet, WalletSchema } from '@models/wallet.model';
-
+import { ResidentDashboardController } from './resident.dashboard.controller';
+import { CorporateDashboardController } from './corporate.dashboard.controller';
 import { DashboardController } from './dashboard.controller';
 import { DashboardService } from './dashboard.service';
 
@@ -28,7 +29,7 @@ import { DashboardService } from './dashboard.service';
       { name: SmartBin.name, schema: SmartBinSchema },
     ]),
   ],
-  controllers: [DashboardController],
+  controllers: [DashboardController, ResidentDashboardController, CorporateDashboardController],
   providers: [DashboardService],
 })
 export class DashboardModule { }
