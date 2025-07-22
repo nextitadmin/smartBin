@@ -1,9 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsMongoId, IsString } from 'class-validator';
+import { IsEmail, IsString } from 'class-validator';
 
 export class CreateAgentAccountDto {
   @ApiProperty()
-  @IsMongoId()
+  @IsString()
   payerId: string;
 
   @ApiProperty()
@@ -27,4 +27,26 @@ export class LoginAgentAccountDto {
   @ApiProperty()
   @IsString()
   password: string;
+}
+
+export class VerifyAgentLogin {
+  @ApiProperty()
+  @IsString()
+  code: string;
+}
+
+export class EmailDTO {
+  @ApiProperty()
+  @IsEmail()
+  email: string;
+}
+
+export class ResetPasswordDto {
+  @ApiProperty()
+  @IsString()
+  password: string;
+
+  @ApiProperty()
+  @IsString()
+  confirmPassword: string;
 }

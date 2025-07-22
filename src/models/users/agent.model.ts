@@ -61,16 +61,16 @@ export class Agent implements AgentAtributes {
   @Prop({ type: SchemaTypes.String, required: true })
   agencyName: string;
 
-  @Prop({ type: SchemaTypes.String, })
+  @Prop({ type: SchemaTypes.String })
   businessEmail: string;
 
-  @Prop({ type: [Object], })
+  @Prop({ type: [Object] })
   addresses: AgentAddressAttributes[];
 
-  @Prop({ type: SchemaTypes.String, })
+  @Prop({ type: SchemaTypes.String })
   regNumber: string;
 
-  @Prop({ type: SchemaTypes.String, })
+  @Prop({ type: SchemaTypes.String })
   firstName: string;
 
   @Prop({ type: SchemaTypes.String })
@@ -79,7 +79,7 @@ export class Agent implements AgentAtributes {
   @Prop({ type: SchemaTypes.String, required: true })
   email: string;
 
-  @Prop({ type: SchemaTypes.String, })
+  @Prop({ type: SchemaTypes.String })
   phoneNumber: string;
 
   @Prop({ type: SchemaTypes.String })
@@ -88,18 +88,16 @@ export class Agent implements AgentAtributes {
   @Prop({
     type: SchemaTypes.String,
     enum: Object.values(Gender),
-    required: true,
   })
   gender: Gender;
 
   @Prop({
     type: SchemaTypes.String,
     enum: Object.values(AgentIdType),
-    required: true,
   })
   idType: AgentIdType;
 
-  @Prop({ type: SchemaTypes.String, })
+  @Prop({ type: SchemaTypes.String })
   idNumber: string;
 
   @Prop({
@@ -136,11 +134,9 @@ export class Agent implements AgentAtributes {
   deleted_at?: Date;
 }
 
-
 export type AgentDocument = Agent & Document;
 
 export const AgentSchema = SchemaFactory.createForClass(Agent);
-
 
 AgentSchema.virtual('residents', {
   ref: 'Resident',

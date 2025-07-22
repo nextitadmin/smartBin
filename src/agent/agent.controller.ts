@@ -20,7 +20,13 @@ import {
   AuthenticatedAgent,
 } from '@common/decorators/auth.decorator';
 import { AuthUser } from '@common/types';
-import { CreateAgentAccountDto, LoginAgentAccountDto } from './dto/agent.dto';
+import {
+  CreateAgentAccountDto,
+  EmailDTO,
+  LoginAgentAccountDto,
+  ResetPasswordDto,
+  VerifyAgentLogin,
+} from './dto/agent.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { SuccessResponse } from '@common/http';
 
@@ -45,8 +51,8 @@ export class AgentController {
   }
 
   @Post('verify-login')
-  async verifyLogin(@Body('loginCode') code: string, @Req() req: Request) {
-    const agent = await this.agentService.verifyLoginCode(code);
+  async verifyLogin(@Body() body: VerifyAgentLogin, @Req() req: Request) {
+    const agent = await this.agentService.verifyLoginCode(body.code);
     return new SuccessResponse(agent.message, {
       token: agent.token,
       attributes: agent.data,
@@ -54,8 +60,8 @@ export class AgentController {
   }
 
   @Post('request-password-reset')
-  async requestPasswordReset(@Body('email') email: string) {
-    const response = await this.agentService.requestPasswordReset(email);
+  async requestPasswordReset(@Body() body: EmailDTO) {
+    const response = await this.agentService.requestPasswordReset(body.email);
     return new SuccessResponse(response.message, null);
   }
 
@@ -65,14 +71,10 @@ export class AgentController {
   // }
 
   @Post('reset-password')
-  resetPassword(
-    @Body('newPassword') newPassword: string,
-    @Body('confirmPassword') confirmPassword: string,
-    @Req() req: Request | any,
-  ) {
+  resetPassword(@Body() body: ResetPasswordDto, @Req() req: Request | any) {
     return this.agentService.resetPassword(
-      newPassword,
-      confirmPassword,
+      body.password,
+      body.confirmPassword,
       req.session,
     );
   }
