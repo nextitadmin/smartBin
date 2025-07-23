@@ -20,11 +20,11 @@ export interface ConfigAttributes {
     secret: string;
     expiry: string;
   };
-  mailgun: {
-    apiKey: string;
-    domain: string;
-    fromName?: string;
-    fromEmail?: string;
+  mail: {
+    smtp_host: string;
+    smtp_port: string;
+    smtp_user: string;
+    smtp_password: string;
   };
 
   alatpay: {
@@ -53,11 +53,11 @@ const config = (): ConfigAttributes => ({
     secret: process.env.JWT_SECRET,
     expiry: process.env.JWT_EXPIRY,
   },
-  mailgun: {
-    apiKey: process.env.MAIL_PASSWORD,
-    domain: process.env.MAIL_SERVICE,
-    fromEmail: process.env.MAIL_EMAIL,
-    fromName: process.env.MAIL_USERNAME,
+  mail: {
+    smtp_host: process.env.MAIL_SMTP_HOST,
+    smtp_user: process.env.MAIL_SMTP_USERNAME,
+    smtp_password: process.env.MAIL_SMTP_PASSWORD,
+    smtp_port: process.env.MAIL_SMTP_PORT,
   },
 
   alatpay: {
@@ -83,9 +83,10 @@ const schema = Joi.object<Record<string, string>>({
     'hpuVxHk-vJfr8Nlk8hY2Y6S6Zz0NDiCeoujmZ55u8_nmV6EMyP7x8YNv5-jycyOs',
   ),
 
-  MAIL_PASSWORD: Joi.string().required(),
-  MAIL_USERNAME: Joi.string().default('Smartbin'),
-  MAIL_EMAIL: Joi.string().default('test-lawma@serene-dev.xyz'),
+  MAIL_SMTP_PASSWORD: Joi.string().required(),
+  MAIL_SMTP_USERNAME: Joi.string().required(),
+  MAIL_SMTP_HOST: Joi.string().required(),
+  MAIL_SMTP_PORT: Joi.string().required(),
 
   ALAT_CLIENT_ID: Joi.string().required(),
   ALAT_CLIENT_SECRET: Joi.string().required(),

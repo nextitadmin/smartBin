@@ -12,11 +12,11 @@ import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import { Agent, AgentDocument } from '@models/users/agent.model';
 import { Payer, PayerDocument } from '@models/users/payer.model';
-import {
-  sendConfirmationMail,
-  sendResetEmail,
-  sendLoginCodeEmail,
-} from '@utils/mailer';
+// import {
+//   sendConfirmationMail,
+//   sendResetEmail,
+//   sendLoginCodeEmail,
+// } from '@utils/mailer';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { CacheKeys } from '@src/shared/constants';
@@ -24,6 +24,11 @@ import { getSeconds } from 'date-fns';
 import { UserRole } from '@models/types';
 import { JwtService } from '@nestjs/jwt';
 import { CreateAgentAccountDto, LoginAgentAccountDto } from './dto/agent.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import {
+  MailNotificationEvents,
+  SendEmailEvent,
+} from '@src/notification/dto/event';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -34,6 +39,7 @@ export class AgentService {
     private readonly jwtService: JwtService,
     @InjectModel(Agent.name) private readonly agentModel: Model<AgentDocument>,
     @InjectModel(Payer.name) private readonly payerModel: Model<PayerDocument>,
+    private ee: EventEmitter2,
   ) {}
 
   async registerAgent(body: CreateAgentAccountDto) {
@@ -66,7 +72,17 @@ export class AgentService {
       password: hashedPassword,
     });
 
-    await sendConfirmationMail(newAgent.email, newAgent.firstName);
+    this.ee.emit(
+      MailNotificationEvents.Account.Welcome,
+      new SendEmailEvent({
+        to: newAgent.email,
+        from: `"LAWMA REG" <accounts@lawma.co>`,
+        subject: 'Registration Successful',
+        context: {
+          firstName: newAgent.firstName,
+        },
+      }),
+    );
 
     return {
       message: 'Agent registered successfully',
@@ -98,13 +114,26 @@ export class AgentService {
     await agent.save();
 
     const ttlSeconds = getSeconds(loginCodeExpiry);
+    console.log({ ttlSeconds }, CacheKeys.AgentLoginCode(String(loginCode)));
+    console.log('Setting code', loginCode);
     await this.cacheService.set(
       CacheKeys.AgentLoginCode(String(loginCode)),
       String(agent._id),
-      ttlSeconds,
+      // ttlSeconds,
     );
 
-    await sendLoginCodeEmail(agent.email, agent.firstName, loginCode);
+    this.ee.emit(
+      MailNotificationEvents.Account.VerificationOTP,
+      new SendEmailEvent({
+        to: agent.email,
+        from: `"LAWMA REG" <no-reply@resend.dev>`,
+        subject: 'Your Login Verification Code',
+        context: {
+          firstName: agent.firstName,
+          loginCode,
+        },
+      }),
+    );
   }
 
   async verifyLoginCode(loginCode: string) {
@@ -113,7 +142,7 @@ export class AgentService {
     );
 
     if (!verificationCode) {
-      throw new UnauthorizedException('Session expired. Please log in again.');
+      throw new BadRequestException('Session expired. Please log in again.');
     }
 
     const agent = await this.agentModel
@@ -186,7 +215,19 @@ export class AgentService {
     );
 
     if (agent) {
-      await sendResetEmail(agent.email, agent.firstName, resetCode);
+      this.ee.emit(
+        MailNotificationEvents.Account.ForgotPassword,
+        new SendEmailEvent({
+          to: agent.email,
+          from: `"LAWMA REG" <accounts@lawma.co>`,
+          subject: 'Password Reset Request',
+          context: {
+            firstName: agent.firstName,
+            resetCode,
+          },
+        }),
+      );
+      // await sendResetEmail(agent.email, agent.firstName, resetCode);
     }
 
     return {
