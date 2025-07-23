@@ -51,8 +51,13 @@ export interface SmartBinAttributes {
   houseName?: string;
   flatNumber?: string;
   localGovernmentArea?: string;
+  approvalDate?: Date;
+  deliveredOn?: Date;
+  deliveredBy?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  __v?: number;
+
 }
 @Schema({
   collection: 'smart_bins',
