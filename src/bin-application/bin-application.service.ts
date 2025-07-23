@@ -220,21 +220,22 @@ export class BinApplicationService {
         return { message: 'Bin application deleted successfully' };
     }
     // Create a new bin application
-    async createBinApplication(dto: BinAppDto) {
-        const { userId, binType, customerType, payerId, address, amount, status,
+    async createBinApplication(dto: BinAppDto, userId: any, userType: any) {
+        const { binType, customerType, payerId, address, amount, status,
             paymentMethod, buildingName, businessType, email, phoneNumber, branch, 
             closestLandmark, name, businessName, buildingType, houseName, flatNumber, 
             localGovernmentArea
           } = dto;
 
-        // Check if the user already has a bin application
+        // Check existence
         const existingApplication = await this.smartbinModel.findOne({ userId }).lean();
         if (existingApplication) {
             throw new BadRequestException('User already has a bin application');
         }
         // Create a new bin application
         const newBinApplication = new this.smartbinModel({
-            userId: new Types.ObjectId(userId),
+            userId: userId,
+            userType: userType,
             binType: binType || BinType.Smart,
             customerType: customerType || CustomerType.Resident,
             payerId: payerId,
