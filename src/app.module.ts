@@ -27,6 +27,7 @@ import { FacilityManagerModule } from './facility-manager/facility-manager.modul
 import { BillModule } from './bill/bill.module';
 import { AppController } from './app.controller';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { BinApplicationModule } from './bin-application/bin-application.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     // FacilityManagerModule,
     BillModule,
     DashboardModule,
+    BinApplicationModule,
   ],
   controllers: [AppController],
 })
