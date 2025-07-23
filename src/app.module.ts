@@ -27,6 +27,7 @@ import { ResidentModule } from './resident/resident.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { mailerConfigOpts } from './config/mailer.config';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { BinApplicationModule } from './bin-application/bin-application.module';
 
 @Module({
   imports: [
@@ -76,6 +77,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
     // FacilityManagerModule,
     BillModule,
     DashboardModule,
+    BinApplicationModule,
   ],
   controllers: [AppController],
 })
