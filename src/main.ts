@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { ConfigAttributes } from './config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
+import session from 'express-session';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -21,6 +22,19 @@ async function bootstrap() {
     origin: '*',
   });
   app.use(helmet());
+
+
+  app.use(
+    session({
+      secret: config.get('SESSION_SECRET') || 'default_session_secret',
+      resave: false,
+      saveUninitialized: false,
+      cookie: {
+        httpOnly: true,
+        maxAge: 60 * 60 * 1000, // 1 hour
+      },
+    }),
+  );
 
   app.enableVersioning();
   app.setGlobalPrefix('api');

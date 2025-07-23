@@ -29,6 +29,7 @@ export class MailerService {
         __dirname,
         `../assets/${templateName}.html`,
       );
+      console.log(templateFilePath);
       const getFileContent = readFileSync(templateFilePath).toString();
       return renderString(getFileContent, {
         ...context,

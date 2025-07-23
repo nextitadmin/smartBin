@@ -23,6 +23,7 @@ import { PayerModule } from './payer/payer.module';
 import { BillModule } from './bill/bill.module';
 import { AppController } from './app.controller';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { ResidentModule } from './resident/resident.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { mailerConfigOpts } from './config/mailer.config';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
@@ -71,7 +72,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
     AgentModule,
     // CorporateModule,
     PayerModule,
-    // ResidentModule,
+    ResidentModule,
     // FacilityManagerModule,
     BillModule,
     DashboardModule,
