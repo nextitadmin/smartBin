@@ -48,7 +48,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     AgentModule,
     // CorporateModule,
     PayerModule,
-    // ResidentModule,
+    ResidentModule,
     // FacilityManagerModule,
     BillModule,
     DashboardModule,

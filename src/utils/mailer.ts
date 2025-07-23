@@ -126,7 +126,7 @@ export async function sendLoginCodeEmail(email, firstName, loginCode) {
 }
 
 export const generateOTP = () => {
-  return generateRandomChars(6, 'number');
+  return generateRandomChars(5, 'number');
 };
 
 export const sendOTPEmail = (email, name, otp) => { };
