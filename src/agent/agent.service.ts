@@ -136,16 +136,13 @@ export class AgentService {
       CacheKeys.AgentLoginCode(loginCode),
     );
 
+    console.log({ agentId });
     if (!agentId) {
       throw new BadRequestException('Session expired. Please log in again.');
     }
 
     const agent = await this.agentModel
-      .findOne({
-        _id: agentId,
-        loginCode,
-        loginCodeExpiry: { $gt: Date.now() },
-      })
+      .findById(agentId)
       .select(defaultAgentFields)
       .lean();
 
