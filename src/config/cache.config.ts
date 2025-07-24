@@ -5,7 +5,7 @@ import { createKeyv } from '@keyv/redis';
 export const cacheModuleConfigOpts: CacheModuleAsyncOptions = {
   isGlobal: true,
   useFactory: async (configService: ConfigService) => ({
-    store: createKeyv(configService.get('REDIS_URL')),
+    store: createKeyv(configService.get('CACHE_URL')),
     isGlobal: true,
   }),
   inject: [ConfigService],
