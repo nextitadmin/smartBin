@@ -10,7 +10,11 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
-import { Agent, AgentDocument } from '@models/users/agent.model';
+import {
+  Agent,
+  AgentDocument,
+  defaultAgentFields,
+} from '@models/users/agent.model';
 import { Payer, PayerDocument } from '@models/users/payer.model';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -35,7 +39,7 @@ export class AgentService {
     @InjectModel(Payer.name) private readonly payerModel: Model<PayerDocument>,
     private readonly configService: ConfigService,
     private ee: EventEmitter2,
-  ) { }
+  ) {}
 
   async registerAgent(body: CreateAgentAccountDto) {
     const { payerId, agencyName, password, confirmPassword } = body;
@@ -59,7 +63,7 @@ export class AgentService {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newAgent = await this.agentModel.create({
-      payerId,
+      payerId: payer._id,
       agencyName,
       firstName: payer.firstName,
       lastName: payer.lastName,
@@ -102,19 +106,15 @@ export class AgentService {
     }
 
     const loginCode = Math.floor(10000 + Math.random() * 90000).toString();
-    const loginCodeExpiry = new Date(Date.now() + 10 * 60 * 1000);
+    const loginCodeExpiry = 600000; // 10mins
 
-    agent.loginCode = loginCode;
-    agent.loginCodeExpiry = loginCodeExpiry;
     await agent.save();
 
-    const ttlSeconds = getSeconds(loginCodeExpiry);
-    console.log({ ttlSeconds }, CacheKeys.AgentLoginCode(String(loginCode)));
     console.log('Setting code', loginCode);
     await this.cacheService.set(
       CacheKeys.AgentLoginCode(String(loginCode)),
       String(agent._id),
-      // ttlSeconds,
+      loginCodeExpiry,
     );
 
     this.ee.emit(
@@ -132,21 +132,21 @@ export class AgentService {
   }
 
   async verifyLoginCode(loginCode: string) {
-    const verificationCode = await this.cacheService.get(
+    const agentId = await this.cacheService.get(
       CacheKeys.AgentLoginCode(loginCode),
     );
 
-    if (!verificationCode) {
+    if (!agentId) {
       throw new BadRequestException('Session expired. Please log in again.');
     }
 
     const agent = await this.agentModel
       .findOne({
-        _id: verificationCode,
+        _id: agentId,
         loginCode,
         loginCodeExpiry: { $gt: Date.now() },
       })
-      .select('-password')
+      .select(defaultAgentFields)
       .lean();
 
     if (!agent) {
@@ -185,7 +185,7 @@ export class AgentService {
   async getProfile(agentId: string) {
     const agent = await this.agentModel
       .findById(agentId)
-      .select('-password -createdAt -updatedAt')
+      .select(defaultAgentFields)
       .lean();
     if (!agent) {
       throw new NotFoundException('Agent not found');
@@ -246,40 +246,31 @@ export class AgentService {
     return { message: 'Code verified. You can now reset your password.' };
   }
 
-  async resetPassword(
-    newPassword: string,
-    confirmPassword: string,
-    session: any,
-  ) {
-    const userId = session.passwordResetUserId;
-    if (!userId) {
-      throw new UnauthorizedException(
-        'Reset session expired. Please verify code again.',
-      );
-    }
-
-    if (
-      !newPassword ||
-      newPassword !== confirmPassword ||
-      newPassword.length < 6
-    ) {
-      throw new BadRequestException('Passwords do not match or are too short');
-    }
-
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await this.agentModel.updateOne(
-      { _id: userId },
-      {
-        $set: {
-          password: hashedPassword,
-          resetToken: null,
-          resetTokenExpiry: null,
-        },
-      },
-    );
-
-    session.passwordResetUserId = null;
-    return { message: 'Password has been reset successfully' };
+  async completePasswordReset(newPassword: string, confirmPassword: string) {
+    //   throw new UnauthorizedException(
+    //     'Reset session expired. Please verify code again.',
+    //   );
+    // }
+    // if (
+    //   !newPassword ||
+    //   newPassword !== confirmPassword ||
+    //   newPassword.length < 6
+    // ) {
+    //   throw new BadRequestException('Passwords do not match or are too short');
+    // }
+    // const hashedPassword = await bcrypt.hash(newPassword, 10);
+    // await this.agentModel.updateOne(
+    //   { _id: userId },
+    //   {
+    //     $set: {
+    //       password: hashedPassword,
+    //       resetToken: null,
+    //       resetTokenExpiry: null,
+    //     },
+    //   },
+    // );
+    // session.passwordResetUserId = null;
+    // return { message: 'Password has been reset successfully' };
   }
 
   async logout() {
@@ -294,4 +285,6 @@ export class AgentService {
 
     return this.getProfile(tokenDetails.id);
   }
+
+  async verifyResetCode(code: string) {}
 }

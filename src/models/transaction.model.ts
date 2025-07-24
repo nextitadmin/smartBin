@@ -1,12 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaTypes, Types } from 'mongoose';
 
-export enum UserType {
-  Resident = 'Resident',
-  Corporate = 'Corporate',
-  Facility = 'Facility',
-  Agent = 'Agent',
-}
+import { UserRole } from './types';
 
 export enum TransactionStatus {
   Abandoned = 'abandoned',
@@ -35,7 +30,7 @@ export enum ServiceType {
 
 export interface TransactionAttributes {
   userId: Types.ObjectId;
-  userType: UserType;
+  userType: UserRole;
   amount: number;
   transactionReference: string;
   transactionID: string;
@@ -60,9 +55,9 @@ export class Transaction implements TransactionAttributes {
   @Prop({
     type: String,
     required: true,
-    enum: Object.values(UserType),
+    enum: Object.values(UserRole),
   })
-  userType: UserType;
+  userType: UserRole;
 
   @Prop({ required: true })
   amount: number;

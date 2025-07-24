@@ -19,6 +19,7 @@ import { Payer, PayerSchema } from '@models/users/payer.model';
     ]),
   ],
   providers: [AgentService],
+  exports: [AgentService],
   controllers: [AgentController],
 })
 export class AgentModule {}

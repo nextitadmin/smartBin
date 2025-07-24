@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaTypes, Types } from 'mongoose';
+import { UserRole } from './types';
 
 export enum SmartbinStatus {
   Pending = 'pending',
@@ -17,13 +18,6 @@ export enum LAWMACustomerType {
   New = 'New',
 }
 
-export enum CustomerType {
-  Resident = 'Resident',
-  Corporate = 'Corporate',
-  Facility = 'Facility',
-  Agent = 'Agent',
-}
-
 export enum PaymentMethod {
   AlatByWema = 'Alat',
   Wallet = 'wallet',
@@ -34,7 +28,7 @@ export interface SmartBinAttributes {
   payerId: string;
   binType: BinType;
   status: SmartbinStatus;
-  customerType: CustomerType;
+  customerType: UserRole;
   lawmaCustomerType?: LAWMACustomerType;
   paymentMethod?: PaymentMethod;
   buildingName?: string;
@@ -56,8 +50,13 @@ export interface SmartBinAttributes {
   deliveredBy?: string;
   createdAt?: Date;
   updatedAt?: Date;
-  __v?: number;
-
+  applicationHistory: [
+    {
+      timestamp: Date; // date
+      status: string; // activated, delivered, scheduledForDelivery, delivered, cancelled //enum
+      description: string;
+    },
+  ];
 }
 @Schema({
   collection: 'smart_bins',
@@ -93,10 +92,10 @@ export class SmartBin extends Document {
 
   @Prop({
     type: String,
-    enum: Object.values(CustomerType),
-    default: CustomerType.Resident,
+    enum: Object.values(UserRole),
+    default: UserRole.Resident,
   })
-  customerType: CustomerType;
+  customerType: UserRole;
 
   @Prop({
     type: String,

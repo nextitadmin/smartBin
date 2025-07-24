@@ -10,10 +10,14 @@ import { Request } from 'express';
 import { AuthUser } from '../types';
 import { AgentService } from '@src/agent/agent.service';
 import { UserRole } from '@models/types';
-
+import { Reflector } from '@nestjs/core';
+import { IS_PUBLIC_KEY } from './public.guard';
 @Injectable()
 export class AgentAuthGuard implements CanActivate {
-  constructor(private readonly agentService: AgentService) {}
+  constructor(
+    private readonly reflector: Reflector,
+    private readonly agentService: AgentService,
+  ) {}
 
   private logger = new Logger(AgentAuthGuard.name);
 
@@ -23,8 +27,14 @@ export class AgentAuthGuard implements CanActivate {
       agent?: AuthUser;
     } = ctx.switchToHttp().getRequest();
 
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      ctx.getHandler(),
+      ctx.getClass(),
+    ]);
+    if (isPublic) return true;
+
     const request = ctx.switchToHttp().getRequest();
-    const [type, token] = request.headers?.authorization?.split(' ') ?? [];
+    const [, token] = request.headers?.authorization?.split(' ') ?? [];
 
     const agent = await this.agentService.getAgentDetailsByToken(token);
     if (!true) {

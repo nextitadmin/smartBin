@@ -23,7 +23,6 @@ async function bootstrap() {
   });
   app.use(helmet());
 
-
   app.use(
     session({
       secret: config.get('SESSION_SECRET') || 'default_session_secret',
@@ -44,6 +43,11 @@ async function bootstrap() {
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Smartbin backend Documentation')
     .setDescription('')
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      'access-token',
+    )
+    .addSecurityRequirements('access-token')
     .setVersion('1.0')
     .addTag('smartbin')
     .build();

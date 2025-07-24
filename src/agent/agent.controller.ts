@@ -29,8 +29,10 @@ import {
 } from './dto/agent.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { SuccessResponse } from '@common/http';
+import { Public } from '@common/guards/public.guard';
 
 @ApiTags('Agents')
+@AgentAuth()
 @Controller({
   path: 'agents',
   version: '1',
@@ -38,20 +40,23 @@ import { SuccessResponse } from '@common/http';
 export class AgentController {
   constructor(private readonly agentService: AgentService) {}
 
+  @Public()
   @Post('register')
   async register(@Body() body: CreateAgentAccountDto) {
     const agent = await this.agentService.registerAgent(body);
     return new SuccessResponse(agent.message, agent.data);
   }
 
+  @Public()
   @Post('login')
   async login(@Body() body: LoginAgentAccountDto) {
     await this.agentService.login(body);
     return new SuccessResponse('Verification code sent to your email', null);
   }
 
+  @Public()
   @Post('verify-login')
-  async verifyLogin(@Body() body: VerifyAgentLogin, @Req() req: Request) {
+  async verifyLogin(@Body() body: VerifyAgentLogin) {
     const agent = await this.agentService.verifyLoginCode(body.code);
     return new SuccessResponse(agent.message, {
       token: agent.token,
@@ -59,23 +64,25 @@ export class AgentController {
     });
   }
 
-  @Post('request-password-reset')
+  @Public()
+  @Post('password-reset/request')
   async requestPasswordReset(@Body() body: EmailDTO) {
     const response = await this.agentService.requestPasswordReset(body.email);
     return new SuccessResponse(response.message, null);
   }
 
-  // @Post('verify-password-reset')
-  // verifyReset(@Body('resetCode') code: string, @Req() req: Request) {
-  //   return this.agentService.verifyResetCode(code, req.session);
-  // }
+  @Public()
+  @Post('password-reset/verify')
+  verifyReset(@Body('resetCode') code: string) {
+    return this.agentService.verifyResetCode(code);
+  }
 
-  @Post('reset-password')
-  resetPassword(@Body() body: ResetPasswordDto, @Req() req: Request | any) {
-    return this.agentService.resetPassword(
+  @Public()
+  @Post('password-reset/complete')
+  resetPassword(@Body() body: ResetPasswordDto | any) {
+    return this.agentService.completePasswordReset(
       body.password,
       body.confirmPassword,
-      req.session,
     );
   }
 
@@ -97,13 +104,9 @@ export class AgentController {
   @UseInterceptors(FileInterceptor('profilePicture'))
   async updateProfilePicture(
     @UploadedFile() file: Express.Multer.File,
-    @Req() req: Request,
     @AuthenticatedAgent() agent: AuthUser,
   ) {
-    const response = await this.agentService.updateProfilePicture(
-      agent.id,
-      file.path,
-    );
+    await this.agentService.updateProfilePicture(agent.id, file.path);
     return new SuccessResponse('profile picture updated', null);
   }
 }

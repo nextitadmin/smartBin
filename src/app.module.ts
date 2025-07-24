@@ -25,9 +25,13 @@ import { AppController } from './app.controller';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { BinApplicationModule } from './bin-application/bin-application.module';
 import { ResidentModule } from './resident/resident.module';
-import { MailerModule } from '@nestjs-modules/mailer';
-import { mailerConfigOpts } from './config/mailer.config';
-import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+
+import { APP_GUARD } from '@nestjs/core';
+import { AgentAuthGuard } from '@common/guards/agent.guard';
+import { ResidentAuthGuard } from '@common/guards/resident.guard';
+import { CorporateAuthGuard } from '@common/guards/corporate.guard';
+import { FacilityManagerAuthGuard } from '@common/guards/facility-manager.guard';
+import { MediaModule } from './media/media.module';
 
 @Module({
   imports: [
@@ -36,30 +40,6 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
     MongooseModule.forRootAsync(mongodbConfigOptions),
     JwtModule.registerAsync(jwtConfigOpts),
     CacheModule.registerAsync(cacheModuleConfigOpts),
-    // MailerModule.forRootAsync({
-    //   inject: [ConfigService],
-    //   useFactory: async (configService: ConfigService<ConfigAttributes>) => ({
-    //     transport: {
-    //       host: configService.get('mail').smtp_host,
-    //       secure: true,
-    //       port: +configService.get('mail').smtp_port,
-    //       auth: {
-    //         user: configService.get('mail').smtp_user,
-    //         pass: configService.get('mail').smtp_password,
-    //       },
-    //     },
-    //     defaults: {
-    //       from: '"LAWMA" <notifications@lawma.co>',
-    //     },
-    //     template: {
-    //       dir: __dirname + '/assets',
-    //       adapter: new HandlebarsAdapter(),
-    //       options: {
-    //         strict: true,
-    //       },
-    //     },
-    //   }),
-    // }),
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
     HttpModule,
@@ -78,8 +58,27 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
     BillModule,
     DashboardModule,
     BinApplicationModule,
+    MediaModule,
   ],
   controllers: [AppController],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useValue: AgentAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useValue: ResidentAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useValue: CorporateAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useValue: FacilityManagerAuthGuard,
+    },
+  ],
 })
 export class AppModule {
   onApplicationBootstrap() {

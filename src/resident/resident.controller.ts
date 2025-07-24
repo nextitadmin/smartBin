@@ -20,7 +20,14 @@ import {
   AuthenticatedResident,
 } from '@common/decorators/auth.decorator';
 import { AuthUser } from '@common/types';
-import { CreateResidentAccountDto, ResidentLoginDto, VerifyResidentLogin, ResidentForgotPasswordDto, ResidentVerifyResetCodeDto, ResetPasswordDto } from './dto/resident.dto';
+import {
+  CreateResidentAccountDto,
+  ResidentLoginDto,
+  VerifyResidentLogin,
+  ResidentForgotPasswordDto,
+  ResidentVerifyResetCodeDto,
+  ResetPasswordDto,
+} from './dto/resident.dto';
 
 import { ApiTags } from '@nestjs/swagger';
 import { SuccessResponse } from '@common/http';
@@ -31,9 +38,7 @@ import { SuccessResponse } from '@common/http';
   version: '1',
 })
 export class ResidentController {
-  constructor(private readonly residentService: ResidentService) { }
-
-
+  constructor(private readonly residentService: ResidentService) {}
 
   @Post('register')
   async register(@Body() body: CreateResidentAccountDto) {
@@ -48,7 +53,7 @@ export class ResidentController {
   }
 
   @Post('verify-login')
-  async verifyLogin(@Body() body: VerifyResidentLogin, @Req() req: Request) {
+  async verifyLogin(@Body() body: VerifyResidentLogin) {
     const agent = await this.residentService.verifyLoginCode(body.code);
     return new SuccessResponse(agent.message, {
       token: agent.token,
@@ -63,20 +68,30 @@ export class ResidentController {
   }
 
   @Post('verify-password-reset')
-  verifyReset(@Body() body: ResidentVerifyResetCodeDto, @Req() req: Request | any) {
-    return this.residentService.verifyPasswordResetCode(body, req.session);
+  async verifyReset(
+    @Body() body: ResidentVerifyResetCodeDto,
+    @Req() req: Request | any,
+  ) {
+    const response = await this.residentService.verifyPasswordResetCode(
+      body,
+      req.session,
+    );
+    return new SuccessResponse('success', response);
   }
 
   @Post('reset-password')
-  resetPassword(@Body() body: ResetPasswordDto, @Req() req: Request | any) {
-    return this.residentService.resetPassword(
+  async resetPassword(
+    @Body() body: ResetPasswordDto,
+    @Req() req: Request | any,
+  ) {
+    const response = await this.residentService.resetPassword(
       body.password,
       body.confirmPassword,
       req.session,
     );
+
+    return new SuccessResponse('reset password successful', response);
   }
-
-
 
   @Get('profile')
   @ResidentAuth()
