@@ -31,22 +31,7 @@ export class DashboardService {
     // @InjectModel(Disposal.name) private readonly disposalModel: Model<Disposal>,
     @InjectModel(Transaction.name)
     private readonly transactionModel: Model<Transaction>,
-  ) {}
-
-  async getDashboard(userId: string, userType: string) {
-    switch (userType) {
-      case 'Resident':
-        return this.getResidentDashboard(userId);
-      case 'Facility':
-        return this.getFacilityManagerDashboard(userId);
-      case 'Agent':
-        return this.getAgentDashboard(userId);
-      case 'Corporate':
-        return this.getCorporateDashboard(userId);
-      default:
-        throw new BadRequestException('Invalid user type');
-    }
-  }
+  ) { }
 
   async getResidentDashboard(userId: string) {
     const [
@@ -134,9 +119,8 @@ export class DashboardService {
 
     return {
       id: facilityManager?._id,
-      fullName: `${facilityManager?.firstName || ''} ${
-        facilityManager?.lastName || ''
-      }`,
+      fullName: `${facilityManager?.firstName || ''} ${facilityManager?.lastName || ''
+        }`,
       walletBalance: wallet?.ledger_balance || 0,
       totalOutstandingBill: totalOutstanding,
       smartbinApplicationsCount: smartbin.length,
