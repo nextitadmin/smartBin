@@ -29,6 +29,7 @@ import {
   MailNotificationEvents,
   SendEmailEvent,
 } from '@src/notification/dto/event';
+import { ConfigAttributes } from '@src/config';
 
 @Injectable()
 export class AgentService {
@@ -37,7 +38,7 @@ export class AgentService {
     private readonly jwtService: JwtService,
     @InjectModel(Agent.name) private readonly agentModel: Model<AgentDocument>,
     @InjectModel(Payer.name) private readonly payerModel: Model<PayerDocument>,
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService<ConfigAttributes>,
     private ee: EventEmitter2,
   ) {}
 
@@ -149,7 +150,7 @@ export class AgentService {
     if (!agent) {
       throw new BadRequestException('Invalid or expired login code');
     }
-    const secret = this.configService.get<string>('JWT_SECRET');
+    const secret = this.configService.get('jwt.secret', { infer: true });
     const token = jwt.sign(
       {
         id: agent._id,
@@ -198,15 +199,16 @@ export class AgentService {
 
   async requestPasswordReset(email: string) {
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
-    const resetTokenExpiry = new Date(Date.now() + 20 * 60 * 1000);
+    const expiry = 600000;
 
-    const agent = await this.agentModel.findOneAndUpdate(
-      { email },
-      { $set: { resetToken: resetCode, resetTokenExpiry } },
-      { new: false },
-    );
-
+    const agent = await this.agentModel.findOneAndUpdate({ email });
+    console.log({ agent });
     if (agent) {
+      await this.cacheService.set(
+        CacheKeys.AgentLoginCode(String(resetCode)),
+        String(agent._id),
+        expiry,
+      );
       this.ee.emit(
         MailNotificationEvents.Account.ForgotPassword,
         new SendEmailEvent({
@@ -219,7 +221,6 @@ export class AgentService {
           },
         }),
       );
-      // await sendResetEmail(agent.email, agent.firstName, resetCode);
     }
 
     return {
@@ -229,45 +230,59 @@ export class AgentService {
     };
   }
 
-  async verifyPasswordResetCode(resetCode: string, session: any) {
-    const agent = await this.agentModel.findOne({
-      resetToken: resetCode,
-      resetTokenExpiry: { $gt: Date.now() },
-    });
+  async verifyPasswordResetCode(resetCode: string) {
+    const agentId = await this.cacheService.get(
+      CacheKeys.AgentLoginCode(resetCode),
+    );
+    if (!agentId) {
+      throw new BadRequestException('Invalid or expired reset code');
+    }
 
+    const agent = await this.agentModel.findById(agentId);
     if (!agent) {
       throw new BadRequestException('Invalid or expired reset code');
     }
 
-    session.passwordResetUserId = agent._id;
-    return { message: 'Code verified. You can now reset your password.' };
+    const secret = this.configService.get('jwt.secret', { infer: true });
+    const token = jwt.sign(
+      {
+        id: agent._id,
+        role: UserRole.Agent,
+        payerId: agent.payerId,
+        email: agent.email,
+      },
+      secret,
+      { expiresIn: '7d' },
+    );
+
+    return { token };
   }
 
-  async completePasswordReset(newPassword: string, confirmPassword: string) {
-    //   throw new UnauthorizedException(
-    //     'Reset session expired. Please verify code again.',
-    //   );
-    // }
-    // if (
-    //   !newPassword ||
-    //   newPassword !== confirmPassword ||
-    //   newPassword.length < 6
-    // ) {
-    //   throw new BadRequestException('Passwords do not match or are too short');
-    // }
-    // const hashedPassword = await bcrypt.hash(newPassword, 10);
-    // await this.agentModel.updateOne(
-    //   { _id: userId },
-    //   {
-    //     $set: {
-    //       password: hashedPassword,
-    //       resetToken: null,
-    //       resetTokenExpiry: null,
-    //     },
-    //   },
-    // );
-    // session.passwordResetUserId = null;
-    // return { message: 'Password has been reset successfully' };
+  async completePasswordReset({
+    accountId,
+    newPassword,
+    confirmPassword,
+  }: {
+    accountId: string;
+    newPassword: string;
+    confirmPassword: string;
+  }) {
+    if (
+      !newPassword ||
+      newPassword !== confirmPassword ||
+      newPassword.length < 6
+    ) {
+      throw new BadRequestException('Passwords do not match or are too short');
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.agentModel.updateOne(
+      { _id: accountId },
+      {
+        $set: {
+          password: hashedPassword,
+        },
+      },
+    );
   }
 
   async logout() {
