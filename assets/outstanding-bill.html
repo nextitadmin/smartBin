@@ -21,11 +21,25 @@
         }
         .holder {
           margin: auto;
-          font-weight: bold;
-          max-width: max-content;
-          background-color: rgb(239, 239, 239);
-          padding: 2px;
-          border-radius: 20px;
+          max-width:70%;
+          background-color: whitesmoke;
+          padding: 5px;
+          border-radius: 5px;
+          margin-bottom: 5px;
+          position: relative;
+        }
+        .span{
+            position:absolute;
+            right: 20px;
+            font-weight: bold;
+        }
+        .track{
+            max-width: max-content;
+            padding: 5px;
+            margin: 0 auto;
+            border-radius: 5px;
+            background-color: green;
+            color: #fff;
         }
     </style>
 </head>
@@ -33,13 +47,14 @@
 <body>
   <div class="container">
   <p><b>Hello, {{firstName}}</b></p>
-  <p>Please use the following verification code to proceed</p>
-  <div class="holder">
-    <h2 align="center" id="g2">{{loginCode}}</h2>
-    </div>
-  <p>This OTP is valid for 15 minutes from the time it was sent to you and can only be <br/>
-      used once. if you didnt initiate the request, you can safely ignore the mail.
-    </p>
+  <p>
+    Your account shows an outstanding balance of <b>N</b>{{balance}} for waste management <br>
+    service rendered for the past 30 days. To avoid disruptions, kindly settle this <br>
+    payment by <b>{{date}}</b>.
+  </p>
+  <p>You can make payment via your Portal.</p>
+    <p class="track">Make Payment</p>
+
   <p>Regards. <br/>
      LASG Unity Service Management Team.
   </p>
