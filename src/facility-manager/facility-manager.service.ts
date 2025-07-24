@@ -14,10 +14,15 @@ import {
 } from '@models/users/facility-manager.model';
 import { Payer, PayerDocument } from '@models/users/payer.model';
 import {
-  sendConfirmationMail,
-  sendLoginCodeEmail,
-  sendResetEmail,
-} from '@utils/mailer';
+  MailNotificationEvents,
+  SendEmailEvent,
+} from '@src/notification/dto/event';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+// import {
+//   sendConfirmationMail,
+//   sendLoginCodeEmail,
+//   sendResetEmail,
+// } from '@utils/mailer';
 
 @Injectable()
 export class FacilityManagerService {
@@ -25,6 +30,7 @@ export class FacilityManagerService {
     @InjectModel(FacilityManager.name)
     private facilityModel: Model<FacilityManagerDocument>,
     @InjectModel(Payer.name) private payerModel: Model<PayerDocument>,
+    private ee: EventEmitter2,
   ) {}
 
   async register(dto: {
@@ -63,7 +69,19 @@ export class FacilityManagerService {
       password: hashedPassword,
     });
 
-    await sendConfirmationMail(manager.email, manager.firstName);
+    this.ee.emit(
+      MailNotificationEvents.Account.Welcome,
+      new SendEmailEvent({
+        to: payer.email,
+        from: `"LAWMA REG" <accounts@lawma.co>`,
+        subject: 'Registration Successful',
+        context: {
+          firstName: payer.firstName,
+          // loginCode,
+        },
+      }),
+    );
+    // await sendConfirmationMail(manager.email, manager.firstName);
 
     return {
       message: 'Facility manager registered successfully',
@@ -91,7 +109,19 @@ export class FacilityManagerService {
     manager.loginCodeExpires = expires;
     await manager.save();
 
-    await sendLoginCodeEmail(manager.email, manager.firstName, code);
+    this.ee.emit(
+      MailNotificationEvents.Account.VerificationOTP,
+      new SendEmailEvent({
+        to: manager.email,
+        from: `"LAWMA REG" <accounts@lawma.co>`,
+        subject: 'Your Login Verification Code',
+        context: {
+          firstName: manager.firstName,
+          loginCode: code,
+        },
+      }),
+    );
+    // await sendLoginCodeEmail(manager.email, manager.firstName, code);
 
     return {
       message: 'Verification code sent to email',
@@ -164,8 +194,21 @@ export class FacilityManagerService {
       { new: false },
     );
 
-    if (manager)
-      await sendResetEmail(manager.email, manager.firstName, resetCode);
+    if (manager) {
+      this.ee.emit(
+        MailNotificationEvents.Account.ForgotPassword,
+        new SendEmailEvent({
+          to: manager.email,
+          from: `"LAWMA REG" <accounts@lawma.co>`,
+          subject: 'Password Reset Request',
+          context: {
+            firstName: manager.firstName,
+            resetCode,
+          },
+        }),
+      );
+    }
+    // await sendResetEmail(manager.email, manager.firstName, resetCode);
 
     return { message: 'If account exists, reset code sent', email };
   }

@@ -1,132 +1,132 @@
-import nodemailer from 'nodemailer';
-import fs from 'fs/promises';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { generateRandomChars } from '@common/utils';
+// import nodemailer from 'nodemailer';
+// import fs from 'fs/promises';
+// import path from 'path';
+// // import { fileURLToPath } from 'url';
+// import { generateRandomChars } from '@common/utils';
 
-const loadTemplate = (filename) => {
-  const filepath = path.join(process.cwd(), 'assets', filename);
-  return fs.readFile(filepath, 'utf-8');
-};
+// const loadTemplate = (filename) => {
+//   const filepath = path.join(process.cwd(), 'assets', filename);
+//   return fs.readFile(filepath, 'utf-8');
+// };
 
-const populateTemplate = (template, variables) => {
-  return Object.entries(variables).reduce((html, [key, value]) => {
-    return html.replace(new RegExp(`{{${key}}}`, 'g'), value);
-  }, template);
-};
+// const populateTemplate = (template, variables) => {
+//   return Object.entries(variables).reduce((html, [key, value]) => {
+//     return html.replace(new RegExp(`{{${key}}}`, 'g'), value);
+//   }, template);
+// };
 
-const transporter = nodemailer.createTransport({
-  host: process.env.MAIL_SERVICE,
-  port: process.env.MAIL_PORT,
-  secure: true,
-  auth: {
-    user: process.env.MAIL_USERNAME,
-    pass: process.env.MAIL_PASSWORD,
-  },
-  logger: process.env.NODE_ENV !== 'production',
-  debug: process.env.NODE_ENV !== 'production',
-});
+// // const transporter = nodemailer.createTransport({
+// //   host: process.env.MAIL_SERVICE,
+// //   port: process.env.MAIL_PORT,
+// //   secure: true,
+// //   auth: {
+// //     user: process.env.MAIL_USERNAME,
+// //     pass: process.env.MAIL_PASSWORD,
+// //   },
+// //   logger: process.env.NODE_ENV !== 'production',
+// //   debug: process.env.NODE_ENV !== 'production',
+// // });
 
-//  for payerid
-export async function sendPayerIdEmail({
-  email,
-  firstName,
-  payerId,
-}: {
-  email: string;
-  firstName: string;
-  payerId: string;
-}) {
-  const template = await loadTemplate('payer.html');
-  let html = populateTemplate(template, {
-    firstName,
-    payerId,
-  });
-  console.log(html);
+// //  for payerid
+// export async function sendPayerIdEmail({
+//   email,
+//   firstName,
+//   payerId,
+// }: {
+//   email: string;
+//   firstName: string;
+//   payerId: string;
+// }) {
+//   const template = await loadTemplate('payer.html');
+//   let html = populateTemplate(template, {
+//     firstName,
+//     payerId,
+//   });
+//   console.log(html);
 
-  const mailOptions = {
-    from: `"LAWMA KYC" <${process.env.MAIL_USERNAME}>`,
-    to: email,
-    subject: 'Your LAWMA Payer ID',
-    html,
-  };
+//   const mailOptions = {
+//     from: `"LAWMA KYC" <${process.env.MAIL_USERNAME}>`,
+//     to: email,
+//     subject: 'Your LAWMA Payer ID',
+//     html,
+//   };
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Payer Id Sent: ' + info.response);
-  } catch (error) {
-    console.error('Error sending payerId:', error);
-  }
-}
+//   try {
+//     const info = await transporter.sendMail(mailOptions);
+//     console.log('Payer Id Sent: ' + info.response);
+//   } catch (error) {
+//     console.error('Error sending payerId:', error);
+//   }
+// }
 
-// for succesful registration
-export async function sendConfirmationMail(email, firstName) {
-  const template = await loadTemplate('welcome.html');
-  const html = populateTemplate(template, {
-    firstName,
-  });
-  const mailOptions = {
-    from: `"LAWMA REG" <${process.env.MAIL_USERNAME}>`,
-    to: email,
-    subject: 'Registration Successful',
-    html: html,
-  };
+// // for succesful registration
+// export async function sendConfirmationMail(email, firstName) {
+//   const template = await loadTemplate('welcome.html');
+//   const html = populateTemplate(template, {
+//     firstName,
+//   });
+//   const mailOptions = {
+//     from: `"LAWMA REG" <${process.env.MAIL_USERNAME}>`,
+//     to: email,
+//     subject: 'Registration Successful',
+//     html: html,
+//   };
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Confirmation Email sent: ' + info.response);
-  } catch (error) {
-    console.error('Error sending confirmation email:', error);
-  }
-}
+//   try {
+//     const info = await transporter.sendMail(mailOptions);
+//     console.log('Confirmation Email sent: ' + info.response);
+//   } catch (error) {
+//     console.error('Error sending confirmation email:', error);
+//   }
+// }
 
-// for forgot password
-export async function sendResetEmail(email, firstName, resetCode) {
-  const template = await loadTemplate('forgotPassword.html');
-  const html = populateTemplate(template, {
-    firstName,
-    resetCode,
-  });
-  const mailOptions = {
-    from: `"LAWMA KYC" <${process.env.MAIL_USERNAME}>`,
-    to: email,
-    subject: 'Password Reset Request',
-    html: html,
-  };
+// // for forgot password
+// export async function sendResetEmail(email, firstName, resetCode) {
+//   const template = await loadTemplate('forgotPassword.html');
+//   const html = populateTemplate(template, {
+//     firstName,
+//     resetCode,
+//   });
+//   const mailOptions = {
+//     from: `"LAWMA KYC" <${process.env.MAIL_USERNAME}>`,
+//     to: email,
+//     subject: 'Password Reset Request',
+//     html: html,
+//   };
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Password Reset Email sent: ' + info.response);
-  } catch (error) {
-    console.error('Error sending reset email:', error);
-  }
-}
+//   try {
+//     const info = await transporter.sendMail(mailOptions);
+//     console.log('Password Reset Email sent: ' + info.response);
+//   } catch (error) {
+//     console.error('Error sending reset email:', error);
+//   }
+// }
 
-// for login
-export async function sendLoginCodeEmail(email, firstName, loginCode) {
-  const template = await loadTemplate('logincode.html');
-  const html = populateTemplate(template, {
-    firstName,
-    loginCode,
-  });
+// // for login
+// export async function sendLoginCodeEmail(email, firstName, loginCode) {
+//   const template = await loadTemplate('logincode.html');
+//   const html = populateTemplate(template, {
+//     firstName,
+//     loginCode,
+//   });
 
-  const mailOptions = {
-    from: `"LAWMA LOGIN" <${process.env.MAIL_USERNAME}>`,
-    to: email,
-    subject: 'Your Login Verification Code',
-    html,
-  };
+//   const mailOptions = {
+//     from: `"LAWMA LOGIN" <${process.env.MAIL_USERNAME}>`,
+//     to: email,
+//     subject: 'Your Login Verification Code',
+//     html,
+//   };
 
-  try {
-    await transporter.sendMail(mailOptions);
-    console.log('Login code sent: ' + email);
-  } catch (error) {
-    console.error('Error sending login code:', error);
-  }
-}
+//   try {
+//     await transporter.sendMail(mailOptions);
+//     console.log('Login code sent: ' + email);
+//   } catch (error) {
+//     console.error('Error sending login code:', error);
+//   }
+// }
 
-export const generateOTP = () => {
-  return generateRandomChars(5, 'number');
-};
+// export const generateOTP = () => {
+//   return generateRandomChars(6, 'number');
+// };
 
-export const sendOTPEmail = (email, name, otp) => { };
+// export const sendOTPEmail = (email, name, otp) => {};

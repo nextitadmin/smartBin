@@ -1,38 +1,70 @@
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import Mailgun from 'mailgun-js';
-import { ConfigAttributes } from '../config';
 import { OnEvent } from '@nestjs/event-emitter';
-import { events } from '../common/constants';
-import { SendEmailEvent } from './dto/event';
+import { MailNotificationEvents, SendEmailEvent, Templates } from './dto/event';
+import { MailerService } from './mailer.service';
 
 @Injectable()
 export class NotificationService {
-  // constructor(private configService: ConfigService<ConfigAttributes>) {
-  //   const apiKey = this.configService.get('mailgun.apiKey', { infer: true });
-  //   const domain = this.configService.get('mailgun.domain', { infer: true });
-  //   this.mg = Mailgun({
-  //     apiKey,
-  //     domain,
-  //   });
-  // }
-  // @OnEvent(events.sendEmail)
-  // sendEmail(event: SendEmailEvent) {
-  //   const { to, subject, html } = event.data;
-  //   const mailFrom = this.configService.get('mailgun.fromName', {
-  //     infer: true,
-  //   });
-  //   const mailFromEmail = this.configService.get('mailgun.fromEmail', {
-  //     infer: true,
-  //   });
-  //   const data = {
-  //     from: `${mailFrom} <${mailFromEmail}>`,
+  constructor(private readonly mailerService: MailerService) {}
+
+  @OnEvent(MailNotificationEvents.Account.PayerGenerated)
+  async onAccountPayerGenerated(event: SendEmailEvent) {
+    const { from, context, to, subject } = event.data;
+    await this.mailerService.sendMail({
+      from,
+      template: Templates.PayerGenerated,
+      to,
+      context,
+      subject,
+    });
+  }
+
+  @OnEvent(MailNotificationEvents.Account.Welcome)
+  async onAccountWelcome(event: SendEmailEvent) {
+    console.log('dfefs');
+    const { from, context, to, subject } = event.data;
+    await this.mailerService.sendMail({
+      from,
+      template: Templates.Welcome,
+      to,
+      context,
+      subject,
+    });
+  }
+
+  @OnEvent(MailNotificationEvents.Account.ForgotPassword)
+  async onAccountReset(event: SendEmailEvent) {
+    const { from, context, to, subject } = event.data;
+    await this.mailerService.sendMail({
+      from,
+      template: Templates.ForgotPassword,
+      to,
+      context,
+      subject,
+    });
+  }
+
+  @OnEvent(MailNotificationEvents.Account.VerificationOTP)
+  async onAccountOTPRequested(event: SendEmailEvent) {
+    const { from, context, to, subject } = event.data;
+    await this.mailerService.sendMail({
+      from,
+      template: Templates.VerifyOTP,
+      to,
+      context,
+      subject,
+    });
+  }
+
+  // @OnEvent(MailNotificationEvents.Account.VerificationOTP)
+  // async onAccountOTPRequested(event: SendEmailEvent) {
+  //   const { from, context, to, subject } = event.data;
+  //   await this.mailerService.sendMail({
+  //     from,
+  //     template: Templates.VerifyOTP,
   //     to,
+  //     context,
   //     subject,
-  //     html,
-  //   };
-  //   this.mg.messages().send(data, function (error, body) {
-  //     console.info('MAIL RESPONSE', { error }, { body });
   //   });
   // }
 }

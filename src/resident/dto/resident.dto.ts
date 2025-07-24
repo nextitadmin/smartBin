@@ -3,7 +3,6 @@ import { IsEmail, IsMongoId, IsString, MinLength } from 'class-validator';
 
 export class CreateResidentAccountDto {
     @ApiProperty()
-    @IsMongoId()
     payerId: string;
 
     @ApiProperty()

@@ -13,15 +13,15 @@ import * as jwt from 'jsonwebtoken';
 import { Resident, ResidentDocument } from '@models/users/resident.model';
 
 import { Payer, PayerDocument } from '@models/users/payer.model';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
-    sendConfirmationMail,
-    sendResetEmail,
-    sendLoginCodeEmail,
-} from '@utils/mailer';
+    MailNotificationEvents,
+    SendEmailEvent,
+} from '@src/notification/dto/event';
+import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { CacheKeys } from '@src/shared/constants';
-import { getSeconds } from 'date-fns';
 import { UserRole } from '@models/types';
 import { JwtService } from '@nestjs/jwt';
 import { CreateResidentAccountDto, ResidentLoginDto, ResidentVerifyResetCodeDto, ResidentForgotPasswordDto } from './dto/resident.dto';
@@ -32,9 +32,12 @@ const JWT_SECRET = process.env.JWT_SECRET;
 export class ResidentService {
     constructor(
         @Inject(CACHE_MANAGER) private cacheService: Cache,
+        private readonly configService: ConfigService,
+
         private readonly jwtService: JwtService,
         @InjectModel(Resident.name) private readonly residentModel: Model<ResidentDocument>,
         @InjectModel(Payer.name) private readonly payerModel: Model<PayerDocument>,
+        private ee: EventEmitter2,
     ) { }
 
 
@@ -69,7 +72,18 @@ export class ResidentService {
 
         });
 
-        await sendConfirmationMail(newResident.email, newResident.firstName);
+
+        this.ee.emit(
+            MailNotificationEvents.Account.Welcome,
+            new SendEmailEvent({
+                to: newResident.email,
+                from: `"LAWMA REG" <accounts@lawma.co>`,
+                subject: 'Registration Successful',
+                context: {
+                    firstName: newResident.firstName,
+                },
+            }),
+        );
 
         return {
             message: 'Resident registered successfully',
@@ -86,8 +100,13 @@ export class ResidentService {
 
     async login(body: ResidentLoginDto) {
         const { email, password } = body;
+
         const resident = await this.residentModel.findOne({ email });
-        if (!resident || !(await bcrypt.compare(password, resident.password))) {
+        console.log(resident);
+        const isPasswordMatch = await bcrypt.compare(password, resident.password);
+        console.log({ isPasswordMatch, password });
+        if (!resident) {
+            console.log('Invalid email or password');
             throw new UnauthorizedException('Invalid email or password');
         }
 
@@ -98,14 +117,25 @@ export class ResidentService {
         resident.loginCodeExpiry = loginCodeExpiry;
         await resident.save();
 
-        const ttlSeconds = getSeconds(loginCodeExpiry);
+
         await this.cacheService.set(
             CacheKeys.ResidentLoginCode(String(loginCode)),
             String(resident._id),
-            ttlSeconds,
+
+        );
+        this.ee.emit(
+            MailNotificationEvents.Account.VerificationOTP,
+            new SendEmailEvent({
+                to: resident.email,
+                from: `"LAWMA REG" <no-reply@resend.dev>`,
+                subject: 'Your Login Verification Code',
+                context: {
+                    firstName: resident.firstName,
+                    loginCode,
+                },
+            }),
         );
 
-        await sendLoginCodeEmail(resident.email, resident.firstName, loginCode);
     }
 
 
@@ -130,17 +160,15 @@ export class ResidentService {
         if (!resident) {
             throw new BadRequestException('Invalid or expired login code');
         }
+        const secret = this.configService.get<string>('JWT_SECRET');
+        const token = jwt.sign({
+            id: resident._id,
+            role: UserRole.Resident,
+            payerId: resident.payerId,
+            email: resident.email,
+        }, secret, { expiresIn: '7d' });
 
-        const token = jwt.sign(
-            {
-                id: resident._id,
-                role: UserRole.Resident,
-                payerId: resident.payerId,
-                email: resident.email,
-            },
-            JWT_SECRET,
-            { expiresIn: '7d' },
-        );
+
 
         return { message: 'Login successful', token, data: resident };
     }
@@ -191,7 +219,18 @@ export class ResidentService {
         );
 
         if (resident) {
-            await sendResetEmail(resident.email, resident.firstName, resetCode);
+            this.ee.emit(
+                MailNotificationEvents.Account.ForgotPassword,
+                new SendEmailEvent({
+                    to: resident.email,
+                    from: `"LAWMA REG" <accounts@lawma.co>`,
+                    subject: 'Password Reset Request',
+                    context: {
+                        firstName: resident.firstName,
+                        resetCode,
+                    },
+                }),
+            );
         }
 
         return {
@@ -237,16 +276,26 @@ export class ResidentService {
         }
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
-        await this.residentModel.updateOne(
-            { _id: userId },
-            {
-                $set: {
-                    password: hashedPassword,
-                    resetToken: null,
-                    resetTokenExpiry: null,
-                },
-            },
-        );
+        // await this.residentModel.updateOne(
+        //     { _id: userId },
+        //     {
+        //         $set: {
+        //             password: hashedPassword,
+        //             resetToken: null,
+        //             resetTokenExpiry: null,
+        //         },
+        //     },
+        // );
+
+        const resident = await this.residentModel.findById(userId);
+        if (!resident) throw new NotFoundException('Resident not found');
+
+        // Hash and assign new password
+        resident.password = hashedPassword;
+        resident.resetToken = null;
+        resident.resetTokenExpiry = null;
+
+        await resident.save();
 
         session.passwordResetUserId = null;
         return { message: 'Password has been reset successfully' };
