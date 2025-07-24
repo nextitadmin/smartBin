@@ -8,13 +8,19 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 import { Corporate, CorporateDocument } from '@models/users/corporate.model';
-import { generateOTP, sendOTPEmail, sendResetEmail } from '@utils/mailer';
+import { generateOtpCode } from '@common/utils';
+import {
+  MailNotificationEvents,
+  SendEmailEvent,
+} from '@src/notification/dto/event';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class CorporateService {
   constructor(
     @InjectModel(Corporate.name)
     private corporateModel: Model<CorporateDocument>,
+    private ee: EventEmitter2,
   ) {}
 
   async registerCorporate(dto: {
@@ -59,12 +65,24 @@ export class CorporateService {
     const match = await bcrypt.compare(dto.password, business.password);
     if (!match) throw new UnauthorizedException('Invalid email or password');
 
-    const otp = generateOTP();
+    const otp = String(generateOtpCode());
     business.loginCode = otp;
     business.loginCodeExpires = new Date(Date.now() + 10 * 60 * 1000);
     await business.save();
 
-    await sendOTPEmail(business.email, business.businessName, otp);
+    this.ee.emit(
+      MailNotificationEvents.Account.VerificationOTP,
+      new SendEmailEvent({
+        to: business.email,
+        from: `"LAWMA REG" <accounts@lawma.co>`,
+        subject: 'Your Login Verification Code',
+        context: {
+          firstName: business.businessName,
+          loginCode: otp,
+        },
+      }),
+    );
+    // await sendOTPEmail(business.email, business.businessName, otp);
 
     return {
       message: 'OTP sent to email',
@@ -104,12 +122,24 @@ export class CorporateService {
     if (!business)
       return { message: 'If account exists, a reset email will be sent' };
 
-    const code = generateOTP();
+    const code = String(generateOtpCode());
     business.resetToken = code;
     business.resetTokenExpires = new Date(Date.now() + 10 * 60 * 1000);
     await business.save();
 
-    await sendResetEmail(business.email, business.businessName, code);
+    this.ee.emit(
+      MailNotificationEvents.Account.ForgotPassword,
+      new SendEmailEvent({
+        to: business.email,
+        from: `"LAWMA REG" <accounts@lawma.co>`,
+        subject: 'Password Reset Request',
+        context: {
+          firstName: business.businessName,
+          resetCode: code,
+        },
+      }),
+    );
+    // await sendResetEmail(business.email, business.businessName, code);
 
     return { message: 'If account exists, a reset email will be sent' };
   }

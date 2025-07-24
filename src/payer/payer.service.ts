@@ -1,20 +1,23 @@
 import {
   Injectable,
   NotFoundException,
-  ConflictException,
   InternalServerErrorException,
-  BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Payer, PayerDocument } from '@models/users/payer.model';
-import { sendPayerIdEmail } from '@utils/mailer';
 import { CreatePayerDto } from './dto/payer.dto';
+import {
+  MailNotificationEvents,
+  SendEmailEvent,
+} from '@src/notification/dto/event';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class PayerService {
   constructor(
     @InjectModel(Payer.name) private readonly payerModel: Model<PayerDocument>,
+    private ee: EventEmitter2,
   ) {}
 
   async createPayer(dto: CreatePayerDto) {
@@ -40,11 +43,24 @@ export class PayerService {
         phoneNumber,
       });
 
-      await sendPayerIdEmail({
-        email: newAccount.email,
-        firstName: newAccount.firstName,
-        payerId: newAccount.payerId,
-      });
+      this.ee.emit(
+        MailNotificationEvents.Account.PayerGenerated,
+        new SendEmailEvent({
+          to: email,
+          from: `"LAWMA REG" <accounts@lawma.co>`,
+          subject: 'Your Payer ID',
+          context: {
+            firstName: firstName,
+            payerId: newAccount.payerId,
+          },
+        }),
+      );
+
+      // await sendPayerIdEmail({
+      //   email: newAccount.email,
+      //   firstName: newAccount.firstName,
+      //   payerId: newAccount.payerId,
+      // });
 
       return {
         message:
