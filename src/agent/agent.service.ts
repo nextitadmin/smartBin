@@ -12,11 +12,7 @@ import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import { Agent, AgentDocument } from '@models/users/agent.model';
 import { Payer, PayerDocument } from '@models/users/payer.model';
-// import {
-//   sendConfirmationMail,
-//   sendResetEmail,
-//   sendLoginCodeEmail,
-// } from '@utils/mailer';
+import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { CacheKeys } from '@src/shared/constants';
@@ -30,8 +26,6 @@ import {
   SendEmailEvent,
 } from '@src/notification/dto/event';
 
-const JWT_SECRET = process.env.JWT_SECRET;
-
 @Injectable()
 export class AgentService {
   constructor(
@@ -39,8 +33,9 @@ export class AgentService {
     private readonly jwtService: JwtService,
     @InjectModel(Agent.name) private readonly agentModel: Model<AgentDocument>,
     @InjectModel(Payer.name) private readonly payerModel: Model<PayerDocument>,
+    private readonly configService: ConfigService,
     private ee: EventEmitter2,
-  ) {}
+  ) { }
 
   async registerAgent(body: CreateAgentAccountDto) {
     const { payerId, agencyName, password, confirmPassword } = body;
@@ -157,7 +152,7 @@ export class AgentService {
     if (!agent) {
       throw new BadRequestException('Invalid or expired login code');
     }
-
+    const secret = this.configService.get<string>('JWT_SECRET');
     const token = jwt.sign(
       {
         id: agent._id,
@@ -165,7 +160,7 @@ export class AgentService {
         payerId: agent.payerId,
         email: agent.email,
       },
-      JWT_SECRET,
+      secret,
       { expiresIn: '7d' },
     );
 

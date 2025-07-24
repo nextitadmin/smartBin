@@ -35,6 +35,13 @@ export class Bill implements BillAttributes {
   @Prop({ required: true })
   service: string;
 
+  @Prop()
+  customerName: string;
+
+  @Prop()
+  branch: string;
+
+
   @Prop({ required: true })
   amount: number;
 

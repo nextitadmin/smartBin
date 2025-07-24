@@ -9,6 +9,8 @@ export interface ConfigAttributes {
     level: string;
     disableRequestLogging: boolean;
   };
+  SESSION_SECRET: string;
+
   database: {
     uri: string;
     pool?: {
@@ -49,6 +51,7 @@ const config = (): ConfigAttributes => ({
       max: +process.env.DATABASE_POOL_MAX,
     },
   },
+  SESSION_SECRET: process.env.SESSION_SECRET,
   jwt: {
     secret: process.env.JWT_SECRET,
     expiry: process.env.JWT_EXPIRY,

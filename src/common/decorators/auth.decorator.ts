@@ -6,6 +6,9 @@ import {
 } from '@nestjs/common';
 
 import { AgentAuthGuard } from '../guards/agent.guard';
+import { ResidentAuthGuard } from '../guards/resident.guard';
+import { FacilityManagerAuthGuard } from '../guards/facility-manager.guard';
+import { CorporateAuthGuard } from '../guards/corporate.guard';
 import { Request } from 'express';
 import { AuthUser } from '../types';
 
@@ -14,15 +17,15 @@ export function AgentAuth() {
 }
 
 export function ResidentAuth() {
-  return applyDecorators(UseGuards(AgentAuthGuard));
+  return applyDecorators(UseGuards(ResidentAuthGuard));
 }
 
 export function FacilityManagerAuth() {
-  return applyDecorators(UseGuards(AgentAuthGuard));
+  return applyDecorators(UseGuards(FacilityManagerAuthGuard));
 }
 
 export function CorporateAuth() {
-  return applyDecorators(UseGuards(AgentAuthGuard));
+  return applyDecorators(UseGuards(CorporateAuthGuard));
 }
 
 export const AuthenticatedAgent = createParamDecorator(
