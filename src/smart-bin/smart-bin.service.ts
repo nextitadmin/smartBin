@@ -14,8 +14,8 @@ import { FacilityManager } from '@models/users/facility-manager.model';
 import { Bill } from '@models/bill.model';
 import { Wallet } from '@models/wallet.model';
 import { Transaction } from '@models/transaction.model';
-import { BinAppDto } from './dto/binAppDto';
-import { UserRole } from '@models/types';
+import { BinAppDto, CreateApplicationDto } from './dto/binAppDto';
+import { SmartBinApplicationStatus, UserRole } from '@models/types';
 
 @Injectable()
 export class SmartBinService {
@@ -194,71 +194,36 @@ export class SmartBinService {
     }
     return { message: 'Bin application deleted successfully' };
   }
-  // Create a new bin application
-  async createBinApplication(dto: BinAppDto, userId: any, userType: any) {
-    const {
-      binType,
-      customerType,
-      payerId,
-      address,
-      amount,
-      status,
-      paymentMethod,
-      buildingName,
-      businessType,
-      email,
-      phoneNumber,
-      branch,
-      closestLandmark,
-      name,
-      businessName,
-      buildingType,
-      houseName,
-      flatNumber,
-      localGovernmentArea,
-    } = dto;
 
-    // Check existence
-    const existingApplication = await this.smartbinModel
-      .findOne({ userId })
+
+  async createBinApplication(dto: CreateApplicationDto, userType: string) {
+    const resident = await this.residentModel
+      .findOne({ email: dto.email, payerId: dto.payerId })
       .lean();
-    if (existingApplication) {
-      throw new BadRequestException('User already has a bin application');
+    
+
+    if (!resident) {
+      throw new NotFoundException('Resident does not exist');
     }
-    // Create a new bin application
+
     const newBinApplication = new this.smartbinModel({
-      userId: userId,
-      userType: userType,
-      binType: binType || BinType.Smart,
-      customerType: customerType || UserRole.Resident,
-      payerId: payerId,
-      address: address || '',
-      amount: amount || 0,
-      status: status || 'Pending',
-      paymentMethod: paymentMethod,
-      buildingName: buildingName,
-      businessType: businessType,
-      email: email,
-      phoneNumber: phoneNumber,
-      branch: branch,
-      closestLandmark: closestLandmark,
-      name: name,
-      businessName: businessName,
-      buildingType: buildingType,
-      houseName: houseName,
-      flatNumber: flatNumber,
-      localGovernmentArea: localGovernmentArea,
-      approvalDate: new Date(), // Set approval date to now
+      userId: String(resident._id),
+      customerType: userType,
+      ...dto,
+      applicationHistory: [
+        {
+          timestamp: new Date(),
+          status: SmartBinApplicationStatus.Pending,
+          description: 'Application successful awaiting approval',
+        },
+      ],
     });
-    // If the bin type is not specified, default to SmartBin
-    if (!binType) {
-      newBinApplication.binType = BinType.Smart;
-    }
-    // Save the new bin application
+
     await newBinApplication.save();
     return newBinApplication;
   }
-  // Get bin applications by user ID
+
+
   async getBinApplicationsByUserId(userId: string) {
     const smartbins = await this.smartbinModel
       .find({ userId })
@@ -268,5 +233,38 @@ export class SmartBinService {
       throw new NotFoundException('No bin applications found for this user');
     }
     return smartbins;
+  }
+
+  async applyForSmartBinResident(residentId: string, dto: BinAppDto) {
+    const resident = await this.residentModel
+      .findOne({ email: dto.email, payerId: dto.payerId })
+      .lean();
+    if (!resident) {
+      throw new NotFoundException('Resident not found');
+    }
+
+    const existingApplication = await this.smartbinModel
+      .findOne({
+        userId: residentId,
+        userType: UserRole.Resident,
+      })
+      .lean();
+
+    if (existingApplication) {
+      throw new BadRequestException('Resident already has a bin application');
+    }
+
+    // Create new bin application
+    const newBinApplication = new this.smartbinModel({
+      ...dto,
+      userId: residentId,
+      userType: UserRole.Resident,
+      binType: dto.binType || BinType.Smart,
+      status: dto.status || 'Pending',
+      approvalDate: new Date(),
+    });
+
+    await newBinApplication.save();
+    return newBinApplication;
   }
 }
