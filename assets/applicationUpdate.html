@@ -4,7 +4,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Email Notification</title>
+    <title>Application Update</title>
     <style>
       body {
         font-family: "Inter", sans-serif;
@@ -269,18 +269,19 @@
       <div class="content">
         <p class="greeting">Hello, <span class="capitalize">{{name}}</span></p>
 
-        {{#if isBillNotice}}
-        <div style="display: flex; flex-direction: column; gap: 10px">
-          <p class="content-line">
-            Your account shows an outstanding balance of ₦{{amount}} for waste management service
-            rendered for the past 30 days. Kindly settle this payment by <strong>{{dueDate}}</strong>.
-          </p>
-          <p>You can make payment via your Portal.</p>
-          <div class="button-container">
-            <a href="{{paymentLink}}" class="button">Make Payment</a>
+        <p>Your Application has been received and is awaiting approval.</p>
+        <div class="order-box">
+          <div class="order-header">
+            <span>Order Details</span>
+            <span>#{{orderId}}</span>
           </div>
+          <p>Applied On: {{date}}</p>
+          <p>Amount: ₦{{amount}}</p>
+          <p>Destination: {{destination}}</p>
         </div>
-        {{/if}}
+        <div class="button-container">
+          <a href="{{buttonLink}}" class="button">Track Application</a>
+        </div>
 
         <div class="salutation">
           <span>Regards,</span>
