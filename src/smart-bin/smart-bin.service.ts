@@ -101,46 +101,10 @@ export class SmartBinService {
         .lean(),
     ]);
 
-    // const [agent, bills, wallet, smartbin] = await Promise.all([
-    //   this.agentModel.findById(agentId).lean(),
-    //   this.billModel.find({ userId: agentId, userType: 'Agent' }).lean(),
-    //   this.walletModel.findOne({ userId: agentId, userType: 'Agent' }).lean(),
-    //   this.smartbinModel
-    //     .findOne({ userId: agentId, userType: 'Agent' })
-    //     .sort({ createdAt: -1 })
-    //     .lean(),
-    // ]);
-    // if (!agent) {
-    //   throw new NotFoundException('Agent not found');
-    // }
-    // if (!smartbin) {
-    //   throw new NotFoundException('No bin application found for this agent');
-    // }
-    // return {
-    //   id: smartbin._id,
-    //   userId: smartbin.userId,
-    //   userType: 'Agent',
-    //   Surname: agent?.firstName,
-    //   firstName: agent?.lastName,
-    //   Email: smartbin.email,
-    //   Phone: smartbin.phoneNumber,
-    //   CustomerType: smartbin.customerType,
-    //   businessName: smartbin.businessName,
-    //   businessType: smartbin.businessType,
-    //   localGovernmentArea: smartbin.localGovernmentArea,
-    //   colsestLandmark: smartbin.closestLandmark,
-    //   companyAddress: smartbin.address,
-    //   status: smartbin.status || 'none',
-    //   date: smartbin[0]?.createdAt,
-    //   amount: smartbin.amount,
-    //   binType: smartbin.binType,
-    //   agent,
-    // };
   }
   // For Corporate
   async getCorporateBinApplication(corporateId: string) {
     const [applications] = await Promise.all([
-      // this.corporateModel.findById(corporateId).lean(),
       this.smartbinModel
         .find({ userId: corporateId, userType: UserRole.Corporate })
         .sort({ createdAt: -1 })
@@ -224,47 +188,14 @@ export class SmartBinService {
   }
 
 
-  async getBinApplicationsByUserId(userId: string) {
+  async getBinApplicationsByUserId(userId: string, userType:string) {
     const smartbins = await this.smartbinModel
-      .find({ userId })
+      .find({ userId: userId, customerType: userType })
       .sort({ createdAt: -1 })
       .lean();
     if (!smartbins || smartbins.length === 0) {
       throw new NotFoundException('No bin applications found for this user');
     }
     return smartbins;
-  }
-
-  async applyForSmartBinResident(residentId: string, dto: BinAppDto) {
-    const resident = await this.residentModel
-      .findOne({ email: dto.email, payerId: dto.payerId })
-      .lean();
-    if (!resident) {
-      throw new NotFoundException('Resident not found');
-    }
-
-    const existingApplication = await this.smartbinModel
-      .findOne({
-        userId: residentId,
-        userType: UserRole.Resident,
-      })
-      .lean();
-
-    if (existingApplication) {
-      throw new BadRequestException('Resident already has a bin application');
-    }
-
-    // Create new bin application
-    const newBinApplication = new this.smartbinModel({
-      ...dto,
-      userId: residentId,
-      userType: UserRole.Resident,
-      binType: dto.binType || BinType.Smart,
-      status: dto.status || 'Pending',
-      approvalDate: new Date(),
-    });
-
-    await newBinApplication.save();
-    return newBinApplication;
   }
 }

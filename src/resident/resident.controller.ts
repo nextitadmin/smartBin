@@ -136,6 +136,15 @@ export class ResidentController {
     @AuthenticatedResident() resident: AuthUser,
   ){
     const response = await this.residentService.createBinApplication(body)
-    return new SuccessResponse('', response);
+    return new SuccessResponse('Application for smart bin submitted successfully', response);
+  }
+
+  @Get('smart-bin-applications')
+  @ResidentAuth()
+  async getAllResidentBinApplications(
+    @AuthenticatedResident() resident: AuthUser,
+  ){
+    const response = await this.residentService.getAllResidentApplications(resident.id, resident.role)
+    return new SuccessResponse('Application for smart bin submitted successfully', response);
   }
 }
