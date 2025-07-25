@@ -17,6 +17,7 @@ import { DashboardService } from './dashboard.service';
 import { ResidentService } from '@src/resident/resident.service';
 import { Payer, PayerSchema } from '@models/users/payer.model';
 import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
+import { CorporateModule } from '@src/corporate/corporate.module';
 
 @Module({
   imports: [
@@ -29,11 +30,12 @@ import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
       { name: Bill.name, schema: BillSchema },
       { name: Transaction.name, schema: TransactionSchema },
       { name: SmartBin.name, schema: SmartBinSchema },
-      { name: Payer.name, schema: PayerSchema }
+      { name: Payer.name, schema: PayerSchema },
     ]),
-    SmartBinModule
+    SmartBinModule,
+    CorporateModule,
   ],
   controllers: [ResidentDashboardController, CorporateDashboardController],
   providers: [DashboardService, ResidentService],
 })
-export class DashboardModule { }
+export class DashboardModule {}

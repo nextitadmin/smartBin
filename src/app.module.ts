@@ -84,6 +84,6 @@ import { FacilityManagerModule } from './facility-manager/facility-manager.modul
 })
 export class AppModule {
   onApplicationBootstrap() {
-    exec('yarn run copy:assets');
+    exec('npm run copy:assets');
   }
 }

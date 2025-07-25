@@ -14,6 +14,7 @@ import {
   SendEmailEvent,
 } from '@src/notification/dto/event';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class CorporateService {
@@ -21,6 +22,7 @@ export class CorporateService {
     @InjectModel(Corporate.name)
     private corporateModel: Model<CorporateDocument>,
     private ee: EventEmitter2,
+    private jwtService: JwtService,
   ) {}
 
   async registerCorporate(dto: {
@@ -176,5 +178,14 @@ export class CorporateService {
       .select('-password -loginCode -loginCodeExpires');
     if (!business) throw new NotFoundException('User not found');
     return business;
+  }
+
+  async getDetailsByToken(token: string) {
+    const tokenDetails = await this.jwtService.decode(token);
+    if (!tokenDetails) {
+      throw new UnauthorizedException('unable to unauthenticate');
+    }
+
+    return this.getProfile(tokenDetails.id);
   }
 }

@@ -7,10 +7,14 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Wallet } from '@models/wallet.model';
-import { TopUpWalletDto, TopUpWalletResponseDto, GetWalletResponseDto } from './dtos/wallet.dto';
+import {
+  TopUpWalletDto,
+  TopUpWalletResponseDto,
+  GetWalletResponseDto,
+} from './dtos/wallet.dto';
 import * as crypto from 'crypto';
 import { Transaction } from '@models/transaction.model';
-import { TransactionService } from '../transaction/transaction.service'
+import { TransactionService } from '../transaction/transaction.service';
 import { SuccessResponse } from '@common/http';
 
 @Injectable()
@@ -18,13 +22,12 @@ export class WalletService {
   constructor(
     @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
     private readonly transactionService: TransactionService,
-  ) { }
-
-
-
+  ) {}
 
   // Resident
-  async getResidentWallet(userId: string,): Promise<SuccessResponse<GetWalletResponseDto>> {
+  async getResidentWallet(
+    userId: string,
+  ): Promise<SuccessResponse<GetWalletResponseDto>> {
     const wallet = await this.walletModel
       .findOne({ userId, userType: 'Resident' })
       .lean();
@@ -37,16 +40,19 @@ export class WalletService {
     });
   }
 
-
-
-
-  async initiateResidentTopUp(userId: string, dto: TopUpWalletDto,): Promise<SuccessResponse<TopUpWalletResponseDto>> {
+  async initiateResidentTopUp(
+    userId: string,
+    dto: TopUpWalletDto,
+  ): Promise<SuccessResponse<TopUpWalletResponseDto>> {
     const { amount } = dto;
 
     const shortId = crypto.randomBytes(4).toString('hex').toUpperCase();
     const reference = `ALAT-${shortId}`;
 
-    let wallet = await this.walletModel.findOne({ userId, userType: 'Resident' });
+    let wallet = await this.walletModel.findOne({
+      userId,
+      userType: 'Resident',
+    });
 
     if (!wallet) {
       wallet = await this.walletModel.create({
@@ -79,8 +85,6 @@ export class WalletService {
     });
   }
 
-
-
   // async verifyTopUp(reference: string) {
   //   const transaction = await verifyAlatTransaction(reference);
   //   if (!transaction) throw new NotFoundException('Transaction not found');
@@ -102,8 +106,10 @@ export class WalletService {
 
   // to-do :Facility Managers-corporate
 
-  async getWallet(userId: Types.ObjectId): Promise<GetWalletResponseDto> {
-    const wallet = await this.walletModel.findOne({ userId }).lean();
+  async getWallet(agentId: string): Promise<GetWalletResponseDto> {
+    const wallet = await this.walletModel
+      .findOne({ userId: new Types.ObjectId(agentId) })
+      .lean();
     if (!wallet) throw new NotFoundException('Wallet not found');
 
     return {
@@ -112,8 +118,11 @@ export class WalletService {
     };
   }
 
-
-  async initiateTopUp(userId: Types.ObjectId, role: string, dto: TopUpWalletDto) {
+  async initiateTopUp(
+    userId: Types.ObjectId,
+    role: string,
+    dto: TopUpWalletDto,
+  ) {
     const { amount } = dto;
 
     const shortId = crypto.randomBytes(4).toString('hex').toUpperCase();
