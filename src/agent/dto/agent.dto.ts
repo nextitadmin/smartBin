@@ -29,6 +29,11 @@ export class LoginAgentAccountDto {
   password: string;
 }
 
+export class ProfileDto {
+  @ApiProperty()
+  imageUrl: string
+}
+
 export class VerifyAgentLogin {
   @ApiProperty()
   @IsString()

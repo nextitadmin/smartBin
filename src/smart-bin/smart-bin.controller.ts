@@ -7,14 +7,14 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { BinApplicationService } from './bin-application.service';
+import { SmartBinService } from './smart-bin.service';
 import { SmartBin } from '@models/smart-bin.model';
 import { BinAppDto } from './dto/binAppDto';
 import { AgentAuth } from '@common/decorators/auth.decorator';
 
-@Controller('bin-application')
+@Controller('smart-bin')
 export class BinApplicationController {
-  constructor(private readonly binApplicationService: BinApplicationService) {}
+  constructor(private readonly binApplicationService: SmartBinService) {}
 
   @Get()
   async getbinApplication(@Req() req) {

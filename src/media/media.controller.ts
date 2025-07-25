@@ -1,12 +1,15 @@
 import {
   Controller,
+  HttpStatus,
+  ParseFilePipeBuilder,
   Post,
-  UnprocessableEntityException,
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiTags } from '@nestjs/swagger';
+import { MediaService } from './media.service';
+import { SuccessResponse } from '@common/http';
 
 @ApiTags('Media')
 @Controller({
@@ -14,9 +17,25 @@ import { ApiTags } from '@nestjs/swagger';
   version: '1',
 })
 export class MediaController {
+  constructor(private readonly mediaService: MediaService) {}
   @Post('upload')
-  @UseInterceptors(FileInterceptor('profilePicture'))
-  async uploadMedia(@UploadedFile() file: Express.Multer.File) {
-    throw new UnprocessableEntityException('Not implemented 😭');
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadMedia(
+    @UploadedFile(
+      new ParseFilePipeBuilder()
+        .addFileTypeValidator({
+          fileType: '.(png|jpeg|jpeg)',
+        })
+        .addMaxSizeValidator({ maxSize: 3000000, message:'File cannot be greater than 1MB' })
+        .build(
+          {
+            errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
+          }
+        ),
+    )
+    file: Express.Multer.File,
+  ) {
+    const response = await this.mediaService.fileUpload(file.buffer);
+    return new SuccessResponse(response.message, response);
   }
 }

@@ -18,6 +18,7 @@ export type AuthUser = {
   id: string;
   email: string;
   role: UserRole;
+  token?: string;
 };
 
 export type CorporateUser = {};
