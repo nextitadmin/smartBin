@@ -19,6 +19,7 @@ import {
   CreateAgentAccountDto,
   EmailDTO,
   LoginAgentAccountDto,
+  ProfileDto,
   ResetPasswordDto,
   VerifyAgentLogin,
 } from './dto/agent.dto';
@@ -108,12 +109,8 @@ export class AgentController {
 
   @Patch('profile-picture')
   @AgentAuth()
-  @UseInterceptors(FileInterceptor('profilePicture'))
-  async updateProfilePicture(
-    @UploadedFile() file: Express.Multer.File,
-    @AuthenticatedAgent() agent: AuthUser,
-  ) {
-    await this.agentService.updateProfilePicture(agent.id, file.path);
+  async updateProfilePicture( @Body() body: ProfileDto, @AuthenticatedAgent() agent: AuthUser) {
+    await this.agentService.updateProfilePicture(agent.id, body.imageUrl);
     return new SuccessResponse('profile picture updated', null);
   }
 }

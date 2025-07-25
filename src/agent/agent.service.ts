@@ -165,13 +165,13 @@ export class AgentService {
     return { message: 'Login successful', token, data: agent };
   }
 
-  async updateProfilePicture(userId: string, filePath: string) {
+  async updateProfilePicture(userId: string, fileUrl: string) {
     const agent = await this.agentModel.findById(userId);
     if (!agent) {
       throw new NotFoundException('Agent not found');
     }
 
-    agent.profilePicture = filePath;
+    agent.profilePicture = fileUrl;
     await agent.save();
 
     return {

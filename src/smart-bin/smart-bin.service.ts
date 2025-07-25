@@ -18,7 +18,7 @@ import { BinAppDto } from './dto/binAppDto';
 import { UserRole } from '@models/types';
 
 @Injectable()
-export class BinApplicationService {
+export class SmartBinService {
   constructor(
     @InjectModel(SmartBin.name) private readonly smartbinModel: Model<SmartBin>,
     @InjectModel(Resident.name) private readonly residentModel: Model<Resident>,
@@ -33,20 +33,6 @@ export class BinApplicationService {
     private readonly transactionModel: Model<Transaction>,
   ) {}
 
-  async getBinApplication(userId: string, userType: string) {
-    switch (userType) {
-      case 'Resident':
-        return this.getResidentBinApplication(userId);
-      case 'Facility':
-        return this.getFacilityManagerBinApplication(userId);
-      case 'Agent':
-        return this.getAgentBinApplication(userId);
-      case 'Corporate':
-        return this.getCorporateBinApplication(userId);
-      default:
-        throw new BadRequestException('Invalid user type');
-    }
-  }
   // For Resident
   async getResidentBinApplication(userId: string) {
     const [resident, bills, wallet, smartbin] = await Promise.all([

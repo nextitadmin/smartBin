@@ -23,7 +23,7 @@ import { PayerModule } from './payer/payer.module';
 import { BillModule } from './bill/bill.module';
 import { AppController } from './app.controller';
 import { DashboardModule } from './dashboard/dashboard.module';
-import { BinApplicationModule } from './smart-bin/smart-bin.module';
+import { SmartBinModule } from './smart-bin/smart-bin.module';
 import { ResidentModule } from './resident/resident.module';
 
 import { APP_GUARD } from '@nestjs/core';
@@ -57,7 +57,7 @@ import { MediaModule } from './media/media.module';
     // FacilityManagerModule,
     BillModule,
     DashboardModule,
-    BinApplicationModule,
+    SmartBinModule,
     MediaModule,
   ],
   controllers: [AppController],
