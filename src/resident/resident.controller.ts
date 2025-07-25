@@ -31,6 +31,7 @@ import {
 
 import { ApiTags } from '@nestjs/swagger';
 import { SuccessResponse } from '@common/http';
+import { Public } from '@common/guards/public.guard';
 
 @ApiTags('Residents')
 @Controller({
@@ -40,18 +41,21 @@ import { SuccessResponse } from '@common/http';
 export class ResidentController {
   constructor(private readonly residentService: ResidentService) {}
 
+  @Public()
   @Post('register')
   async register(@Body() body: CreateResidentAccountDto) {
     const agent = await this.residentService.registerResident(body);
     return new SuccessResponse(agent.message, agent.data);
   }
 
+  @Public()
   @Post('login')
   async login(@Body() body: ResidentLoginDto) {
     await this.residentService.login(body);
     return new SuccessResponse('Verification code sent to your email', null);
   }
 
+  @Public()
   @Post('verify-login')
   async verifyLogin(@Body() body: VerifyResidentLogin) {
     const agent = await this.residentService.verifyLoginCode(body.code);
@@ -61,12 +65,14 @@ export class ResidentController {
     });
   }
 
+  @Public()
   @Post('request-password-reset')
   async requestPasswordReset(@Body() body: ResidentForgotPasswordDto) {
     const response = await this.residentService.requestPasswordReset(body);
     return new SuccessResponse(response.message, null);
   }
 
+  @Public()
   @Post('verify-password-reset')
   async verifyReset(
     @Body() body: ResidentVerifyResetCodeDto,
@@ -79,6 +85,7 @@ export class ResidentController {
     return new SuccessResponse('success', response);
   }
 
+  @Public()
   @Post('reset-password')
   async resetPassword(
     @Body() body: ResetPasswordDto,
