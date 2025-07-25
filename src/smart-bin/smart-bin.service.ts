@@ -96,10 +96,12 @@ export class SmartBinService {
   async getAgentBinApplication(agentId: Types.ObjectId) {
     const [applications] = await Promise.all([
       this.smartbinModel
-        .find({ userId: agentId, userType: UserRole.Resident })
+        .find({ userId: agentId, userType: UserRole.Agent })
         .sort({ createdAt: -1 })
         .lean(),
     ]);
+
+    return applications;
   }
   // For Corporate
   async getCorporateBinApplication(corporateId: string) {
@@ -201,9 +203,17 @@ export class SmartBinService {
     let userDetails = null;
 
     if (smartBin.customerType === 'Resident') {
-      userDetails = await this.residentModel.findById(smartBin.userId).select('payerId firstName lastName email phoneNumber lawmaCustomerType');
+      userDetails = await this.residentModel
+        .findById(smartBin.userId)
+        .select(
+          'payerId firstName lastName email phoneNumber lawmaCustomerType',
+        );
     } else if (smartBin.customerType === 'Corporate') {
-      userDetails = await this.corporateModel.findById(smartBin.userId).select('payerId firstName lastName email phoneNumber lawmaCustomerType');
+      userDetails = await this.corporateModel
+        .findById(smartBin.userId)
+        .select(
+          'payerId firstName lastName email phoneNumber lawmaCustomerType',
+        );
     }
 
     return {
