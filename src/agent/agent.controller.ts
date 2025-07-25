@@ -4,17 +4,12 @@ import {
   Get,
   Patch,
   Body,
-  Req,
-  Res,
   UploadedFile,
   UseInterceptors,
-  UseGuards,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AgentService } from './agent.service';
-import { AgentAuthGuard } from '@common/guards/agent.guard'; // custom auth middleware wrapper
-import { diskStorage } from 'multer';
-import { Request, Response } from 'express';
+
 import {
   AgentAuth,
   AuthenticatedAgent,
@@ -27,7 +22,7 @@ import {
   ResetPasswordDto,
   VerifyAgentLogin,
 } from './dto/agent.dto';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { SuccessResponse } from '@common/http';
 import { Public } from '@common/guards/public.guard';
 
@@ -73,16 +68,27 @@ export class AgentController {
 
   @Public()
   @Post('password-reset/verify')
-  verifyReset(@Body('resetCode') code: string) {
-    return this.agentService.verifyResetCode(code);
+  async verifyReset(@Body() body: VerifyAgentLogin) {
+    const response = await this.agentService.verifyPasswordResetCode(body.code);
+    return new SuccessResponse(
+      'Code verified. You can now reset your password.',
+      response,
+    );
   }
 
-  @Public()
   @Post('password-reset/complete')
-  resetPassword(@Body() body: ResetPasswordDto | any) {
-    return this.agentService.completePasswordReset(
-      body.password,
-      body.confirmPassword,
+  async resetPassword(
+    @Body() body: ResetPasswordDto,
+    @AuthenticatedAgent() agent: AuthUser,
+  ) {
+    const response = await this.agentService.completePasswordReset({
+      accountId: agent.id,
+      newPassword: body.password,
+      confirmPassword: body.confirmPassword,
+    });
+    return new SuccessResponse(
+      'Password has been reset successfully',
+      response,
     );
   }
 
