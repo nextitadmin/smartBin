@@ -22,6 +22,8 @@ export class WalletService {
 
 
 
+
+  // Resident
   async getResidentWallet(userId: string,): Promise<SuccessResponse<GetWalletResponseDto>> {
     const wallet = await this.walletModel
       .findOne({ userId, userType: 'Resident' })
@@ -79,9 +81,26 @@ export class WalletService {
 
 
 
+  // async verifyTopUp(reference: string) {
+  //   const transaction = await verifyAlatTransaction(reference);
+  //   if (!transaction) throw new NotFoundException('Transaction not found');
 
+  //   const wallet = await this.walletModel.findOne({ userId: transaction.userId.toString() });
+  //   if (!wallet) throw new NotFoundException('Wallet not found');
 
+  //   wallet.available_balance += transaction.amount;
+  //   wallet.ledger_balance += transaction.amount;
 
+  //   await wallet.save();
+
+  //   return {
+  //     message: 'Transaction verified and wallet credited',
+  //     walletBalance: wallet.available_balance,
+  //     transaction,
+  //   };
+  // }
+
+  // to-do :Facility Managers-corporate
 
   async getWallet(userId: Types.ObjectId): Promise<GetWalletResponseDto> {
     const wallet = await this.walletModel.findOne({ userId }).lean();

@@ -81,7 +81,7 @@ export class ResidentService {
     this.ee.emit(
       MailNotificationEvents.Account.Welcome,
       new SendEmailEvent({
-        to: newResident.email,
+        to: payer.email,
         from: `"LAWMA REG" <accounts@lawma.co>`,
         subject: 'Registration Successful',
         context: {
@@ -106,6 +106,9 @@ export class ResidentService {
     const { email, password } = body;
 
     const resident = await this.residentModel.findOne({ email });
+    if (!resident) {
+      throw new NotFoundException('Resident not found');
+    }
     console.log(resident);
     const isPasswordMatch = await bcrypt.compare(password, resident.password);
     console.log({ isPasswordMatch, password });
@@ -128,7 +131,7 @@ export class ResidentService {
     this.ee.emit(
       MailNotificationEvents.Account.VerificationOTP,
       new SendEmailEvent({
-        to: resident.email,
+        to: String(resident.email),
         from: `"LAWMA REG" <no-reply@resend.dev>`,
         subject: 'Your Login Verification Code',
         context: {
@@ -160,7 +163,7 @@ export class ResidentService {
     if (!resident) {
       throw new BadRequestException('Invalid or expired login code');
     }
-    const secret = this.configService.get<string>('JWT_SECRET');
+    const secret = String(this.configService.get<string>('JWT_SECRET'));
     const token = jwt.sign(
       {
         id: resident._id,
@@ -222,7 +225,7 @@ export class ResidentService {
       this.ee.emit(
         MailNotificationEvents.Account.ForgotPassword,
         new SendEmailEvent({
-          to: resident.email,
+          to: String(resident.email),
           from: `"LAWMA REG" <accounts@lawma.co>`,
           subject: 'Password Reset Request',
           context: {
@@ -295,8 +298,8 @@ export class ResidentService {
 
     // Hash and assign new password
     resident.password = hashedPassword;
-    resident.resetToken = null;
-    resident.resetTokenExpiry = null;
+    // resident.resetToken = null;
+    // resident.resetTokenExpiry = null;
 
     await resident.save();
 
@@ -304,9 +307,9 @@ export class ResidentService {
     return { message: 'Password has been reset successfully' };
   }
 
-  async logout(token:string) {
+  async logout(token: string) {
     const tokenDetails = await this.jwtService.decode(token);
-    
+
     const ttl = tokenDetails.exp - Math.floor(Date.now() / 1000);
 
     await this.cacheService.set(`blacklist:${token}`, true, ttl);
