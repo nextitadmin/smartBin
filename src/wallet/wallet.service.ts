@@ -1,155 +1,168 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
-import { events } from '../common/constants';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Wallet, WalletStatus } from '../models/wallet.model';
-// import { KycTier } from '../models/kyc.model';
-// import { Customer } from '../models/customer.model';
-import { ClientSession, Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
+import { Wallet } from '@models/wallet.model';
+import { TopUpWalletDto, TopUpWalletResponseDto, GetWalletResponseDto } from './dtos/wallet.dto';
+import * as crypto from 'crypto';
+import { Transaction } from '@models/transaction.model';
+import { TransactionService } from '../transaction/transaction.service'
+import { SuccessResponse } from '@common/http';
 
 @Injectable()
 export class WalletService {
-  // constructor(
-  //   @InjectModel(Wallet.name) private readonly wallet: Model<Wallet>,
-  //   @InjectModel(Customer.name) private readonly customer: Model<Customer>,
-  //   private readonly flutterwaveService: FlutterwaveService,
-  //   private readonly ee: EventEmitter2,
-  // ) {}
-  // private logger = new Logger(WalletService.name);
-  // async getCustomerWallets(customer_id: string) {
-  //   return this.wallet
-  //     .findOne({
-  //       customer_id,
-  //     })
-  //     .select(
-  //       '_id account_number bank_name available_balance ledger_balance currency',
-  //     );
-  // }
-  // async getCustomersWallets() {
-  //   // const wallets = await this.flutterwaveService.getVirtualAccounts();
-  //   return this.wallet.find({}).sort({ createdAt: -1 });
-  // }
-  // @OnEvent(events.kyc.upgraded)
-  // async handleKycUpgraded(event: KycUpgradedEvent) {
-  //   try {
-  //     const { data } = event;
-  //     if (data.tier !== KycTier.One) {
-  //       return this.logger.log('Only create wallets on tier 2!');
-  //     }
-  //     const customerDetails = await this.customer.findById(data.customer_id);
-  //     // const accountDetails = await this.flutterwaveService.createVirtualAccount(
-  //     //   {
-  //     //     email: customerDetails.email,
-  //     //     bvn: data.bvn,
-  //     //     is_permanent: true,
-  //     //   },
-  //     // );
-  //     // if (!accountDetails) {
-  //     //   this.logger.error(accountDetails);
-  //     //   return this.logger.warn(
-  //     //     'Unable to create user virtual account, Please retry!',
-  //     //   );
-  //     // }
-  //     const isCustomerWalletExist = await this.wallet.findOne({
-  //       customer_id: data.customer_id,
-  //     });
-  //     if (isCustomerWalletExist) {
-  //       return this.logger.log('wallet already exist');
-  //     }
-  //     const customerWallet = await this.wallet.create({
-  //       customer_id: data.customer_id,
-  //       bank_name: 'Paystack Titan',
-  //       wallet_id: data.bvn,
-  //       external_wallet_id: data.bvn,
-  //       account_number: customerDetails.phone,
-  //       available_balance: 0,
-  //       ledger_balance: 0,
-  //       note: 'Transfer to account',
-  //       status: WalletStatus.Active,
-  //     });
-  //     // const customerWallet = await this.wallet.create({
-  //     //   customer_id: data.customer_id,
-  //     //   bank_name: accountDetails.bank_name,
-  //     //   wallet_id: accountDetails?.tx_ref || accountDetails?.flw_ref,
-  //     //   external_wallet_id: accountDetails.order_ref,
-  //     //   account_number: accountDetails.account_number,
-  //     //   available_balance: 0,
-  //     //   ledger_balance: 0,
-  //     //   note: accountDetails?.note,
-  //     //   status: accountDetails?.account_status,
-  //     // });
-  //     await customerWallet.save();
-  //     this.logger.log('completed wallet creation on tier2');
-  //   } catch (error) {
-  //     this.logger.error(error);
-  //   }
-  // }
-  // async creditWallet({
-  //   customer_id,
-  //   amount,
-  //   field = 'both_balance',
-  //   session,
-  // }: {
-  //   customer_id: string;
-  //   field?: 'ledger_balance' | 'available_balance' | 'both_balance';
-  //   amount: number;
-  //   session?: ClientSession;
-  // }) {
-  //   const amountToCredit = amount;
-  //   let fieldUpdate: any = {
-  //     $inc: {
-  //       available_balance: amountToCredit,
-  //       ledger_balance: amountToCredit,
-  //     },
+  constructor(
+    @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
+    private readonly transactionService: TransactionService,
+  ) { }
+
+
+
+
+  // Resident
+  async getResidentWallet(userId: string,): Promise<SuccessResponse<GetWalletResponseDto>> {
+    const wallet = await this.walletModel
+      .findOne({ userId, userType: 'Resident' })
+      .lean();
+
+    if (!wallet) throw new NotFoundException('Wallet not found');
+
+    return new SuccessResponse('Wallet retrieved successfully', {
+      ledger_balance: wallet.ledger_balance,
+      status: wallet.status,
+    });
+  }
+
+
+
+
+  async initiateResidentTopUp(userId: string, dto: TopUpWalletDto,): Promise<SuccessResponse<TopUpWalletResponseDto>> {
+    const { amount } = dto;
+
+    const shortId = crypto.randomBytes(4).toString('hex').toUpperCase();
+    const reference = `ALAT-${shortId}`;
+
+    let wallet = await this.walletModel.findOne({ userId, userType: 'Resident' });
+
+    if (!wallet) {
+      wallet = await this.walletModel.create({
+        userId,
+        userType: 'Resident',
+        available_balance: 0,
+        ledger_balance: 0,
+        status: 'Active',
+      });
+    }
+
+    // await this.transactionService.createTransaction({
+    //   userId,
+    //   userType: 'Resident',
+    //   amount,
+    //   transactionReference: reference,
+    //   transactionID: reference,
+    //   status: 'pending',
+    //   action: 'wallet_topup',
+    //   service: 'Wallet Top-Up',
+    //   paymentMethod: 'Alat By Wema',
+    //   description: 'Wallet top-up via AlatPay',
+    // });
+
+    const payment_url = `${process.env.BASE_URL}/api/wallets/mock-verify?reference=${reference}`;
+
+    return new SuccessResponse('Top-up initiated', {
+      reference,
+      payment_url,
+    });
+  }
+
+
+
+  // async verifyTopUp(reference: string) {
+  //   const transaction = await verifyAlatTransaction(reference);
+  //   if (!transaction) throw new NotFoundException('Transaction not found');
+
+  //   const wallet = await this.walletModel.findOne({ userId: transaction.userId.toString() });
+  //   if (!wallet) throw new NotFoundException('Wallet not found');
+
+  //   wallet.available_balance += transaction.amount;
+  //   wallet.ledger_balance += transaction.amount;
+
+  //   await wallet.save();
+
+  //   return {
+  //     message: 'Transaction verified and wallet credited',
+  //     walletBalance: wallet.available_balance,
+  //     transaction,
   //   };
-  //   if (field === 'available_balance') {
-  //     fieldUpdate = {
-  //       $inc: {
-  //         available_balance: amountToCredit,
-  //       },
-  //     };
-  //   }
-  //   if (field === 'ledger_balance') {
-  //     fieldUpdate = {
-  //       $inc: {
-  //         ledger_balance: amountToCredit,
-  //       },
-  //     };
-  //   }
-  //   return await this.wallet
-  //     .updateOne({ customer_id }, fieldUpdate)
-  //     .session(session);
   // }
-  // async debitWallet({
-  //   customer_id,
-  //   amount,
-  //   field = 'both_balance',
-  // }: {
-  //   customer_id: string;
-  //   field?: 'ledger_balance' | 'available_balance' | 'both_balance';
-  //   amount: number;
-  // }) {
-  //   const amountToCredit = -amount;
-  //   let fieldUpdate: any = {
-  //     $inc: {
-  //       available_balance: amountToCredit,
-  //       ledger_balance: amountToCredit,
-  //     },
+
+  // to-do :Facility Managers-corporate
+
+  async getWallet(userId: Types.ObjectId): Promise<GetWalletResponseDto> {
+    const wallet = await this.walletModel.findOne({ userId }).lean();
+    if (!wallet) throw new NotFoundException('Wallet not found');
+
+    return {
+      ledger_balance: wallet.ledger_balance,
+      status: wallet.status,
+    };
+  }
+
+
+  async initiateTopUp(userId: Types.ObjectId, role: string, dto: TopUpWalletDto) {
+    const { amount } = dto;
+
+    const shortId = crypto.randomBytes(4).toString('hex').toUpperCase();
+    const reference = `ALAT-${shortId}`;
+    const userType = role.charAt(0).toUpperCase() + role.slice(1);
+
+    let wallet = await this.walletModel.findOne({ userId });
+    if (!wallet) {
+      wallet = await this.walletModel.create({
+        userId,
+        available_balance: 0,
+        ledger_balance: 0,
+      });
+    }
+
+    // create transaction
+    // await this.transactionService.createTransaction({
+    //   userId,
+    //   userType,
+    //   amount,
+    //   transactionReference: reference,
+    //   transactionID: reference,
+    //   status: 'pending',
+    //   action: 'wallet_topup',
+    //   service: 'Wallet Top-Up',
+    //   paymentMethod: 'Alat By Wema',
+    //   description: 'Wallet top-up via AlatPay',
+    // });
+
+    const mockPaymentUrl = `${process.env.BASE_URL}/api/wallets/mock-verify?reference=${reference}`;
+    return { reference, payment_url: mockPaymentUrl };
+  }
+
+  // async verifyTopUp(reference: string) {
+  //   const transaction = await verifyAlatTransaction(reference);
+  //   if (!transaction) throw new NotFoundException('Transaction not found');
+
+  //   const wallet = await this.walletModel.findOne({ userId: transaction.userId.toString() });
+  //   if (!wallet) throw new NotFoundException('Wallet not found');
+
+  //   wallet.available_balance += transaction.amount;
+  //   wallet.ledger_balance += transaction.amount;
+
+  //   await wallet.save();
+
+  //   return {
+  //     message: 'Transaction verified and wallet credited',
+  //     walletBalance: wallet.available_balance,
+  //     transaction,
   //   };
-  //   if (field === 'available_balance') {
-  //     fieldUpdate = {
-  //       $inc: {
-  //         available_balance: amountToCredit,
-  //       },
-  //     };
-  //   }
-  //   if (field === 'ledger_balance') {
-  //     fieldUpdate = {
-  //       $inc: {
-  //         ledger_balance: amountToCredit,
-  //       },
-  //     };
-  //   }
-  //   return await this.wallet.updateOne({ customer_id }, fieldUpdate);
   // }
 }
