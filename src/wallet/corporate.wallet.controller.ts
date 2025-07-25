@@ -1,30 +1,31 @@
-import { Controller, Get, Post, Body, } from '@nestjs/common';
+import { Controller, Get, Post, Body, Req } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { TopUpWalletDto, GetWalletResponseDto } from './dtos/wallet.dto';
-import { CorporateAuth, AuthenticatedCorporate } from 'src/common/decorators/auth.decorator';
-import { AuthUser } from 'src/common/types';
-import { Types } from 'mongoose';
+import { CorporateAuth } from 'src/common/decorators/auth.decorator';
 import { SuccessResponse } from '@common/http';
 
 @ApiTags('Wallet')
 @ApiBearerAuth()
 @CorporateAuth()
-@Controller('corporate/wallets')
+@Controller({
+    path: 'corporate/wallets',
+    version: '1'
+})
 export class CorporateWalletController {
     constructor(private readonly walletService: WalletService) { }
 
     @Get()
-    async getWallet(@AuthenticatedCorporate() corporate: AuthUser): Promise<SuccessResponse<GetWalletResponseDto>> {
-        const userId = new Types.ObjectId(corporate.id);
+    async getWallet(@Req() req): Promise<SuccessResponse<GetWalletResponseDto>> {
+        const userId = req.user.id;
         const response = await this.walletService.getWallet(userId);
         return new SuccessResponse(" Wallet retrieved", response)
 
     }
 
     @Post('topup')
-    async topUp(@AuthenticatedCorporate() corporate: AuthUser, @Body() dto: TopUpWalletDto) {
-        const userId = new Types.ObjectId(corporate.id);
+    async topUp(@Req() req, @Body() dto: TopUpWalletDto) {
+        const userId = req.user.id;
         const response = this.walletService.initiateTopUp(userId, 'Corporate', dto);
         return new SuccessResponse(" Wallet topped up successfully", response)
     }

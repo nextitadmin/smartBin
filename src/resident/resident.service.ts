@@ -304,11 +304,17 @@ export class ResidentService {
     return { message: 'Password has been reset successfully' };
   }
 
-  async logout() {
+  async logout(token:string) {
+    const tokenDetails = await this.jwtService.decode(token);
+    
+    const ttl = tokenDetails.exp - Math.floor(Date.now() / 1000);
+
+    await this.cacheService.set(`blacklist:${token}`, true, ttl);
+
     return { message: 'Logged out successfully' };
   }
 
-  async getAgentDetailsByToken(token: string) {
+  async getResidentDetailsByToken(token: string) {
     const tokenDetails = await this.jwtService.decode(token);
     if (!tokenDetails) {
       throw new UnauthorizedException('unable to unauthenticate');

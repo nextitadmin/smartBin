@@ -7,12 +7,11 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Wallet } from '@models/wallet.model';
-import { TopUpWalletDto, GetWalletResponseDto } from './dtos/wallet.dto';
+import { TopUpWalletDto, TopUpWalletResponseDto, GetWalletResponseDto } from './dtos/wallet.dto';
 import * as crypto from 'crypto';
-// import { verifyAlatTransaction } from '../alatPay/alatPay.service'; 
 import { Transaction } from '@models/transaction.model';
 import { TransactionService } from '../transaction/transaction.service'
-// import { TransactionService } from '../transactions/transaction.service';
+import { SuccessResponse } from '@common/http';
 
 @Injectable()
 export class WalletService {
@@ -21,16 +20,69 @@ export class WalletService {
     private readonly transactionService: TransactionService,
   ) { }
 
-  // async getWallet(userId: Types.ObjectId) {
-  //   const wallet = await this.walletModel.findOne({ userId }).lean();
-  //   if (!wallet) throw new NotFoundException('Wallet not found');
 
-  //   return {
-  //     balance: wallet.available_balance,
-  //     ledger_balance: wallet.ledger_balance,
-  //     status: wallet.status,
-  //   };
-  // }
+
+  async getResidentWallet(userId: string,): Promise<SuccessResponse<GetWalletResponseDto>> {
+    const wallet = await this.walletModel
+      .findOne({ userId, userType: 'Resident' })
+      .lean();
+
+    if (!wallet) throw new NotFoundException('Wallet not found');
+
+    return new SuccessResponse('Wallet retrieved successfully', {
+      ledger_balance: wallet.ledger_balance,
+      status: wallet.status,
+    });
+  }
+
+
+
+
+  async initiateResidentTopUp(userId: string, dto: TopUpWalletDto,): Promise<SuccessResponse<TopUpWalletResponseDto>> {
+    const { amount } = dto;
+
+    const shortId = crypto.randomBytes(4).toString('hex').toUpperCase();
+    const reference = `ALAT-${shortId}`;
+
+    let wallet = await this.walletModel.findOne({ userId, userType: 'Resident' });
+
+    if (!wallet) {
+      wallet = await this.walletModel.create({
+        userId,
+        userType: 'Resident',
+        available_balance: 0,
+        ledger_balance: 0,
+        status: 'Active',
+      });
+    }
+
+    // await this.transactionService.createTransaction({
+    //   userId,
+    //   userType: 'Resident',
+    //   amount,
+    //   transactionReference: reference,
+    //   transactionID: reference,
+    //   status: 'pending',
+    //   action: 'wallet_topup',
+    //   service: 'Wallet Top-Up',
+    //   paymentMethod: 'Alat By Wema',
+    //   description: 'Wallet top-up via AlatPay',
+    // });
+
+    const payment_url = `${process.env.BASE_URL}/api/wallets/mock-verify?reference=${reference}`;
+
+    return new SuccessResponse('Top-up initiated', {
+      reference,
+      payment_url,
+    });
+  }
+
+
+
+
+
+
+
   async getWallet(userId: Types.ObjectId): Promise<GetWalletResponseDto> {
     const wallet = await this.walletModel.findOne({ userId }).lean();
     if (!wallet) throw new NotFoundException('Wallet not found');

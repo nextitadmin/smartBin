@@ -34,7 +34,14 @@ export interface ConfigAttributes {
     secretKey: string;
     baseUrl: string;
   };
+
   frontendUrl: string;
+
+  cloudinary:{
+    cloudName:string;
+    apiKey:string;
+    apiSecret:string;
+  }
 }
 
 const config = (): ConfigAttributes => ({
@@ -69,7 +76,14 @@ const config = (): ConfigAttributes => ({
     baseUrl: process.env.ALAT_BASE_URL,
   },
   frontendUrl: process.env.FRONTEND_URL,
+  
+  cloudinary:{
+    apiKey: process.env.CLOUDINARY_API_KEY,
+    apiSecret: process.env.CLOUDINARY_API_SECRET,
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME
+  }
 });
+
 
 const schema = Joi.object<Record<string, string>>({
   PORT: Joi.string().default('4001'),
@@ -85,6 +99,10 @@ const schema = Joi.object<Record<string, string>>({
   ENCRYPTION_KEY: Joi.string().default(
     'hpuVxHk-vJfr8Nlk8hY2Y6S6Zz0NDiCeoujmZ55u8_nmV6EMyP7x8YNv5-jycyOs',
   ),
+
+  CLOUDINARY_CLOUD_NAME: Joi.string().required(),
+  CLOUDINARY_API_KEY: Joi.string().required(),
+  CLOUDINARY_API_SECRET: Joi.string().required(),
 
   MAIL_SMTP_PASSWORD: Joi.string().required(),
   MAIL_SMTP_USERNAME: Joi.string().required(),

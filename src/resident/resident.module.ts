@@ -21,6 +21,7 @@ import { ResidentController } from './resident.controller';
     ]),
   ],
   controllers: [ResidentController],
+  exports: [ResidentService],
   providers: [ResidentService],
 })
 export class ResidentModule { }

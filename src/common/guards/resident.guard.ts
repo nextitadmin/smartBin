@@ -2,17 +2,22 @@ import { AuthUser } from '@common/types';
 import {
   CanActivate,
   ExecutionContext,
+  Inject,
   Injectable,
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-// // import { CustomerService } from '../../customer/customer.service';
-// import { Request } from 'express';
 import { ResidentUser } from '../types';
+import { UserRole } from '@models/types';
+import { ResidentService } from '@src/resident/resident.service';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @Injectable()
 export class ResidentAuthGuard implements CanActivate {
-  //   // constructor(private readonly customerService: CustomerService) {}
+  constructor(
+    @Inject(CACHE_MANAGER) private cacheService:Cache,
+    private readonly residentService: ResidentService
+  ) {}
 
   private logger = new Logger(ResidentAuthGuard.name);
 
@@ -23,18 +28,24 @@ export class ResidentAuthGuard implements CanActivate {
     } = ctx.switchToHttp().getRequest();
 
     const request = ctx.switchToHttp().getRequest();
-    const [type, token] = request.headers?.authorization?.split(' ') ?? [];
-    //     // const customer = await this.customerService.getCustomerDetailsbyToken(
-    //     // token,
-    //     // );
-    //     if (!true) {
-    //       this.logger.warn('failed to auth: no user object in request');
-    //       throw new UnauthorizedException('not authenticated!');
-    //     }
+    const [_, token] = request.headers?.authorization?.split(' ') ?? [];
+    const isBlacklisted = await this.cacheService.get(`blacklist:${token}`);
+    if (isBlacklisted) {
+      throw new UnauthorizedException('Not Authorized');
+    }
 
-    //     req.user = {
-    //       // id: customer.id,
-    //     };
+    const resident = await this.residentService.getResidentDetailsByToken(token);
+    if (!resident) {
+      this.logger.warn('failed to auth: no user object in request');
+      throw new UnauthorizedException('not authenticated!');
+    }
+
+    req.resident = {
+      id: String(resident._id),
+      email: resident.email,
+      role: UserRole.Resident,
+      token: token
+    };
 
     return true;
   }
