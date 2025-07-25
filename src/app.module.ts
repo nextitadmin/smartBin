@@ -32,6 +32,7 @@ import { ResidentAuthGuard } from '@common/guards/resident.guard';
 import { CorporateAuthGuard } from '@common/guards/corporate.guard';
 import { FacilityManagerAuthGuard } from '@common/guards/facility-manager.guard';
 import { MediaModule } from './media/media.module';
+import { FacilityManagerModule } from './facility-manager/facility-manager.module';
 
 @Module({
   imports: [
@@ -50,11 +51,12 @@ import { MediaModule } from './media/media.module';
     // WebhookModule,
     TransactionModule,
     // VerificationModule,
+    PayerModule,
     AgentModule,
     // CorporateModule,
-    PayerModule,
     ResidentModule,
-    // FacilityManagerModule,
+    FacilityManagerModule,
+
     BillModule,
     DashboardModule,
     SmartBinModule,

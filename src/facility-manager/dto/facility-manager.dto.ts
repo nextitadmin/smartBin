@@ -1,25 +1,27 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString } from 'class-validator';
 
-export class CreateAgentAccountDto {
+export class CreateManagerAccountDto {
   @ApiProperty()
   @IsString()
   payerId: string;
 
   @ApiProperty()
   @IsString()
-  agencyName: string;
+  organizationName: string;
 
   @ApiProperty()
   @IsString()
+  phoneNumber: string;
+  @ApiProperty()
+  @IsString()
   password: string;
-
   @ApiProperty()
   @IsString()
   confirmPassword: string;
 }
 
-export class LoginAgentAccountDto {
+export class LoginManagerAccountDto {
   @ApiProperty()
   @IsEmail()
   email: string;
@@ -29,27 +31,22 @@ export class LoginAgentAccountDto {
   password: string;
 }
 
-export class ProfileDto {
-  @ApiProperty()
-  imageUrl: string;
-}
-
-export class VerifyAgentLogin {
+export class VerifyLogin {
   @ApiProperty()
   @IsString()
   code: string;
 }
 
-export class EmailDTO {
-  @ApiProperty()
-  @IsEmail()
-  email: string;
-}
-
-export class ResetPasswordDto {
+export class UpdatePictureDto {
   @ApiProperty()
   @IsString()
-  password: string;
+  profilePicture: string;
+}
+
+export class UpdatePasswordDto {
+  @ApiProperty()
+  @IsString()
+  newPassword: string;
 
   @ApiProperty()
   @IsString()
