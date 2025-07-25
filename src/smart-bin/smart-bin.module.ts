@@ -11,8 +11,7 @@ import {
 import { Bill, BillSchema } from '@models/bill.model';
 import { Wallet, WalletSchema } from '@models/wallet.model';
 import { Transaction, TransactionSchema } from '@models/transaction.model';
-import { BinApplicationController } from './bin-application.controller';
-import { BinApplicationService } from './bin-application.service';
+import { SmartBinService } from './smart-bin.service';
 import { AgentModule } from '@src/agent/agent.module';
 
 @Module({
@@ -29,7 +28,8 @@ import { AgentModule } from '@src/agent/agent.module';
     ]),
     AgentModule,
   ],
-  controllers: [BinApplicationController],
-  providers: [BinApplicationService],
+  controllers: [],
+  providers: [SmartBinService],
+  exports: [SmartBinService],
 })
-export class BinApplicationModule {}
+export class SmartBinModule {}

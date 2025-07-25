@@ -97,9 +97,9 @@ export class AgentService {
 
   async login(body: LoginAgentAccountDto) {
     const { email, password } = body;
-    console.log(body);
+
     const agent = await this.agentModel.findOne({ email });
-    console.log(agent);
+
     const isPasswordMatch = await bcrypt.compare(password, agent.password);
     console.log({ isPasswordMatch, password });
     if (!agent) {
@@ -165,13 +165,13 @@ export class AgentService {
     return { message: 'Login successful', token, data: agent };
   }
 
-  async updateProfilePicture(userId: string, filePath: string) {
+  async updateProfilePicture(userId: string, fileUrl: string) {
     const agent = await this.agentModel.findById(userId);
     if (!agent) {
       throw new NotFoundException('Agent not found');
     }
 
-    agent.profilePicture = filePath;
+    agent.profilePicture = fileUrl;
     await agent.save();
 
     return {
@@ -201,8 +201,7 @@ export class AgentService {
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
     const expiry = 600000;
 
-    const agent = await this.agentModel.findOneAndUpdate({ email });
-    console.log({ agent });
+    const agent = await this.agentModel.findOne({ email });
     if (agent) {
       await this.cacheService.set(
         CacheKeys.AgentLoginCode(String(resetCode)),
@@ -285,7 +284,13 @@ export class AgentService {
     );
   }
 
-  async logout() {
+  async logout(token: string) {
+    const tokenDetails = await this.jwtService.decode(token);
+
+    const ttl = tokenDetails.exp - Math.floor(Date.now() / 1000);
+
+    await this.cacheService.set(`blacklist:${token}`, true, ttl);
+
     return { message: 'Logged out successfully' };
   }
 

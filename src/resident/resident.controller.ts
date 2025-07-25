@@ -9,6 +9,9 @@ import {
   UploadedFile,
   UseInterceptors,
   UseGuards,
+  Param,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ResidentService } from './resident.service';
@@ -27,10 +30,14 @@ import {
   ResidentForgotPasswordDto,
   ResidentVerifyResetCodeDto,
   ResetPasswordDto,
+  ProfileDto,
+  CreateApplicationDto,
+  GetApplicationParamDto,
 } from './dto/resident.dto';
 
 import { ApiTags } from '@nestjs/swagger';
 import { SuccessResponse } from '@common/http';
+import { Public } from '@common/guards/public.guard';
 
 @ApiTags('Residents')
 @Controller({
@@ -40,18 +47,21 @@ import { SuccessResponse } from '@common/http';
 export class ResidentController {
   constructor(private readonly residentService: ResidentService) {}
 
+  @Public()
   @Post('register')
   async register(@Body() body: CreateResidentAccountDto) {
     const agent = await this.residentService.registerResident(body);
     return new SuccessResponse(agent.message, agent.data);
   }
 
+  @Public()
   @Post('login')
   async login(@Body() body: ResidentLoginDto) {
     await this.residentService.login(body);
     return new SuccessResponse('Verification code sent to your email', null);
   }
 
+  @Public()
   @Post('verify-login')
   async verifyLogin(@Body() body: VerifyResidentLogin) {
     const agent = await this.residentService.verifyLoginCode(body.code);
@@ -61,12 +71,14 @@ export class ResidentController {
     });
   }
 
+  @Public()
   @Post('request-password-reset')
   async requestPasswordReset(@Body() body: ResidentForgotPasswordDto) {
     const response = await this.residentService.requestPasswordReset(body);
     return new SuccessResponse(response.message, null);
   }
 
+  @Public()
   @Post('verify-password-reset')
   async verifyReset(
     @Body() body: ResidentVerifyResetCodeDto,
@@ -79,6 +91,7 @@ export class ResidentController {
     return new SuccessResponse('success', response);
   }
 
+  @Public()
   @Post('reset-password')
   async resetPassword(
     @Body() body: ResetPasswordDto,
@@ -102,22 +115,66 @@ export class ResidentController {
 
   @Post('logout')
   @ResidentAuth()
-  logout() {
-    return this.residentService.logout();
+  async logout(@AuthenticatedResident() resident: AuthUser) {
+    const response = await this.residentService.logout(resident.token);
+    return new SuccessResponse(response.message, null);
   }
 
   @Patch('profile-picture')
   @ResidentAuth()
-  @UseInterceptors(FileInterceptor('profilePicture'))
   async updateProfilePicture(
-    @UploadedFile() file: Express.Multer.File,
-    @Req() req: Request,
+    @Body() body: ProfileDto,
     @AuthenticatedResident() resident: AuthUser,
   ) {
     const response = await this.residentService.updateProfilePicture(
       resident.id,
-      file.path,
+      body.imageUrl,
     );
     return new SuccessResponse('profile picture updated', null);
+  }
+
+  @Post('apply-smart-bin')
+  @ResidentAuth()
+  async createSmartBinApplication(
+    @Body() body: CreateApplicationDto,
+    @AuthenticatedResident() resident: AuthUser,
+  ) {
+    const response = await this.residentService.createBinApplication(body);
+    return new SuccessResponse(
+      'Application for smart bin submitted successfully',
+      response,
+    );
+  }
+
+  @Get('smart-bin-applications')
+  @ResidentAuth()
+  async getAllResidentBinApplications(
+    @AuthenticatedResident() resident: AuthUser,
+  ) {
+    const response = await this.residentService.getAllResidentApplications(
+      resident.id,
+      resident.role,
+    );
+    return new SuccessResponse(
+      'Application for smart bin submitted successfully',
+      response,
+    );
+  }
+
+  @Get('smart-bin-applications/:applicationId')
+  @ResidentAuth()
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async getApplicationDetails(
+    @AuthenticatedResident() resident: AuthUser,
+    @Param() params: GetApplicationParamDto,
+  ) {
+    const { applicationId } = params;
+    const response = await this.residentService.getApplicationDetails(
+      applicationId,
+    );
+    return new SuccessResponse(
+      'Smart Bin application retrieved successfully',
+      response,
+    );
   }
 }

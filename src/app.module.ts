@@ -23,7 +23,7 @@ import { PayerModule } from './payer/payer.module';
 import { BillModule } from './bill/bill.module';
 import { AppController } from './app.controller';
 import { DashboardModule } from './dashboard/dashboard.module';
-import { BinApplicationModule } from './bin-application/bin-application.module';
+import { SmartBinModule } from './smart-bin/smart-bin.module';
 import { ResidentModule } from './resident/resident.module';
 
 import { APP_GUARD } from '@nestjs/core';
@@ -32,6 +32,7 @@ import { ResidentAuthGuard } from '@common/guards/resident.guard';
 import { CorporateAuthGuard } from '@common/guards/corporate.guard';
 import { FacilityManagerAuthGuard } from '@common/guards/facility-manager.guard';
 import { MediaModule } from './media/media.module';
+import { FacilityManagerModule } from './facility-manager/facility-manager.module';
 
 @Module({
   imports: [
@@ -50,14 +51,15 @@ import { MediaModule } from './media/media.module';
     // WebhookModule,
     TransactionModule,
     // VerificationModule,
+    PayerModule,
     AgentModule,
     // CorporateModule,
-    PayerModule,
     ResidentModule,
-    // FacilityManagerModule,
+    FacilityManagerModule,
+
     BillModule,
     DashboardModule,
-    BinApplicationModule,
+    SmartBinModule,
     MediaModule,
   ],
   controllers: [AppController],
@@ -82,6 +84,6 @@ import { MediaModule } from './media/media.module';
 })
 export class AppModule {
   onApplicationBootstrap() {
-    exec('yarn run copy:assets');
+    exec('npm run copy:assets');
   }
 }

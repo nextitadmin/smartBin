@@ -74,12 +74,14 @@ export class FacilityManager implements FacilityManagerAttributes {
   updatedAt?: Date;
 }
 
+export const defaultManagerFields =
+  'payerId organizationName addresses firstName lastName email role status';
+
 export type FacilityManagerDocument = FacilityManager & Document;
 export const FacilityManagerSchema =
   SchemaFactory.createForClass(FacilityManager);
 
-
-  FacilityManagerSchema.virtual('residents', {
+FacilityManagerSchema.virtual('residents', {
   ref: 'Resident',
   localField: '_id',
   foreignField: 'registeredBy',

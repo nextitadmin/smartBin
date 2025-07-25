@@ -29,7 +29,9 @@ import {
   ResidentLoginDto,
   ResidentVerifyResetCodeDto,
   ResidentForgotPasswordDto,
+  CreateApplicationDto,
 } from './dto/resident.dto';
+import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -38,7 +40,7 @@ export class ResidentService {
   constructor(
     @Inject(CACHE_MANAGER) private cacheService: Cache,
     private readonly configService: ConfigService,
-
+    private readonly smartBinService: SmartBinService,
     private readonly jwtService: JwtService,
     @InjectModel(Resident.name)
     private readonly residentModel: Model<ResidentDocument>,
@@ -81,7 +83,7 @@ export class ResidentService {
     this.ee.emit(
       MailNotificationEvents.Account.Welcome,
       new SendEmailEvent({
-        to: newResident.email,
+        to: payer.email,
         from: `"LAWMA REG" <accounts@lawma.co>`,
         subject: 'Registration Successful',
         context: {
@@ -106,6 +108,9 @@ export class ResidentService {
     const { email, password } = body;
 
     const resident = await this.residentModel.findOne({ email });
+    if (!resident) {
+      throw new NotFoundException('Resident not found');
+    }
     console.log(resident);
     const isPasswordMatch = await bcrypt.compare(password, resident.password);
     console.log({ isPasswordMatch, password });
@@ -116,6 +121,8 @@ export class ResidentService {
 
     const loginCode = Math.floor(10000 + Math.random() * 90000).toString();
     const loginCodeExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+    console.log(loginCode);
 
     resident.loginCode = loginCode;
     resident.loginCodeExpiry = loginCodeExpiry;
@@ -128,7 +135,7 @@ export class ResidentService {
     this.ee.emit(
       MailNotificationEvents.Account.VerificationOTP,
       new SendEmailEvent({
-        to: resident.email,
+        to: String(resident.email),
         from: `"LAWMA REG" <no-reply@resend.dev>`,
         subject: 'Your Login Verification Code',
         context: {
@@ -160,7 +167,7 @@ export class ResidentService {
     if (!resident) {
       throw new BadRequestException('Invalid or expired login code');
     }
-    const secret = this.configService.get<string>('JWT_SECRET');
+    const secret = String(this.configService.get<string>('JWT_SECRET'));
     const token = jwt.sign(
       {
         id: resident._id,
@@ -193,12 +200,12 @@ export class ResidentService {
   async getProfile(residentId: string) {
     const resident = await this.residentModel
       .findById(residentId)
-      .select('firstName lastName profilePicture')
+      .select('firstName lastName email profilePicture payerId profilePicture phoneNumber nationality gender lawmaCustomerType role')
       .lean();
     if (!resident) {
       throw new NotFoundException('Resident not found');
     }
-
+    
     const defaultAvatar =
       'https://res.cloudinary.com/demo/image/upload/avatar.png';
     return {
@@ -222,7 +229,7 @@ export class ResidentService {
       this.ee.emit(
         MailNotificationEvents.Account.ForgotPassword,
         new SendEmailEvent({
-          to: resident.email,
+          to: String(resident.email),
           from: `"LAWMA REG" <accounts@lawma.co>`,
           subject: 'Password Reset Request',
           context: {
@@ -295,8 +302,8 @@ export class ResidentService {
 
     // Hash and assign new password
     resident.password = hashedPassword;
-    resident.resetToken = null;
-    resident.resetTokenExpiry = null;
+    // resident.resetToken = null;
+    // resident.resetTokenExpiry = null;
 
     await resident.save();
 
@@ -304,16 +311,41 @@ export class ResidentService {
     return { message: 'Password has been reset successfully' };
   }
 
-  async logout() {
+  async logout(token: string) {
+    const tokenDetails = await this.jwtService.decode(token);
+
+    const ttl = tokenDetails.exp - Math.floor(Date.now() / 1000);
+
+    await this.cacheService.set(`blacklist:${token}`, true, ttl);
+
     return { message: 'Logged out successfully' };
   }
 
-  async getAgentDetailsByToken(token: string) {
+  async getResidentDetailsByToken(token: string) {
     const tokenDetails = await this.jwtService.decode(token);
+    console.log(tokenDetails);
     if (!tokenDetails) {
       throw new UnauthorizedException('unable to unauthenticate');
     }
 
     return this.getProfile(tokenDetails.id);
+  }
+
+  async createBinApplication(body: CreateApplicationDto)
+  {
+   const data =  await this.smartBinService.createBinApplication(body, UserRole.Resident)
+   return data
+  } 
+
+  async getAllResidentApplications(userId:string, role:string)
+  {
+    const data = await this.smartBinService.getBinApplicationsByUserId(userId, role)
+    return data
+  }
+
+  async getApplicationDetails(applicationId:string)
+  {
+    const data = await this.smartBinService.getBinApplicationDetails(applicationId)
+    return data
   }
 }
