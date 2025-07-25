@@ -9,6 +9,9 @@ import {
   UploadedFile,
   UseInterceptors,
   UseGuards,
+  Param,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ResidentService } from './resident.service';
@@ -29,6 +32,7 @@ import {
   ResetPasswordDto,
   ProfileDto,
   CreateApplicationDto,
+  GetApplicationParamDto,
 } from './dto/resident.dto';
 
 import { ApiTags } from '@nestjs/swagger';
@@ -134,17 +138,43 @@ export class ResidentController {
   async createSmartBinApplication(
     @Body() body: CreateApplicationDto,
     @AuthenticatedResident() resident: AuthUser,
-  ){
-    const response = await this.residentService.createBinApplication(body)
-    return new SuccessResponse('Application for smart bin submitted successfully', response);
+  ) {
+    const response = await this.residentService.createBinApplication(body);
+    return new SuccessResponse(
+      'Application for smart bin submitted successfully',
+      response,
+    );
   }
 
   @Get('smart-bin-applications')
   @ResidentAuth()
   async getAllResidentBinApplications(
     @AuthenticatedResident() resident: AuthUser,
-  ){
-    const response = await this.residentService.getAllResidentApplications(resident.id, resident.role)
-    return new SuccessResponse('Application for smart bin submitted successfully', response);
+  ) {
+    const response = await this.residentService.getAllResidentApplications(
+      resident.id,
+      resident.role,
+    );
+    return new SuccessResponse(
+      'Application for smart bin submitted successfully',
+      response,
+    );
+  }
+
+  @Get('smart-bin-applications/:applicationId')
+  @ResidentAuth()
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async getApplicationDetails(
+    @AuthenticatedResident() resident: AuthUser,
+    @Param() params: GetApplicationParamDto,
+  ) {
+    const { applicationId } = params;
+    const response = await this.residentService.getApplicationDetails(
+      applicationId,
+    );
+    return new SuccessResponse(
+      'Smart Bin application retrieved successfully',
+      response,
+    );
   }
 }

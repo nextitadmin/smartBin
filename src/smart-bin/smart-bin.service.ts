@@ -100,7 +100,6 @@ export class SmartBinService {
         .sort({ createdAt: -1 })
         .lean(),
     ]);
-
   }
   // For Corporate
   async getCorporateBinApplication(corporateId: string) {
@@ -159,12 +158,10 @@ export class SmartBinService {
     return { message: 'Bin application deleted successfully' };
   }
 
-
   async createBinApplication(dto: CreateApplicationDto, userType: string) {
     const resident = await this.residentModel
       .findOne({ email: dto.email, payerId: dto.payerId })
       .lean();
-    
 
     if (!resident) {
       throw new NotFoundException('Resident does not exist');
@@ -187,8 +184,7 @@ export class SmartBinService {
     return newBinApplication;
   }
 
-
-  async getBinApplicationsByUserId(userId: string, userType:string) {
+  async getBinApplicationsByUserId(userId: string, userType: string) {
     const smartbins = await this.smartbinModel
       .find({ userId: userId, customerType: userType })
       .sort({ createdAt: -1 })
@@ -197,5 +193,22 @@ export class SmartBinService {
       throw new NotFoundException('No bin applications found for this user');
     }
     return smartbins;
+  }
+
+  async getBinApplicationDetails(applicationId: string) {
+    const smartBin = await this.smartbinModel.findById(applicationId).lean();
+
+    let userDetails = null;
+
+    if (smartBin.customerType === 'Resident') {
+      userDetails = await this.residentModel.findById(smartBin.userId).select('payerId firstName lastName email phoneNumber lawmaCustomerType');
+    } else if (smartBin.customerType === 'Corporate') {
+      userDetails = await this.corporateModel.findById(smartBin.userId).select('payerId firstName lastName email phoneNumber lawmaCustomerType');
+    }
+
+    return {
+      ...smartBin,
+      ...userDetails,
+    };
   }
 }
