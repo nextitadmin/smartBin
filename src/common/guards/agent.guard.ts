@@ -17,7 +17,7 @@ import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 @Injectable()
 export class AgentAuthGuard implements CanActivate {
   constructor(
-    @Inject(CACHE_MANAGER) private cacheService:Cache,
+    @Inject(CACHE_MANAGER) private cacheService: Cache,
     private readonly reflector: Reflector,
     private readonly agentService: AgentService,
   ) {}
@@ -54,7 +54,7 @@ export class AgentAuthGuard implements CanActivate {
       id: String(agent._id),
       email: agent.email,
       role: UserRole.Agent,
-      token: token
+      token: token,
     };
 
     return true;

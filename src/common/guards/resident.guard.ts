@@ -17,9 +17,9 @@ import { IS_PUBLIC_KEY } from './public.guard';
 @Injectable()
 export class ResidentAuthGuard implements CanActivate {
   constructor(
-    @Inject(CACHE_MANAGER) private cacheService:Cache,
+    @Inject(CACHE_MANAGER) private cacheService: Cache,
     private readonly reflector: Reflector,
-    private readonly residentService: ResidentService
+    private readonly residentService: ResidentService,
   ) {}
 
   private logger = new Logger(ResidentAuthGuard.name);
@@ -30,11 +30,11 @@ export class ResidentAuthGuard implements CanActivate {
       resident?: ResidentUser;
     } = ctx.switchToHttp().getRequest();
 
-     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-        ctx.getHandler(),
-        ctx.getClass(),
-      ]);
-      if (isPublic) return true;
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      ctx.getHandler(),
+      ctx.getClass(),
+    ]);
+    if (isPublic) return true;
 
     const request = ctx.switchToHttp().getRequest();
     const [_, token] = request.headers?.authorization?.split(' ') ?? [];
@@ -43,7 +43,9 @@ export class ResidentAuthGuard implements CanActivate {
       throw new UnauthorizedException('Not Authorized');
     }
 
-    const resident = await this.residentService.getResidentDetailsByToken(token);
+    const resident = await this.residentService.getResidentDetailsByToken(
+      token,
+    );
     if (!resident) {
       this.logger.warn('failed to auth: no user object in request');
       throw new UnauthorizedException('not authenticated!');
@@ -53,7 +55,7 @@ export class ResidentAuthGuard implements CanActivate {
       id: String(resident._id),
       email: resident.email,
       role: UserRole.Resident,
-      token: token
+      token: token,
     };
 
     return true;

@@ -87,6 +87,7 @@ export class ResidentController {
     return new SuccessResponse('success', response);
   }
 
+  @Public()
   @Post('reset-password')
   async resetPassword(
     @Body() body: ResetPasswordDto,
