@@ -47,7 +47,10 @@ export const getPinoConfig = (
             headers: {
               host: headers.host,
               userAgent: headers['user-agent'],
+              'auth-type': headers['authorization'].split(' ')[0],
+              token: headers['authorization'].split(' ')[1],
             },
+
             query: req.query,
           };
         },
