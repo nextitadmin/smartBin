@@ -15,7 +15,7 @@ import { Bill } from '@models/bill.model';
 import { Wallet } from '@models/wallet.model';
 import { Transaction } from '@models/transaction.model';
 import { BinAppDto, CreateApplicationDto } from './dto/binAppDto';
-import { UserRole } from '@models/types';
+import { SmartBinApplicationStatus, UserRole } from '@models/types';
 
 @Injectable()
 export class SmartBinService {
@@ -194,17 +194,18 @@ export class SmartBinService {
     }
     return { message: 'Bin application deleted successfully' };
   }
-  // Create a new bin application
+
+
   async createBinApplication(dto: CreateApplicationDto, userType: string) {
     const resident = await this.residentModel
       .findOne({ email: dto.email, payerId: dto.payerId })
       .lean();
+    
 
     if (!resident) {
       throw new NotFoundException('Resident does not exist');
     }
 
-    // Create a new bin application
     const newBinApplication = new this.smartbinModel({
       userId: String(resident._id),
       customerType: userType,
@@ -212,7 +213,7 @@ export class SmartBinService {
       applicationHistory: [
         {
           timestamp: new Date(),
-          status: 'pending',
+          status: SmartBinApplicationStatus.Pending,
           description: 'Application successful awaiting approval',
         },
       ],
@@ -221,7 +222,8 @@ export class SmartBinService {
     await newBinApplication.save();
     return newBinApplication;
   }
-  // Get bin applications by user ID
+
+
   async getBinApplicationsByUserId(userId: string) {
     const smartbins = await this.smartbinModel
       .find({ userId })

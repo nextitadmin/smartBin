@@ -1,97 +1,105 @@
-import { BinType, LAWMACustomerType } from "@models/smart-bin.model";
-import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString } from "class-validator";
+import { BinType, LAWMACustomerType } from '@models/smart-bin.model';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class BinAppDto {
-    userId: string;
-    payerId: string;
-    binType: string;
-    status: string;
-    customerType: string;
-    lawmaCustomerType?: string;
-    paymentMethod?: string;
-    buildingName?: string;
-    address?: string;
-    businessType?: string;
-    email?: string;
-    phoneNumber?: string;
-    amount?: number;
-    branch?: string;
-    closestLandmark?: string;
-    name?: string;
-    businessName?: string;
-    buildingType?: string;
-    houseName?: string;
-    flatNumber?: string;
-    localGovernmentArea?: string;
-    approvalDate?: Date;
-    deliveredOn?: Date;
-    deliveredBy?: string;
-    createdAt?: Date;
-    updatedAt?: Date;
+  userId: string;
+  payerId: string;
+  binType: string;
+  status: string;
+  customerType: string;
+  lawmaCustomerType?: string;
+  paymentMethod?: string;
+  buildingName?: string;
+  address?: string;
+  businessType?: string;
+  email?: string;
+  phoneNumber?: string;
+  amount?: number;
+  branch?: string;
+  closestLandmark?: string;
+  name?: string;
+  businessName?: string;
+  buildingType?: string;
+  houseName?: string;
+  flatNumber?: string;
+  localGovernmentArea?: string;
+  approvalDate?: Date;
+  deliveredOn?: Date;
+  deliveredBy?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-export class CreateApplicationDto{
-    @ApiProperty()
-    @IsString()
-    firstName:string
+export class CreateApplicationDto {
+  @ApiProperty()
+  @IsString()
+  firstName: string;
 
-    @ApiProperty()
-    @IsString()
-    surname:string
+  @ApiProperty()
+  @IsString()
+  surname: string;
 
-    @ApiProperty()
-    @IsString()
-    @IsNotEmpty()
-    email?: string;
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  email?: string;
 
-    @ApiProperty()
-    @IsString()
-    phoneNumber?: string;
+  @ApiProperty()
+  @IsString()
+  phoneNumber?: string;
 
-    @ApiProperty()
-    @IsString()
-    @IsNotEmpty()
-    payerId: string;
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  payerId: string;
 
-    @ApiProperty()
-    @IsString()
-    buildingType?: string;
+  @ApiProperty()
+  @IsString()
+  buildingType?: string;
 
-    @ApiProperty()
-    @IsString()
-    houseName?: string;
+  @ApiProperty()
+  @IsString()
+  houseName?: string;
 
-    @ApiProperty()
-    @IsString()
-    flatNumber?: string;
+  @ApiProperty()
+  @IsString()
+  houseNumber?: string;
 
-    @ApiProperty()
-    @IsString()
-    address?: string;
+  @ApiProperty()
+  @IsString()
+  flatNumber?: string;
 
-    @ApiProperty()
-    @IsString()
-    closestLandmark?: string;
+  @ApiProperty()
+  @IsString()
+  address?: string;
 
-    @ApiProperty()
-    @IsString()
-    localGovernmentArea?: string;
+  @ApiProperty()
+  @IsString()
+  closestLandmark?: string;
 
-    @ApiProperty()
-    @IsString()
-    lawmaCustomerType?: LAWMACustomerType;
+  @ApiProperty()
+  @IsString()
+  localGovernmentArea?: string;
 
-    @ApiProperty({ default: BinType.Smart })
-    @IsString()
-    binType: BinType = BinType.Smart;
+  @ApiProperty({ enum: LAWMACustomerType, required: false })
+  @IsOptional()
+  @IsEnum(LAWMACustomerType, {
+    message: `Lawma Customer Type must be either '${LAWMACustomerType.New}' or '${LAWMACustomerType.Returning}'`,
+  })
+  lawmaCustomerType?: LAWMACustomerType;
 
-    @ApiProperty()
-    @IsString()
-    buildingName?: string;
+  @ApiProperty({ enum: BinType, default: BinType.Smart })
+  @IsEnum(BinType, {
+    message: `Bin Type must be either '${BinType.Smart}' or '${BinType.Non_Smart}'`,
+  })
+  binType: BinType = BinType.Smart;
 
-    @ApiProperty()
-    @IsString()
-    amount?: string;
+  @ApiProperty()
+  @IsString()
+  buildingName?: string;
 
+  @ApiProperty()
+  @IsString()
+  amount?: string;
 }

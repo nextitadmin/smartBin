@@ -65,6 +65,10 @@ export class CreateApplicationDto{
 
     @ApiProperty()
     @IsString()
+    houseNumber?: string;
+
+    @ApiProperty()
+    @IsString()
     flatNumber?: string;
 
     @ApiProperty()
