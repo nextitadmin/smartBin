@@ -31,6 +31,7 @@ import {
   ResidentForgotPasswordDto,
   CreateApplicationDto,
 } from './dto/resident.dto';
+import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -39,7 +40,7 @@ export class ResidentService {
   constructor(
     @Inject(CACHE_MANAGER) private cacheService: Cache,
     private readonly configService: ConfigService,
-
+    private readonly smartBinService: SmartBinService,
     private readonly jwtService: JwtService,
     @InjectModel(Resident.name)
     private readonly residentModel: Model<ResidentDocument>,

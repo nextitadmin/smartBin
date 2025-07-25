@@ -269,4 +269,33 @@ export class SmartBinService {
     }
     return smartbins;
   }
+
+  async applyForSmartBinResident(residentId: string, dto: BinAppDto) {
+    const resident = await this.residentModel.findOne({email: dto.email, payerId:dto.payerId}).lean();
+    if (!resident) {
+      throw new NotFoundException('Resident not found');
+    }
+
+    const existingApplication = await this.smartbinModel.findOne({
+      userId: residentId,
+      userType: UserRole.Resident,
+    }).lean();
+
+    if (existingApplication) {
+      throw new BadRequestException('Resident already has a bin application');
+    }
+
+    // Create new bin application
+    const newBinApplication = new this.smartbinModel({
+      ...dto,
+      userId: residentId,
+      userType: UserRole.Resident,
+      binType: dto.binType || BinType.Smart,
+      status: dto.status || 'Pending',
+      approvalDate: new Date(),
+    });
+
+    await newBinApplication.save();
+    return newBinApplication;
+  }
 }
