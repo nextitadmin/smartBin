@@ -34,6 +34,7 @@ export class NotificationService {
 
   @OnEvent(MailNotificationEvents.Account.ForgotPassword)
   async onAccountReset(event: SendEmailEvent) {
+    console.log('received envet');
     const { from, context, to, subject } = event.data;
     await this.mailerService.sendMail({
       from,
