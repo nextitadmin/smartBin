@@ -342,4 +342,10 @@ export class ResidentService {
     const data = await this.smartBinService.getBinApplicationsByUserId(userId, role)
     return data
   }
+
+  async getApplicationDetails(applicationId:string)
+  {
+    const data = await this.smartBinService.getBinApplicationDetails(applicationId)
+    return data
+  }
 }

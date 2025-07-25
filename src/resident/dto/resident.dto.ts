@@ -128,3 +128,9 @@ export class ResetPasswordDto {
   @IsString()
   confirmPassword: string;
 }
+
+export class GetApplicationParamDto {
+  @ApiProperty()
+  @IsString()
+  applicationId: string;
+}
