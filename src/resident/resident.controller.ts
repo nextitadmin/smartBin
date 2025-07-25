@@ -102,8 +102,9 @@ export class ResidentController {
 
   @Post('logout')
   @ResidentAuth()
-  logout() {
-    return this.residentService.logout();
+  async logout(@AuthenticatedResident() resident: AuthUser) {
+    const response = await this.residentService.logout(resident.token);
+    return new SuccessResponse(response.message, null);
   }
 
   @Patch('profile-picture')

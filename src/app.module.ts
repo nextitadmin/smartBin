@@ -23,7 +23,7 @@ import { PayerModule } from './payer/payer.module';
 import { BillModule } from './bill/bill.module';
 import { AppController } from './app.controller';
 import { DashboardModule } from './dashboard/dashboard.module';
-import { BinApplicationModule } from './bin-application/bin-application.module';
+import { BinApplicationModule } from './smart-bin/smart-bin.module';
 import { ResidentModule } from './resident/resident.module';
 
 import { APP_GUARD } from '@nestjs/core';

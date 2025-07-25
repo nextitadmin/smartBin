@@ -96,9 +96,9 @@ export class AgentService {
 
   async login(body: LoginAgentAccountDto) {
     const { email, password } = body;
-    console.log(body);
+
     const agent = await this.agentModel.findOne({ email });
-    console.log(agent);
+    
     const isPasswordMatch = await bcrypt.compare(password, agent.password);
     console.log({ isPasswordMatch, password });
     if (!agent) {
@@ -219,12 +219,10 @@ export class AgentService {
           },
         }),
       );
-      // await sendResetEmail(agent.email, agent.firstName, resetCode);
     }
 
     return {
-      message:
-        'If an account with that email exists, a reset code has been sent',
+      message:'If an account with that email exists, a reset code has been sent',
       email,
     };
   }
@@ -243,34 +241,15 @@ export class AgentService {
     return { message: 'Code verified. You can now reset your password.' };
   }
 
-  async completePasswordReset(newPassword: string, confirmPassword: string) {
-    //   throw new UnauthorizedException(
-    //     'Reset session expired. Please verify code again.',
-    //   );
-    // }
-    // if (
-    //   !newPassword ||
-    //   newPassword !== confirmPassword ||
-    //   newPassword.length < 6
-    // ) {
-    //   throw new BadRequestException('Passwords do not match or are too short');
-    // }
-    // const hashedPassword = await bcrypt.hash(newPassword, 10);
-    // await this.agentModel.updateOne(
-    //   { _id: userId },
-    //   {
-    //     $set: {
-    //       password: hashedPassword,
-    //       resetToken: null,
-    //       resetTokenExpiry: null,
-    //     },
-    //   },
-    // );
-    // session.passwordResetUserId = null;
-    // return { message: 'Password has been reset successfully' };
-  }
+  async completePasswordReset(newPassword: string, confirmPassword: string) {}
 
-  async logout() {
+  async logout(token:string) {
+    const tokenDetails = await this.jwtService.decode(token);
+   
+    const ttl = tokenDetails.exp - Math.floor(Date.now() / 1000);
+
+    await this.cacheService.set(`blacklist:${token}`, true, ttl);
+
     return { message: 'Logged out successfully' };
   }
 

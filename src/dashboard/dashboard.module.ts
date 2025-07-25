@@ -14,6 +14,8 @@ import { Wallet, WalletSchema } from '@models/wallet.model';
 import { ResidentDashboardController } from './resident.dashboard.controller';
 import { CorporateDashboardController } from './corporate.dashboard.controller';
 import { DashboardService } from './dashboard.service';
+import { ResidentService } from '@src/resident/resident.service';
+import { Payer, PayerSchema } from '@models/users/payer.model';
 
 @Module({
   imports: [
@@ -26,9 +28,10 @@ import { DashboardService } from './dashboard.service';
       { name: Bill.name, schema: BillSchema },
       { name: Transaction.name, schema: TransactionSchema },
       { name: SmartBin.name, schema: SmartBinSchema },
+      { name: Payer.name, schema: PayerSchema }
     ]),
   ],
   controllers: [ResidentDashboardController, CorporateDashboardController],
-  providers: [DashboardService],
+  providers: [DashboardService, ResidentService],
 })
 export class DashboardModule { }

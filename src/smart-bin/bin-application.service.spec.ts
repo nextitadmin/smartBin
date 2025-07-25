@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { MediaService } from './media.service';
+import { BinApplicationService } from './smart-bin.service';
 
-describe('MediaService', () => {
-  let service: MediaService;
+describe('BinApplicationService', () => {
+  let service: BinApplicationService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [MediaService],
+      providers: [BinApplicationService],
     }).compile();
 
-    service = module.get<MediaService>(MediaService);
+    service = module.get<BinApplicationService>(BinApplicationService);
   });
 
   it('should be defined', () => {

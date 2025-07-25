@@ -95,8 +95,9 @@ export class AgentController {
 
   @Post('logout')
   @AgentAuth()
-  logout() {
-    return this.agentService.logout();
+  async logout(@AuthenticatedAgent() agent: AuthUser) {
+    const response = await this.agentService.logout(agent.token);
+    return new SuccessResponse(response.message, null);
   }
 
   @Patch('profile-picture')

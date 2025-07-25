@@ -11,8 +11,8 @@ import {
 import { Bill, BillSchema } from '@models/bill.model';
 import { Wallet, WalletSchema } from '@models/wallet.model';
 import { Transaction, TransactionSchema } from '@models/transaction.model';
-import { BinApplicationController } from './bin-application.controller';
-import { BinApplicationService } from './bin-application.service';
+import { BinApplicationController } from './smart-bin.controller';
+import { BinApplicationService } from './smart-bin.service';
 import { AgentModule } from '@src/agent/agent.module';
 
 @Module({

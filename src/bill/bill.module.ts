@@ -7,15 +7,20 @@ import { FacilityBillController } from './facilityM.bill.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Bill, BillSchema } from '@models/bill.model';
 import { Wallet, WalletSchema } from '@models/wallet.model';
+import { ResidentService } from '@src/resident/resident.service';
+import { Resident, ResidentSchema } from '@models/users/resident.model';
+import { Payer, PayerSchema } from '@models/users/payer.model';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Bill.name, schema: BillSchema },
       { name: Wallet.name, schema: WalletSchema },
+      { name: Resident.name, schema: ResidentSchema},
+      { name:Payer.name, schema: PayerSchema}
     ]),
   ],
   controllers: [ResidentBillController, CorporateBillController, FacilityBillController],
-  providers: [BillService],
+  providers: [BillService, ResidentService],
 })
 export class BillModule { }
