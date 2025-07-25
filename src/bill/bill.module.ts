@@ -10,6 +10,7 @@ import { Wallet, WalletSchema } from '@models/wallet.model';
 import { ResidentService } from '@src/resident/resident.service';
 import { Resident, ResidentSchema } from '@models/users/resident.model';
 import { Payer, PayerSchema } from '@models/users/payer.model';
+import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { Payer, PayerSchema } from '@models/users/payer.model';
       { name: Resident.name, schema: ResidentSchema},
       { name:Payer.name, schema: PayerSchema}
     ]),
+    SmartBinModule
   ],
   controllers: [ResidentBillController, CorporateBillController, FacilityBillController],
   providers: [BillService, ResidentService],

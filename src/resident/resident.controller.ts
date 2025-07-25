@@ -27,6 +27,8 @@ import {
   ResidentForgotPasswordDto,
   ResidentVerifyResetCodeDto,
   ResetPasswordDto,
+  ProfileDto,
+  CreateApplicationDto,
 } from './dto/resident.dto';
 
 import { ApiTags } from '@nestjs/swagger';
@@ -116,16 +118,24 @@ export class ResidentController {
 
   @Patch('profile-picture')
   @ResidentAuth()
-  @UseInterceptors(FileInterceptor('profilePicture'))
   async updateProfilePicture(
-    @UploadedFile() file: Express.Multer.File,
-    @Req() req: Request,
+    @Body() body: ProfileDto,
     @AuthenticatedResident() resident: AuthUser,
   ) {
     const response = await this.residentService.updateProfilePicture(
       resident.id,
-      file.path,
+      body.imageUrl,
     );
     return new SuccessResponse('profile picture updated', null);
+  }
+
+  @Post('apply-smart-bin')
+  @ResidentAuth()
+  async createSmartBinApplication(
+    @Body() body: CreateApplicationDto,
+    @AuthenticatedResident() resident: AuthUser,
+  ){
+    const response = await this.residentService.createBinApplication(body)
+    return new SuccessResponse('', response);
   }
 }

@@ -43,6 +43,7 @@ export interface SmartBinAttributes {
   businessName?: string;
   buildingType?: string;
   houseName?: string;
+  houseNumber?: string;
   flatNumber?: string;
   localGovernmentArea?: string;
   approvalDate?: Date;
@@ -58,6 +59,22 @@ export interface SmartBinAttributes {
     },
   ];
 }
+
+@Schema({ _id: false })
+class ApplicationHistoryItem {
+  @Prop({ type: Date, required: true })
+  timestamp: Date;
+
+  @Prop({ type: String, required: true })
+  status: string;
+
+  @Prop({ type: String, required: true })
+  description: string;
+}
+
+const ApplicationHistoryItemSchema = SchemaFactory.createForClass(ApplicationHistoryItem);
+
+
 @Schema({
   collection: 'smart_bins',
   timestamps: true,
@@ -148,10 +165,16 @@ export class SmartBin extends Document {
   houseName?: string;
 
   @Prop({ type: SchemaTypes.String, required: false })
+  houseNumber?: string;
+
+  @Prop({ type: SchemaTypes.String, required: false })
   flatNumber?: string;
 
   @Prop({ type: SchemaTypes.String, required: false })
   localGovernmentArea?: string;
+
+  @Prop({ type: [ApplicationHistoryItemSchema], default: [] })
+  applicationHistory: ApplicationHistoryItem[];
 }
 
 export const SmartBinSchema = SchemaFactory.createForClass(SmartBin);

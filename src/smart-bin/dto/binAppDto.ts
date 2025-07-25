@@ -1,29 +1,105 @@
-export class BinAppDto {
-    userId: string;
-    payerId: string;
-    binType: string;
-    status: string;
-    customerType: string;
-    lawmaCustomerType?: string;
-    paymentMethod?: string;
-    buildingName?: string;
-    address?: string;
-    businessType?: string;
-    email?: string;
-    phoneNumber?: string;
-    amount?: number;
-    branch?: string;
-    closestLandmark?: string;
-    name?: string;
-    businessName?: string;
-    buildingType?: string;
-    houseName?: string;
-    flatNumber?: string;
-    localGovernmentArea?: string;
-    approvalDate?: Date;
-    deliveredOn?: Date;
-    deliveredBy?: string;
-    createdAt?: Date;
-    updatedAt?: Date;
+import { BinType, LAWMACustomerType } from '@models/smart-bin.model';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
+export class BinAppDto {
+  userId: string;
+  payerId: string;
+  binType: string;
+  status: string;
+  customerType: string;
+  lawmaCustomerType?: string;
+  paymentMethod?: string;
+  buildingName?: string;
+  address?: string;
+  businessType?: string;
+  email?: string;
+  phoneNumber?: string;
+  amount?: number;
+  branch?: string;
+  closestLandmark?: string;
+  name?: string;
+  businessName?: string;
+  buildingType?: string;
+  houseName?: string;
+  flatNumber?: string;
+  localGovernmentArea?: string;
+  approvalDate?: Date;
+  deliveredOn?: Date;
+  deliveredBy?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export class CreateApplicationDto {
+  @ApiProperty()
+  @IsString()
+  firstName: string;
+
+  @ApiProperty()
+  @IsString()
+  surname: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  email?: string;
+
+  @ApiProperty()
+  @IsString()
+  phoneNumber?: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  payerId: string;
+
+  @ApiProperty()
+  @IsString()
+  buildingType?: string;
+
+  @ApiProperty()
+  @IsString()
+  houseName?: string;
+
+  @ApiProperty()
+  @IsString()
+  houseNumber?: string;
+
+  @ApiProperty()
+  @IsString()
+  flatNumber?: string;
+
+  @ApiProperty()
+  @IsString()
+  address?: string;
+
+  @ApiProperty()
+  @IsString()
+  closestLandmark?: string;
+
+  @ApiProperty()
+  @IsString()
+  localGovernmentArea?: string;
+
+  @ApiProperty({ enum: LAWMACustomerType, required: false })
+  @IsOptional()
+  @IsEnum(LAWMACustomerType, {
+    message: `Lawma Customer Type must be either '${LAWMACustomerType.New}' or '${LAWMACustomerType.Returning}'`,
+  })
+  lawmaCustomerType?: LAWMACustomerType;
+
+  @ApiProperty({ enum: BinType, default: BinType.Smart })
+  @IsEnum(BinType, {
+    message: `Bin Type must be either '${BinType.Smart}' or '${BinType.Non_Smart}'`,
+  })
+  binType: BinType = BinType.Smart;
+
+  @ApiProperty()
+  @IsString()
+  buildingName?: string;
+
+  @ApiProperty()
+  @IsString()
+  amount?: string;
 }
