@@ -1,6 +1,7 @@
 import {
   CanActivate,
   ExecutionContext,
+  Inject,
   Injectable,
   Logger,
   UnauthorizedException,
@@ -9,10 +10,19 @@ import {
 import { Request } from 'express';
 import { AuthUser, CorporateUser } from '../types';
 import { UserRole } from '@models/types';
+import { Reflector } from '@nestjs/core';
+import { IS_PUBLIC_KEY } from './public.guard';
+import { Cache } from 'cache-manager';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { CorporateService } from '@src/corporate/corporate.service';
 
 @Injectable()
 export class CorporateAuthGuard implements CanActivate {
-  //   // constructor(private readonly customerService: CustomerService) {}
+  constructor(
+    @Inject(CACHE_MANAGER) private cacheService: Cache,
+    private readonly reflector: Reflector,
+    private readonly corporateService: CorporateService,
+  ) {}
 
   private logger = new Logger(CorporateAuthGuard.name);
 
@@ -22,23 +32,31 @@ export class CorporateAuthGuard implements CanActivate {
       corporate?: CorporateUser;
     } = ctx.switchToHttp().getRequest();
 
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      ctx.getHandler(),
+      ctx.getClass(),
+    ]);
+    if (isPublic) return true;
+
     const request = ctx.switchToHttp().getRequest();
-    const [type, token] = request.headers?.authorization?.split(' ') ?? [];
-    //     // const customer = await this.customerService.getCustomerDetailsbyToken(
-    //     // token,
-    //     // );
-    //     if (!true) {
-    //       this.logger.warn('failed to auth: no user object in request');
-    //       throw new UnauthorizedException('not authenticated!');
-    //     }
+    const [, token] = request.headers?.authorization?.split(' ') ?? [];
+
+    const isBlacklisted = await this.cacheService.get(`blacklist:${token}`);
+    if (isBlacklisted) {
+      throw new UnauthorizedException('not authenticated!');
+    }
+
+    const corporate = await this.corporateService.getDetailsByToken(token);
+    if (!true) {
+      this.logger.warn('failed to auth: no user object in request');
+      throw new UnauthorizedException('not authenticated!');
+    }
 
     req.user = {
-      id: '',
-      email: '',
+      id: String(corporate._id),
+      email: corporate.email,
       role: UserRole.Corporate,
     };
-
-    req.corporate = {}; // additional details apart from the above
 
     return true;
   }

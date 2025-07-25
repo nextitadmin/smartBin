@@ -11,18 +11,24 @@ import { ResidentService } from '@src/resident/resident.service';
 import { Resident, ResidentSchema } from '@models/users/resident.model';
 import { Payer, PayerSchema } from '@models/users/payer.model';
 import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
+import { CorporateModule } from '@src/corporate/corporate.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Bill.name, schema: BillSchema },
       { name: Wallet.name, schema: WalletSchema },
-      { name: Resident.name, schema: ResidentSchema},
-      { name:Payer.name, schema: PayerSchema}
+      { name: Resident.name, schema: ResidentSchema },
+      { name: Payer.name, schema: PayerSchema },
     ]),
-    SmartBinModule
+    SmartBinModule,
+    CorporateModule,
   ],
-  controllers: [ResidentBillController, CorporateBillController, FacilityBillController],
+  controllers: [
+    ResidentBillController,
+    CorporateBillController,
+    FacilityBillController,
+  ],
   providers: [BillService, ResidentService],
 })
-export class BillModule { }
+export class BillModule {}

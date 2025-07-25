@@ -99,7 +99,7 @@ export class AgentService {
     const { email, password } = body;
 
     const agent = await this.agentModel.findOne({ email });
-    
+
     const isPasswordMatch = await bcrypt.compare(password, agent.password);
     console.log({ isPasswordMatch, password });
     if (!agent) {
@@ -201,8 +201,7 @@ export class AgentService {
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
     const expiry = 600000;
 
-    const agent = await this.agentModel.findOneAndUpdate({ email });
-    console.log({ agent });
+    const agent = await this.agentModel.findOne({ email });
     if (agent) {
       await this.cacheService.set(
         CacheKeys.AgentLoginCode(String(resetCode)),
@@ -224,7 +223,8 @@ export class AgentService {
     }
 
     return {
-      message:'If an account with that email exists, a reset code has been sent',
+      message:
+        'If an account with that email exists, a reset code has been sent',
       email,
     };
   }
@@ -257,7 +257,7 @@ export class AgentService {
     return { token };
   }
 
- async completePasswordReset({
+  async completePasswordReset({
     accountId,
     newPassword,
     confirmPassword,
@@ -284,9 +284,9 @@ export class AgentService {
     );
   }
 
-  async logout(token:string) {
+  async logout(token: string) {
     const tokenDetails = await this.jwtService.decode(token);
-   
+
     const ttl = tokenDetails.exp - Math.floor(Date.now() / 1000);
 
     await this.cacheService.set(`blacklist:${token}`, true, ttl);
