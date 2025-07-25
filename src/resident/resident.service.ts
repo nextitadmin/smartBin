@@ -333,6 +333,8 @@ export class ResidentService {
 
   async createBinApplication(body: CreateApplicationDto)
   {
-
+   const data =  await this.smartBinService.createBinApplication(body, UserRole.Resident)
+   return data
+   
   } 
 }

@@ -35,43 +35,15 @@ export class ProfileDto{
 export class CreateApplicationDto{
     @ApiProperty()
     @IsString()
+    firstName:string
+
+    @ApiProperty()
+    @IsString()
+    surname:string
+
+    @ApiProperty()
+    @IsString()
     @IsNotEmpty()
-    payerId: string;
-
-    @ApiProperty()
-    @IsString()
-    binType: BinType;
-
-    @ApiProperty()
-    @IsString()
-    status: SmartbinStatus;
-
-    @ApiProperty()
-    @IsString()
-    customerType: UserRole;
-
-    @ApiProperty()
-    @IsString()
-    lawmaCustomerType?: LAWMACustomerType;
-
-    @ApiProperty()
-    @IsString()
-    paymentMethod?: PaymentMethod;
-
-    @ApiProperty()
-    @IsString()
-    buildingName?: string;
-
-    @ApiProperty()
-    @IsString()
-    address?: string;
-
-    @ApiProperty()
-    @IsString()
-    businessType?: string;
-
-    @ApiProperty()
-    @IsString()
     email?: string;
 
     @ApiProperty()
@@ -79,24 +51,9 @@ export class CreateApplicationDto{
     phoneNumber?: string;
 
     @ApiProperty()
-    @IsNumber()
-    amount?: number;
-
-    @ApiProperty()
     @IsString()
-    branch?: string;
-
-    @ApiProperty()
-    @IsString()
-    closestLandmark?: string;
-
-    @ApiProperty()
-    @IsString()
-    name?: string;
-
-    @ApiProperty()
-    @IsString()
-    businessName?: string;
+    @IsNotEmpty()
+    payerId: string;
 
     @ApiProperty()
     @IsString()
@@ -112,7 +69,32 @@ export class CreateApplicationDto{
 
     @ApiProperty()
     @IsString()
+    address?: string;
+
+    @ApiProperty()
+    @IsString()
+    closestLandmark?: string;
+
+    @ApiProperty()
+    @IsString()
     localGovernmentArea?: string;
+
+    @ApiProperty()
+    @IsString()
+    lawmaCustomerType?: LAWMACustomerType;
+
+    @ApiProperty()
+    @IsString()
+    binType: BinType;
+
+    @ApiProperty()
+    @IsString()
+    buildingName?: string;
+
+    @ApiProperty()
+    @IsString()
+    amount?: string;
+
 }
 
 export class VerifyResidentLogin {
