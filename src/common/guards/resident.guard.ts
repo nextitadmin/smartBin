@@ -11,11 +11,14 @@ import { ResidentUser } from '../types';
 import { UserRole } from '@models/types';
 import { ResidentService } from '@src/resident/resident.service';
 import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Reflector } from '@nestjs/core';
+import { IS_PUBLIC_KEY } from './public.guard';
 
 @Injectable()
 export class ResidentAuthGuard implements CanActivate {
   constructor(
     @Inject(CACHE_MANAGER) private cacheService:Cache,
+    private readonly reflector: Reflector,
     private readonly residentService: ResidentService
   ) {}
 
@@ -26,6 +29,12 @@ export class ResidentAuthGuard implements CanActivate {
       user: AuthUser;
       resident?: ResidentUser;
     } = ctx.switchToHttp().getRequest();
+
+     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+        ctx.getHandler(),
+        ctx.getClass(),
+      ]);
+      if (isPublic) return true;
 
     const request = ctx.switchToHttp().getRequest();
     const [_, token] = request.headers?.authorization?.split(' ') ?? [];

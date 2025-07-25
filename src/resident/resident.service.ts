@@ -29,6 +29,7 @@ import {
   ResidentLoginDto,
   ResidentVerifyResetCodeDto,
   ResidentForgotPasswordDto,
+  CreateApplicationDto,
 } from './dto/resident.dto';
 
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -117,6 +118,8 @@ export class ResidentService {
     const loginCode = Math.floor(10000 + Math.random() * 90000).toString();
     const loginCodeExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
+    console.log(loginCode);
+
     resident.loginCode = loginCode;
     resident.loginCodeExpiry = loginCodeExpiry;
     await resident.save();
@@ -193,12 +196,12 @@ export class ResidentService {
   async getProfile(residentId: string) {
     const resident = await this.residentModel
       .findById(residentId)
-      .select('firstName lastName profilePicture')
+      .select('firstName lastName email profilePicture payerId profilePicture phoneNumber nationality gender lawmaCustomerType role')
       .lean();
     if (!resident) {
       throw new NotFoundException('Resident not found');
     }
-
+    
     const defaultAvatar =
       'https://res.cloudinary.com/demo/image/upload/avatar.png';
     return {
@@ -316,10 +319,16 @@ export class ResidentService {
 
   async getResidentDetailsByToken(token: string) {
     const tokenDetails = await this.jwtService.decode(token);
+    console.log(tokenDetails);
     if (!tokenDetails) {
       throw new UnauthorizedException('unable to unauthenticate');
     }
 
     return this.getProfile(tokenDetails.id);
   }
+
+  async createBinApplication(body: CreateApplicationDto)
+  {
+
+  } 
 }
