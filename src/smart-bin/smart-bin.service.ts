@@ -159,7 +159,10 @@ export class SmartBinService {
       service: ServiceType.SmartBinPurchase,
     });
 
-    return newBinApplication;
+    return {
+      application: newBinApplication,
+      transactionReference: generateTransactionRef,
+    };
   }
 
   async getBinApplicationsByUserId(userId: string, userType: string) {
