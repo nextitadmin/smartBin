@@ -123,7 +123,6 @@ export class ResidentService {
     const loginCode = Math.floor(10000 + Math.random() * 90000).toString();
     const loginCodeExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
-
     resident.loginCode = loginCode;
     resident.loginCodeExpiry = loginCodeExpiry;
     await resident.save();
@@ -343,15 +342,16 @@ export class ResidentService {
 
     return this.getProfile(tokenDetails.id);
   }
-  
 
-  public async getDashboardDetails(userId:string)
-  {
-    const resident = await this.residentModel.findById(userId).select('payerId firstName lastName address role').lean();
+  public async getDashboardDetails(userId: string) {
+    const resident = await this.residentModel
+      .findById(userId)
+      .select('payerId firstName lastName address role')
+      .lean();
     const smartBinCount = await this.smartBinModel.find({
       userId: resident._id,
-      customerType: UserRole.Resident
-    })
+      customerType: UserRole.Resident,
+    });
 
     const data = {
       smartBinApplicationCount: smartBinCount || 0,
@@ -363,19 +363,20 @@ export class ResidentService {
       totalOutstandingBill: 24000,
       avaliableBalance: 50000,
       estimatedAnnualSubscriptionFee: 0,
-      nextPickUpDate: "N/A"
-    }
-  
+      nextPickUpDate: 'N/A',
+    };
 
     return {
       message: 'Resident Dashboard details retrived successfully',
-      data
+      data,
     };
   }
 
-  async createBinApplication(body: CreateApplicationDto) {
+  async createBinApplication(
+    body: CreateApplicationDto & { residentId: string },
+  ) {
     const data = await this.smartBinService.createBinApplication({
-      accountId: body.payerId,
+      accountId: body.residentId,
       accountType: UserRole.Resident,
       applicationData: body,
     });

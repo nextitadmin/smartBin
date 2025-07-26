@@ -135,12 +135,10 @@ export class ResidentController {
 
   @Get('dashboard')
   @ResidentAuth()
-  async getResidentDashboard(
-    @AuthenticatedResident() resident: AuthUser
-  ){
+  async getResidentDashboard(@AuthenticatedResident() resident: AuthUser) {
     const response = await this.residentService.getDashboardDetails(
-      resident.id
-    )
+      resident.id,
+    );
     return new SuccessResponse(response.message, response.data);
   }
 
@@ -150,7 +148,10 @@ export class ResidentController {
     @Body() body: CreateApplicationDto,
     @AuthenticatedResident() resident: AuthUser,
   ) {
-    const response = await this.residentService.createBinApplication(body);
+    const response = await this.residentService.createBinApplication({
+      ...body,
+      residentId: resident.id,
+    });
     return new SuccessResponse(
       'Application for smart bin submitted successfully',
       response,
