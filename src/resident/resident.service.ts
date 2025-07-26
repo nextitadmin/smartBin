@@ -11,7 +11,6 @@ import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 import { Resident, ResidentDocument } from '@models/users/resident.model';
-
 import { Payer, PayerDocument } from '@models/users/payer.model';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
@@ -32,6 +31,7 @@ import {
   CreateApplicationDto,
 } from './dto/resident.dto';
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
+import { date } from 'joi';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -198,18 +198,32 @@ export class ResidentService {
   }
 
   async getProfile(residentId: string) {
+    console.log("got here")
     const resident = await this.residentModel
       .findById(residentId)
-      .select('firstName lastName email profilePicture payerId profilePicture phoneNumber nationality gender lawmaCustomerType role')
+      .select(
+        'firstName lastName email profilePicture payerId landmark nextPickupDate accountNo localGovermentArea buildingType profilePicture phoneNumber nationality gender lawmaCustomerType address role',
+      )
       .lean();
+
     if (!resident) {
       throw new NotFoundException('Resident not found');
     }
-    
+
     const defaultAvatar =
       'https://res.cloudinary.com/demo/image/upload/avatar.png';
+
+    const data = {
+      address: resident.address || null,
+      landmark: resident.landmark || null,
+      nextPickupDate: resident.nextPickupDate || null,
+      accountNo: resident.accountNo || null,
+      localGovermentArea: resident.localGovermentArea || null,
+      buildingType: resident.buildingType || null,
+    };
     return {
       ...resident,
+      ...data,
       profilePicture: resident.profilePicture || defaultAvatar,
     };
   }
@@ -331,21 +345,26 @@ export class ResidentService {
     return this.getProfile(tokenDetails.id);
   }
 
-  async createBinApplication(body: CreateApplicationDto)
-  {
-   const data =  await this.smartBinService.createBinApplication(body, UserRole.Resident)
-   return data
-  } 
-
-  async getAllResidentApplications(userId:string, role:string)
-  {
-    const data = await this.smartBinService.getBinApplicationsByUserId(userId, role)
-    return data
+  async createBinApplication(body: CreateApplicationDto) {
+    const data = await this.smartBinService.createBinApplication(
+      body,
+      UserRole.Resident,
+    );
+    return data;
   }
 
-  async getApplicationDetails(applicationId:string)
-  {
-    const data = await this.smartBinService.getBinApplicationDetails(applicationId)
-    return data
+  async getAllResidentApplications(userId: string, role: string) {
+    const data = await this.smartBinService.getBinApplicationsByUserId(
+      userId,
+      role,
+    );
+    return data;
+  }
+
+  async getApplicationDetails(applicationId: string) {
+    const data = await this.smartBinService.getBinApplicationDetails(
+      applicationId,
+    );
+    return data;
   }
 }
