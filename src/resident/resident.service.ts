@@ -32,6 +32,7 @@ import {
 } from './dto/resident.dto';
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 import { date } from 'joi';
+import { SmartBin } from '@models/smart-bin.model';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -45,6 +46,7 @@ export class ResidentService {
     @InjectModel(Resident.name)
     private readonly residentModel: Model<ResidentDocument>,
     @InjectModel(Payer.name) private readonly payerModel: Model<PayerDocument>,
+    @InjectModel(SmartBin.name) private readonly smartBinModel: Model<SmartBin>,
     private ee: EventEmitter2,
   ) {}
 
@@ -345,9 +347,26 @@ export class ResidentService {
 
   public async getDashboardDetails(userId:string)
   {
-    await this.residentModel.findById(userId).select('payerId firstName lastName address role').lean();
+    const resident = await this.residentModel.findById(userId).select('payerId firstName lastName address role').lean();
+    const smartBinCount = await this.smartBinModel.find({
+      userId: resident._id,
+      customerType: UserRole.Resident
+    })
 
-    return {};
+    const data = {
+      smartBinApplicationCount: smartBinCount || 0,
+      name: `${resident.firstName} ${resident.lastName}`,
+      role: resident.role,
+      address: resident.address || null,
+      payerId: resident.payerId,
+      userId: resident._id
+    }
+  
+
+    return {
+      message: 'Resident Dashboard details retrived successfully',
+      data
+    };
   }
 
   async createBinApplication(body: CreateApplicationDto) {
