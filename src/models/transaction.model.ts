@@ -33,9 +33,7 @@ export interface TransactionAttributes {
   userType: UserRole;
   amount: number;
   transactionReference: string;
-  transactionID: string;
   status: TransactionStatus;
-  // action: TransactionAction;
   service: ServiceType;
   paymentMethod: PaymentMethod;
   gatewayResponse?: Record<string, any>;
@@ -65,13 +63,11 @@ export class Transaction implements TransactionAttributes {
   @Prop({ required: true, unique: true })
   transactionReference: string;
 
-  @Prop({ required: true, unique: true })
-  transactionID: string;
 
   @Prop({
     type: String,
     enum: Object.values(TransactionStatus),
-    default: TransactionStatus.Pending,
+    default: TransactionStatus.Abandoned,
   })
   status: TransactionStatus;
 
@@ -86,6 +82,7 @@ export class Transaction implements TransactionAttributes {
     type: String,
     enum: Object.values(PaymentMethod),
     required: true,
+    default: PaymentMethod.Wallet
   })
   paymentMethod: PaymentMethod;
 
