@@ -198,7 +198,6 @@ export class ResidentService {
   }
 
   async getProfile(residentId: string) {
-    console.log('got here');
     const resident = await this.residentModel
       .findById(residentId)
       .select(
@@ -217,13 +216,14 @@ export class ResidentService {
       address: resident.address || null,
       landmark: resident.landmark || null,
       nextPickupDate: resident.nextPickupDate || null,
-      accountNo: resident.accountNo || null,
+      accountNumber: resident.accountNo || null,
       localGovermentArea: resident.localGovermentArea || null,
       buildingType: resident.buildingType || null,
     };
     return {
       ...resident,
       ...data,
+      phoneNumber: resident.phoneNumber || null,
       profilePicture: resident.profilePicture || defaultAvatar,
     };
   }

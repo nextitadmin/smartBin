@@ -22,6 +22,7 @@ export enum PaymentMethod {
   AlatByWema = 'Alat',
   Wallet = 'wallet',
 }
+
 export interface SmartBinAttributes {
   _id?: string;
   userId: Types.ObjectId;
@@ -46,6 +47,7 @@ export interface SmartBinAttributes {
   buildingType?: string;
   houseName?: string;
   houseNumber?: string;
+  transactionReference?: string
   flatNumber?: string;
   localGovernmentArea?: string;
   approvalDate?: Date;
@@ -135,6 +137,9 @@ export class SmartBin extends Document {
     default: false
   })
   useYourAddress?:boolean
+
+  @Prop({ type: SchemaTypes.String, required: true, unique: true })
+  transactionReference?:string
 
   @Prop({ type: SchemaTypes.String, required: false })
   streetName?: string;

@@ -13,9 +13,10 @@ import { Corporate } from '@models/users/corporate.model';
 import { FacilityManager } from '@models/users/facility-manager.model';
 import { Bill } from '@models/bill.model';
 import { Wallet } from '@models/wallet.model';
-import { Transaction } from '@models/transaction.model';
+import { ServiceType, Transaction } from '@models/transaction.model';
 import { BinAppDto, CreateApplicationDto } from './dto/binAppDto';
 import { SmartBinApplicationStatus, UserRole } from '@models/types';
+import { generateRandomChars } from '@common/utils';
 
 @Injectable()
 export class SmartBinService {
@@ -133,9 +134,11 @@ export class SmartBinService {
     accountType: UserRole;
     applicationData: CreateApplicationDto;
   }) {
+    const generateTransactionRef = generateRandomChars(10, 'alphanum');
     const newBinApplication = new this.smartbinModel({
       userId: String(accountId),
       customerType: accountType,
+      transactionReference: generateTransactionRef,
       ...applicationData,
       applicationHistory: [
         {
@@ -147,6 +150,15 @@ export class SmartBinService {
     });
 
     await newBinApplication.save();
+
+    await this.transactionModel.create({
+      userId: String(accountId),
+      transactionReference: generateTransactionRef,
+      userType: accountType,
+      amount: newBinApplication.amount,
+      service: ServiceType.SmartBinPurchase,
+    });
+
     return newBinApplication;
   }
 
