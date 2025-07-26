@@ -111,18 +111,16 @@ export class ResidentService {
     if (!resident) {
       throw new NotFoundException('Resident not found');
     }
-    console.log(resident);
+
     const isPasswordMatch = await bcrypt.compare(password, resident.password);
     console.log({ isPasswordMatch, password });
     if (!resident) {
-      console.log('Invalid email or password');
       throw new UnauthorizedException('Invalid email or password');
     }
 
     const loginCode = Math.floor(10000 + Math.random() * 90000).toString();
     const loginCodeExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
-    console.log(loginCode);
 
     resident.loginCode = loginCode;
     resident.loginCodeExpiry = loginCodeExpiry;
@@ -337,12 +335,19 @@ export class ResidentService {
 
   async getResidentDetailsByToken(token: string) {
     const tokenDetails = await this.jwtService.decode(token);
-    console.log(tokenDetails);
     if (!tokenDetails) {
       throw new UnauthorizedException('unable to unauthenticate');
     }
 
     return this.getProfile(tokenDetails.id);
+  }
+  
+
+  public async getDashboardDetails(userId:string)
+  {
+    await this.residentModel.findById(userId).select('payerId firstName lastName address role').lean();
+
+    return {};
   }
 
   async createBinApplication(body: CreateApplicationDto) {

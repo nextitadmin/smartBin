@@ -133,6 +133,17 @@ export class ResidentController {
     return new SuccessResponse('profile picture updated', null);
   }
 
+  @Get('dashboard')
+  @ResidentAuth()
+  async getResidentDashboard(
+    @AuthenticatedResident() resident: AuthUser
+  ){
+    const response = await this.residentService.getDashboardDetails(
+      resident.id
+    )
+    return new SuccessResponse('', response);
+  }
+
   @Post('apply-smart-bin')
   @ResidentAuth()
   async createSmartBinApplication(
