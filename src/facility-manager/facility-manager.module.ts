@@ -7,6 +7,11 @@ import {
   FacilityManagerSchema,
 } from '@models/users/facility-manager.model';
 import { Payer, PayerSchema } from '@models/users/payer.model';
+import { SmartBinController } from './smart-bin/smart-bin.controller';
+import { SmartBinService } from '@src/smart-bin/smart-bin.service';
+import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
+import { FacilityController } from './facility/facility.controller';
+import { FacilityService } from './facility/facility.service';
 
 @Module({
   imports: [
@@ -14,8 +19,13 @@ import { Payer, PayerSchema } from '@models/users/payer.model';
       { name: Payer.name, schema: PayerSchema },
       { name: FacilityManager.name, schema: FacilityManagerSchema },
     ]),
+    SmartBinModule,
   ],
-  controllers: [FacilityManagerController],
-  providers: [FacilityManagerService],
+  controllers: [
+    FacilityManagerController,
+    SmartBinController,
+    FacilityController,
+  ],
+  providers: [FacilityManagerService, FacilityService],
 })
 export class FacilityManagerModule {}
