@@ -175,7 +175,7 @@ export class SmartBinService {
     const newBinApplication = new this.smartbinModel({
       userId: String(resident._id),
       customerType: userType,
-      transactionRef: generateTransactionRef,
+      transactionReference: generateTransactionRef,
       ...dto,
       applicationHistory: [
         {

@@ -33,7 +33,6 @@ export interface TransactionAttributes {
   userType: UserRole;
   amount: number;
   transactionReference: string;
-  transactionID: string;
   status: TransactionStatus;
   service: ServiceType;
   paymentMethod: PaymentMethod;
@@ -64,8 +63,6 @@ export class Transaction implements TransactionAttributes {
   @Prop({ required: true, unique: true })
   transactionReference: string;
 
-  @Prop({ required: false, unique: true, sparse:true })
-  transactionID: string;
 
   @Prop({
     type: String,

@@ -1,20 +1,17 @@
 import {
   BinType,
   LAWMACustomerType,
-  PaymentMethod,
-  SmartbinStatus,
 } from '@models/smart-bin.model';
-import { UserRole } from '@models/types';
+import { LawmaCustomerType } from '@models/users/resident.model';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
-  IsMongoId,
   IsString,
   MinLength,
   IsNotEmpty,
-  IsNumber,
   IsBoolean,
-  IsEmpty,
+  IsOptional,
+  IsEnum,
 } from 'class-validator';
 
 export class CreateResidentAccountDto {
@@ -105,13 +102,18 @@ export class CreateApplicationDto {
   @IsString()
   localGovernmentArea?: string;
 
-  @ApiProperty()
-  @IsString()
+  @ApiProperty({ enum: LAWMACustomerType, required: false })
+  @IsOptional()
+  @IsEnum(LawmaCustomerType, {
+    message: `Lawma Customer Type must be either be '${LAWMACustomerType.New}' or '${LAWMACustomerType.Returning}'`,
+  })
   lawmaCustomerType?: LAWMACustomerType;
 
-  @ApiProperty()
-  @IsString()
-  binType: BinType;
+  @ApiProperty({ enum: BinType, default: BinType.Smart })
+  @IsEnum(BinType, {
+    message: `Bin Type must be either be '${BinType.Smart}' or '${BinType.Non_Smart}'`,
+  })
+  binType: BinType = BinType.Smart;
 
   @ApiProperty()
   @IsString()

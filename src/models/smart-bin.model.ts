@@ -138,7 +138,7 @@ export class SmartBin extends Document {
   })
   useYourAddress?:boolean
 
-  @Prop()
+  @Prop({ type: SchemaTypes.String, required: true, unique: true })
   transactionReference?:string
 
   @Prop({ type: SchemaTypes.String, required: false })
@@ -152,9 +152,6 @@ export class SmartBin extends Document {
 
   @Prop({ type: SchemaTypes.String, required: false })
   businessType?: string;
-
-  @Prop({ type: SchemaTypes.String, required: false })
-  transactionRef?: string;
 
   @Prop({ type: SchemaTypes.String, required: false })
   email?: string;
