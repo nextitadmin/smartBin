@@ -32,6 +32,7 @@ import {
 } from './dto/resident.dto';
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 import { date } from 'joi';
+import { SmartBin } from '@models/smart-bin.model';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -45,6 +46,7 @@ export class ResidentService {
     @InjectModel(Resident.name)
     private readonly residentModel: Model<ResidentDocument>,
     @InjectModel(Payer.name) private readonly payerModel: Model<PayerDocument>,
+    @InjectModel(SmartBin.name) private readonly smartBinModel: Model<SmartBin>,
     private ee: EventEmitter2,
   ) {}
 
@@ -111,18 +113,15 @@ export class ResidentService {
     if (!resident) {
       throw new NotFoundException('Resident not found');
     }
-    console.log(resident);
+
     const isPasswordMatch = await bcrypt.compare(password, resident.password);
     console.log({ isPasswordMatch, password });
     if (!resident) {
-      console.log('Invalid email or password');
       throw new UnauthorizedException('Invalid email or password');
     }
 
     const loginCode = Math.floor(10000 + Math.random() * 90000).toString();
     const loginCodeExpiry = new Date(Date.now() + 10 * 60 * 1000);
-
-    console.log(loginCode);
 
     resident.loginCode = loginCode;
     resident.loginCodeExpiry = loginCodeExpiry;
@@ -337,7 +336,6 @@ export class ResidentService {
 
   async getResidentDetailsByToken(token: string) {
     const tokenDetails = await this.jwtService.decode(token);
-    console.log(tokenDetails);
     if (!tokenDetails) {
       throw new UnauthorizedException('unable to unauthenticate');
     }
@@ -345,11 +343,43 @@ export class ResidentService {
     return this.getProfile(tokenDetails.id);
   }
 
-  async createBinApplication(body: CreateApplicationDto) {
-    const data = await this.smartBinService.createBinApplication(
-      body,
-      UserRole.Resident,
-    );
+  public async getDashboardDetails(userId: string) {
+    const resident = await this.residentModel
+      .findById(userId)
+      .select('payerId firstName lastName address role')
+      .lean();
+    const smartBinCount = await this.smartBinModel.find({
+      userId: resident._id,
+      customerType: UserRole.Resident,
+    });
+
+    const data = {
+      smartBinApplicationCount: smartBinCount || 0,
+      name: `${resident.firstName} ${resident.lastName}`,
+      role: resident.role,
+      address: resident.address || null,
+      payerId: resident.payerId,
+      userId: resident._id,
+      totalOutstandingBill: 24000,
+      avaliableBalance: 50000,
+      estimatedAnnualSubscriptionFee: 0,
+      nextPickUpDate: 'N/A',
+    };
+
+    return {
+      message: 'Resident Dashboard details retrived successfully',
+      data,
+    };
+  }
+
+  async createBinApplication(
+    body: CreateApplicationDto & { residentId: string },
+  ) {
+    const data = await this.smartBinService.createBinApplication({
+      accountId: body.residentId,
+      accountType: UserRole.Resident,
+      applicationData: body,
+    });
     return data;
   }
 

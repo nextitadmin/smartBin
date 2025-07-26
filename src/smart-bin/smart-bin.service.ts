@@ -49,49 +49,13 @@ export class SmartBinService {
   }
   // For FAcilityManager
   async getFacilityManagerBinApplication(facilityManagerId: string) {
-    const [facilityManager, bills, wallet, smartbin] = await Promise.all([
-      this.facilityModel.findById(facilityManagerId).lean(),
-      this.billModel
-        .find({
-          userId: facilityManagerId,
-          userType: 'Facility',
-        })
-        .lean(),
-      this.walletModel
-        .findOne({
-          userId: facilityManagerId,
-          userType: 'Facility',
-        })
-        .lean(),
+    const [applications] = await Promise.all([
       this.smartbinModel
-        .findOne({ userId: facilityManagerId, userType: 'Facility' })
+        .find({ userId: facilityManagerId, userType: 'Facility' })
         .sort({ createdAt: -1 })
         .lean(),
     ]);
-    if (!facilityManager) {
-      throw new NotFoundException('Facility Manager not found');
-    }
-    if (!smartbin) {
-      throw new NotFoundException(
-        'No bin application found for this facility manager',
-      );
-    }
-    return {
-      id: smartbin._id,
-      userId: smartbin.userId,
-      userType: 'Facility',
-      fullName: `${
-        (facilityManager?.firstName || ' ', facilityManager?.lastName || ' ')
-      }`,
-      buildingName: smartbin.buildingName,
-      buildingType: smartbin.buildingType,
-      addressOfFacility: smartbin.address,
-      closestLandmark: smartbin.closestLandmark,
-      facilityManager,
-      bills,
-      wallet,
-      smartbin,
-    };
+    return applications;
   }
   // For Agent
   async getAgentBinApplication(agentId: Types.ObjectId) {
@@ -161,22 +125,21 @@ export class SmartBinService {
     return { message: 'Bin application deleted successfully' };
   }
 
-  async createBinApplication(dto: CreateApplicationDto, userType: string) {
-    const resident = await this.residentModel
-      .findOne({ email: dto.email, payerId: dto.payerId })
-      .lean();
-
-    if (!resident) {
-      throw new NotFoundException('Resident does not exist');
-    }
-
+  async createBinApplication({
+    accountId,
+    accountType,
+    applicationData,
+  }: {
+    accountId: string;
+    accountType: UserRole;
+    applicationData: CreateApplicationDto;
+  }) {
     const generateTransactionRef = generateRandomChars(10, 'alphanum');
-
     const newBinApplication = new this.smartbinModel({
-      userId: String(resident._id),
-      customerType: userType,
+      userId: String(accountId),
+      customerType: accountType,
       transactionReference: generateTransactionRef,
-      ...dto,
+      ...applicationData,
       applicationHistory: [
         {
           timestamp: new Date(),
@@ -189,14 +152,17 @@ export class SmartBinService {
     await newBinApplication.save();
 
     await this.transactionModel.create({
-      userId: String(resident._id),
+      userId: String(accountId),
       transactionReference: generateTransactionRef,
-      userType: userType,
+      userType: accountType,
       amount: newBinApplication.amount,
       service: ServiceType.SmartBinPurchase,
-    })
+    });
 
-    return newBinApplication;
+    return {
+      application: newBinApplication,
+      transactionReference: generateTransactionRef,
+    };
   }
 
   async getBinApplicationsByUserId(userId: string, userType: string) {

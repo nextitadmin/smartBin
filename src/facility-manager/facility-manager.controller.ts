@@ -98,7 +98,7 @@ export class FacilityManagerController {
     return new SuccessResponse('manager account updated', response);
   }
 
-  @Get('account')
+  @Get('profile')
   @FacilityManagerAuth()
   async getFacilityManagerAccount(
     @AuthenticatedFacilityManager() facilityManager: AuthUser,

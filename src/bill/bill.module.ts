@@ -12,6 +12,7 @@ import { Resident, ResidentSchema } from '@models/users/resident.model';
 import { Payer, PayerSchema } from '@models/users/payer.model';
 import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
 import { CorporateModule } from '@src/corporate/corporate.module';
+import { SmartBin, SmartBinSchema } from '@models/smart-bin.model';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { CorporateModule } from '@src/corporate/corporate.module';
       { name: Wallet.name, schema: WalletSchema },
       { name: Resident.name, schema: ResidentSchema },
       { name: Payer.name, schema: PayerSchema },
+      { name: SmartBin.name, schema: SmartBinSchema }
     ]),
     SmartBinModule,
     CorporateModule,

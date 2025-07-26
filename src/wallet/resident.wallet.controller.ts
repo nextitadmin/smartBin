@@ -9,23 +9,22 @@ import { SuccessResponse } from '@common/http';
 @ApiBearerAuth()
 @ResidentAuth()
 @Controller({
-    path: 'resident/wallets',
-    version: '1'
+  path: 'resident/wallets',
+  version: '1',
 })
-
 export class ResidentWalletController {
-    constructor(private readonly walletService: WalletService) { }
+  constructor(private readonly walletService: WalletService) {}
 
-    @Get()
-    async getWallet(@Req() req): Promise<SuccessResponse<GetWalletResponseDto>> {
-        const userId = req.user.id;
-        return this.walletService.getResidentWallet(userId);
-    }
+  @Get()
+  async getWallet(@Req() req): Promise<SuccessResponse<GetWalletResponseDto>> {
+    const userId = req.user.id;
+    return this.walletService.getResidentWallet(userId);
+  }
 
-    @Post('topup')
-    async topUp(@Req() req, @Body() dto: TopUpWalletDto) {
-        const userId = req.user.id;
-        const response = this.walletService.initiateResidentTopUp(userId, dto);
-        return new SuccessResponse(" Wallet topped up initiated", response)
-    }
+  @Post('topup')
+  async topUp(@Req() req, @Body() dto: TopUpWalletDto) {
+    const userId = req.user.id;
+    const response = this.walletService.initiateResidentTopUp(userId, dto);
+    return new SuccessResponse(' Wallet topped up initiated', response);
+  }
 }

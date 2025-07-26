@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -273,17 +274,19 @@
     <div class="content">
       <p class="greeting">Hello, <span class="capitalize">{{firstName}}</span></p>
 
-      <p>Please use the following verification code to proceed:</p>
-      <div class="otp-container">
-        <div class="otp-box" id="otpBox">
-          <span class="otp-text" id="otpText">{{loginCode}}</span>
+      <p>Your Application has been received and is awaiting approval.</p>
+      <div class="order-box">
+        <div class="order-header">
+          <span>Order Details</span>
+          <span>#{{orderId}}</span>
         </div>
-        <!-- <img src="/asset/copy.png" alt="copy-otp" id="copyIcon" style="cursor: pointer" title="Copy OTP" /> -->
+        <p>Applied On: {{date}}</p>
+        <p>Amount: ₦{{amount}}</p>
+        <p>Destination: {{destination}}</p>
       </div>
-      <p class="content-line">
-        This OTP is valid for 10 minutes from the time it was sent to you and can only be used once.
-        If you didn’t initiate the request, you can safely ignore the mail.
-      </p>
+      <div class="button-container">
+        <a href="https://smartbin-frontend-staging.up.railway.app/" class="button">Track Application</a>
+      </div>
 
       <div class="salutation">
         <span>Regards,</span>
@@ -308,66 +311,4 @@
   </div>
 </body>
 
-  <body>
-    <div class="email-container">
-      <div class="header">
-        <div class="header-container">
-          <img src="icons/lagos.png" alt="logo" />
-          <div class="header-stack">
-            <span>LASG UTILITY </span>
-            <span>SERVICE MANAGEMENT</span>
-          </div>
-        </div>
-        <div class="header-dash"><span></span><span></span><span></span></div>
-      </div>
-       
-
-      <div class="content">
-        <p class="greeting">Hello, <span class="capitalize">{{firstName}}</span></p>
-        <p class="content-line">
-          <p>Please use the following verification code to proceed</p>
-          <div class="otp-container">
-          <div class="otp-box" id="otpBox">
-            <span class="otp-text" id="otpText">{{loginCode}}</span>
-          </div>
-          <img
-            src="/icons/copy.png"
-            alt="copy-otp"
-            id="copyIcon"
-            style="cursor: pointer"
-            title="Copy OTP"
-          />
-        </div>
-        <p class="content-line">
-          This OTP is valid for 15 minutes from the time it was sent to you and can only be used once.
-          If you didn’t initiate the request, you can safely ignore the mail.
-        </p>
-       
-    
-        
-        <div class="salutation">
-          <span>Regards,</span>
-          <span>LASG Utility Service Management Team</span>
-        </div>
-      </div>
-
-      <div class="footer">
-        <div class="footer-content">
-          <span style="color: #000">
-            &copy; 2025 LASG Utility Service Management. All rights reserved.
-          </span>
-          <span>
-            Got any issues? Send us a message at
-            <a
-              href="mailto:help@utilityservice.com"
-              style="text-decoration: none; color: #888"
-              >help@utilityservice.com</a
-            >
-          </span>
-        </div>
-      </div>
-
-      <div class="corner-container"></div>
-    </div>
-  </body>
 </html>
