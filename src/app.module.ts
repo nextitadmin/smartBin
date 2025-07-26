@@ -33,6 +33,7 @@ import { CorporateAuthGuard } from '@common/guards/corporate.guard';
 import { FacilityManagerAuthGuard } from '@common/guards/facility-manager.guard';
 import { MediaModule } from './media/media.module';
 import { FacilityManagerModule } from './facility-manager/facility-manager.module';
+import { IntegrationsModule } from './integrations/integrations.module';
 
 @Module({
   imports: [
@@ -61,6 +62,7 @@ import { FacilityManagerModule } from './facility-manager/facility-manager.modul
     DashboardModule,
     SmartBinModule,
     MediaModule,
+    IntegrationsModule,
   ],
   controllers: [AppController],
   providers: [

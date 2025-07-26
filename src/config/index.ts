@@ -30,6 +30,8 @@ export interface ConfigAttributes {
   };
 
   alatpay: {
+    businessId: string;
+    apiKey: string;
     publicKey: string;
     secretKey: string;
     baseUrl: string;
@@ -37,11 +39,11 @@ export interface ConfigAttributes {
 
   frontendUrl: string;
 
-  cloudinary:{
-    cloudName:string;
-    apiKey:string;
-    apiSecret:string;
-  }
+  cloudinary: {
+    cloudName: string;
+    apiKey: string;
+    apiSecret: string;
+  };
 }
 
 const config = (): ConfigAttributes => ({
@@ -74,16 +76,17 @@ const config = (): ConfigAttributes => ({
     publicKey: process.env.ALAT_CLIENT_ID,
     secretKey: process.env.ALAT_CLIENT_SECRET,
     baseUrl: process.env.ALAT_BASE_URL,
+    businessId: process.env.ALAT_BUSINESS_ID,
+    apiKey: process.env.ALAT_API_KEY,
   },
   frontendUrl: process.env.FRONTEND_URL,
-  
-  cloudinary:{
+
+  cloudinary: {
     apiKey: process.env.CLOUDINARY_API_KEY,
     apiSecret: process.env.CLOUDINARY_API_SECRET,
-    cloudName: process.env.CLOUDINARY_CLOUD_NAME
-  }
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+  },
 });
-
 
 const schema = Joi.object<Record<string, string>>({
   PORT: Joi.string().default('4001'),

@@ -351,10 +351,11 @@ export class ResidentService {
   }
 
   async createBinApplication(body: CreateApplicationDto) {
-    const data = await this.smartBinService.createBinApplication(
-      body,
-      UserRole.Resident,
-    );
+    const data = await this.smartBinService.createBinApplication({
+      accountId: body.payerId,
+      accountType: UserRole.Resident,
+      applicationData: body,
+    });
     return data;
   }
 
