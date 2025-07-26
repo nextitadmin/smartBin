@@ -1,7 +1,21 @@
-import { BinType, LAWMACustomerType, PaymentMethod, SmartbinStatus } from '@models/smart-bin.model';
+import {
+  BinType,
+  LAWMACustomerType,
+  PaymentMethod,
+  SmartbinStatus,
+} from '@models/smart-bin.model';
 import { UserRole } from '@models/types';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsMongoId, IsString, MinLength, IsNotEmpty, IsNumber } from 'class-validator';
+import {
+  IsEmail,
+  IsMongoId,
+  IsString,
+  MinLength,
+  IsNotEmpty,
+  IsNumber,
+  IsBoolean,
+  IsEmpty,
+} from 'class-validator';
 
 export class CreateResidentAccountDto {
   @ApiProperty()
@@ -27,78 +41,87 @@ export class ResidentLoginDto {
   password: string;
 }
 
-export class ProfileDto{
+export class ProfileDto {
   @ApiProperty()
-  imageUrl: string
+  imageUrl: string;
 }
 
-export class CreateApplicationDto{
-    @ApiProperty()
-    @IsString()
-    firstName:string
+export class CreateApplicationDto {
+  @ApiProperty()
+  @IsString()
+  firstName: string;
 
-    @ApiProperty()
-    @IsString()
-    surname:string
+  @ApiProperty()
+  @IsString()
+  surname: string;
 
-    @ApiProperty()
-    @IsString()
-    @IsNotEmpty()
-    email?: string;
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  email?: string;
 
-    @ApiProperty()
-    @IsString()
-    phoneNumber?: string;
+  @ApiProperty()
+  @IsString()
+  phoneNumber?: string;
 
-    @ApiProperty()
-    @IsString()
-    @IsNotEmpty()
-    payerId: string;
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  payerId: string;
 
-    @ApiProperty()
-    @IsString()
-    buildingType?: string;
+  @ApiProperty()
+  @IsString()
+  buildingType?: string;
 
-    @ApiProperty()
-    @IsString()
-    houseName?: string;
+  @ApiProperty()
+  @IsBoolean()
+  @IsEmpty()
+  useYourAddress?: boolean;
 
-    @ApiProperty()
-    @IsString()
-    houseNumber?: string;
+  @ApiProperty()
+  @IsString()
+  @IsEmpty()
+  streetName?: string;
 
-    @ApiProperty()
-    @IsString()
-    flatNumber?: string;
+  @ApiProperty()
+  @IsString()
+  houseName?: string;
 
-    @ApiProperty()
-    @IsString()
-    address?: string;
+  @ApiProperty()
+  @IsString()
+  houseNumber?: string;
 
-    @ApiProperty()
-    @IsString()
-    closestLandmark?: string;
+  @ApiProperty()
+  @IsString()
+  flatNumber?: string;
 
-    @ApiProperty()
-    @IsString()
-    localGovernmentArea?: string;
+  @ApiProperty()
+  @IsString()
+  address?: string;
 
-    @ApiProperty()
-    @IsString()
-    lawmaCustomerType?: LAWMACustomerType;
+  @ApiProperty()
+  @IsString()
+  closestLandmark?: string;
 
-    @ApiProperty()
-    @IsString()
-    binType: BinType;
+  @ApiProperty()
+  @IsString()
+  localGovernmentArea?: string;
 
-    @ApiProperty()
-    @IsString()
-    buildingName?: string;
+  @ApiProperty()
+  @IsString()
+  lawmaCustomerType?: LAWMACustomerType;
 
-    @ApiProperty()
-    @IsString()
-    amount?: string;
+  @ApiProperty()
+  @IsString()
+  binType: BinType;
 
+  @ApiProperty()
+  @IsString()
+  buildingName?: string;
+
+  @ApiProperty()
+  @IsString()
+  amount?: string;
 }
 
 export class VerifyResidentLogin {

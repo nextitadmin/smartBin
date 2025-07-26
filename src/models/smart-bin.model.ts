@@ -39,6 +39,8 @@ export interface SmartBinAttributes {
   amount?: number;
   branch?: string;
   closestLandmark?: string;
+  useYourAddress?:boolean;
+  streetName?: string;
   name?: string;
   businessName?: string;
   buildingType?: string;
@@ -127,6 +129,15 @@ export class SmartBin extends Document {
     default: PaymentMethod.Wallet,
   })
   paymentMethod?: PaymentMethod;
+
+  @Prop({
+    type: Boolean,
+    default: false
+  })
+  useYourAddress?:boolean
+
+  @Prop({ type: SchemaTypes.String, required: false })
+  streetName?: string;
 
   @Prop({ type: SchemaTypes.String, required: false })
   buildingName?: string;

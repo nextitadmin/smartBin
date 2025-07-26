@@ -1,6 +1,6 @@
 import { BinType, LAWMACustomerType } from '@models/smart-bin.model';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsEmpty, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class BinAppDto {
   userId: string;
@@ -69,6 +69,16 @@ export class CreateApplicationDto {
   @ApiProperty()
   @IsString()
   flatNumber?: string;
+
+  @ApiProperty()
+  @IsBoolean()
+  @IsEmpty()
+  useYourAddress?: boolean;
+  
+  @ApiProperty()
+  @IsString()
+  @IsEmpty()
+  streetName?: string;
 
   @ApiProperty()
   @IsString()
