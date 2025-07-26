@@ -20,7 +20,7 @@ export interface ResidentAttributes {
   lawmaCustomerType?: LawmaCustomerType;
   role: UserRole.Resident;
   password: string;
-    registeredBy?: Types.ObjectId;
+  registeredBy?: Types.ObjectId;
   registeredByModel?: 'Agent' | 'FacilityManager';
   loginCode?: string;
   loginCodeExpiry?: Date;
