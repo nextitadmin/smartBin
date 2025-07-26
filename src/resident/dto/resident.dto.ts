@@ -75,12 +75,10 @@ export class CreateApplicationDto {
 
   @ApiProperty()
   @IsBoolean()
-  @IsEmpty()
   useYourAddress?: boolean;
 
   @ApiProperty()
   @IsString()
-  @IsEmpty()
   streetName?: string;
 
   @ApiProperty()

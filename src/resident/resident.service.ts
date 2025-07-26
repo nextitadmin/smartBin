@@ -224,6 +224,7 @@ export class ResidentService {
     return {
       ...resident,
       ...data,
+      phoneNo: resident.phoneNumber,
       profilePicture: resident.profilePicture || defaultAvatar,
     };
   }
