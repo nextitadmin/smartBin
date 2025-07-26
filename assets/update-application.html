@@ -2,78 +2,312 @@
 <html>
 
 <head>
-  <title>Login Verification</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Email Notification</title>
   <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
-            padding: 30px;
-            margin: 0;
-        }
+    body {
+      font-family: "Inter", sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
 
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #fff;
-            padding: 24px;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-        }
-        .holder {
-          margin: auto;
-          max-width:70%;
-          background-color: whitesmoke;
-          padding: 5px;
-          border-radius: 5px;
-          margin-bottom: 5px;
-          position: relative;
-        }
-        .span{
-            position:absolute;
-            right: 20px;
-            font-weight: bold;
-        }
-        .track{
-            max-width: max-content;
-            padding: 5px;
-            margin: 0 auto;
-            border-radius: 5px;
-            background-color: green;
-            color: #fff;
-        }
-    </style>
+    p {
+      font-size: 1em;
+      margin: 0 0 10px;
+    }
+
+    .email-container {
+      max-width: 600px;
+      margin: 40px auto;
+      background-color: #ffffff;
+      position: relative;
+    }
+
+    .header {
+      padding: 30px;
+      background-color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .header img {
+      width: 37px;
+      height: 37px;
+    }
+
+    .header-container {
+      font-size: 1em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+    }
+
+    .header-stack {
+      font-family: "plusJakarta", sans-serif;
+      display: flex;
+      flex-direction: column;
+      font-size: 0.85em;
+      line-height: 1.5;
+      font-weight: 700;
+    }
+
+    .header-dash {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 25px;
+    }
+
+    .header-dash span {
+      display: inline-block;
+      width: 24px;
+      height: 4px;
+      border-radius: 4px;
+    }
+
+    .header-dash span:nth-child(1) {
+      background-color: #ef4444;
+    }
+
+    .header-dash span:nth-child(2) {
+      background-color: #2e6eeb;
+    }
+
+    .header-dash span:nth-child(3) {
+      background-color: #fbb163;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    .content-line {
+      line-height: 1.5;
+    }
+
+    .greeting {
+      font-size: 1.25em;
+      font-weight: 600;
+      font-family: Inter, sans-serif;
+      /* text-transform: uppercase; */
+    }
+
+    .capitalize {
+      text-transform: capitalize;
+    }
+
+    .order-box {
+      background-color: #fafafa;
+      border-radius: 8px;
+      padding: 16px 40px;
+      margin-top: 20px;
+      font-size: 0.95em;
+      color: #384860;
+    }
+
+    .order-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: bold;
+      font-size: 1em;
+      margin-bottom: 24px;
+    }
+
+    .otp-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 30px 0;
+      gap: 7px;
+    }
+
+    .otp-box {
+      background-color: #eeeefc;
+      border-radius: 8px;
+      padding: 20px;
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #131313;
+      display: inline-block;
+      user-select: all;
+      -webkit-user-select: all;
+    }
+
+    .otp-text {
+      letter-spacing: 18px;
+      font-size: 1.5em;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .button-container {
+      display: flex;
+      justify-content: center;
+    }
+
+    .button {
+      display: inline-block;
+      margin-top: 25px;
+      padding: 10px 20px;
+      background-color: #007836;
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 1em;
+    }
+
+    .salutation {
+      display: flex;
+      flex-direction: column;
+      font-size: 0.95em;
+      line-height: 1.5;
+      margin-top: 30px;
+    }
+
+    .footer {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      font-size: 0.85em;
+      color: #888;
+      padding: 20px;
+      border-top: 1px solid #d9e1ec;
+      margin: 10px 30px;
+    }
+
+    .footer-content {
+      display: flex;
+      flex-direction: column;
+      font-size: 12px;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    .corner-container {
+      overflow: hidden;
+      border: 4px solid #007836;
+      border-radius: 7px 7px 0 0;
+      position: absolute;
+      bottom: 0;
+      width: 98.7%;
+    }
+
+    /* Responsive Adjustments */
+    @media only screen and (max-width: 480px) {
+      .email-container {
+        width: 100% !important;
+        padding: 10px !important;
+        overflow: hidden;
+      }
+
+      .header,
+      .content,
+      .footer,
+      .order-box {
+        padding: 16px !important;
+      }
+
+      .header-stack {
+        font-size: 0.65em !important;
+      }
+
+      .greeting {
+        font-size: 1.1em !important;
+      }
+
+      .otp-box {
+        font-size: 1.2em !important;
+        padding: 16px !important;
+      }
+
+      .otp-text {
+        letter-spacing: 8px !important;
+      }
+
+      .order-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+
+      .button {
+        font-size: 0.95em !important;
+        padding: 8px 16px !important;
+      }
+
+      .corner-container {
+        overflow: hidden;
+        border: 4px solid #007836;
+        border-radius: 7px 7px 0 0;
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 98%;
+      }
+
+      .footer {
+        margin: 10px 18px;
+      }
+    }
+  </style>
 </head>
 
 <body>
-  <div class="container">
-  <p><b>Hello, {{firstName}}</b></p>
-  <p>Your Application has been recieved and is awaiting approval.</p>
-  <div class="holder">
-   <p>
-    <b class="left">Order details</b> <span class="span">{{orderId}}</span>
-   </p> 
-   <p>Applied On: {{date}}</p>
-   <p>Amount: {{amount}}</p>
-   <p>Destination: {{address}}</p>
- </div>
-    <p class="track">Track Application</p>
+  <div class="email-container">
+    <div class="header">
+      <div class="header-container">
+        <img src="asset/lagos.png" alt="logo" />
+        <div class="header-stack">
+          <span>LASG UTILITY </span>
+          <span>SERVICE MANAGEMENT</span>
+        </div>
+      </div>
+      <div class="header-dash"><span></span><span></span><span></span></div>
+    </div>
 
-  <p>Regards. <br/>
-     LASG Unity Service Management Team.
-  </p>
-  <hr>
-  <footer>
-    <p align="center">
-      <b>© <span id="yr"></span> LASG Unity Service Management. All rights reserved</b>
-      <br/>
-    Got any Issues? Send us a message at help@utilityservice.com
-    </p>
-  </footer>
+    <div class="content">
+      <p class="greeting">Hello, <span class="capitalize">{{firstName}}</span></p>
 
-  <script>
-		const d = new Date();
-		document.getElementById("yr").innerHTML = d.getFullYear();
-	</script>
+      <p>Your Application has been received and is awaiting approval.</p>
+      <div class="order-box">
+        <div class="order-header">
+          <span>Order Details</span>
+          <span>#{{orderId}}</span>
+        </div>
+        <p>Applied On: {{date}}</p>
+        <p>Amount: ₦{{amount}}</p>
+        <p>Destination: {{destination}}</p>
+      </div>
+      <div class="button-container">
+        <a href="https://smartbin-frontend-staging.up.railway.app/" class="button">Track Application</a>
+      </div>
+
+      <div class="salutation">
+        <span>Regards,</span>
+        <span>LASG Utility Service Management Team</span>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div class="footer-content">
+        <span style="color: #000">
+          &copy; 2025 LASG Utility Service Management. All rights reserved.
+        </span>
+        <span>
+          Got any issues? Send us a message at
+          <a href="mailto:help@utilityservice.com"
+            style="text-decoration: none; color: #888">help@utilityservice.com</a>
+        </span>
+      </div>
+    </div>
+
+    <div class="corner-container"></div>
   </div>
 </body>
 
