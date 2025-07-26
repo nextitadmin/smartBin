@@ -141,7 +141,7 @@ export class ResidentController {
     const response = await this.residentService.getDashboardDetails(
       resident.id
     )
-    return new SuccessResponse('', response);
+    return new SuccessResponse(response.message, response.data);
   }
 
   @Post('apply-smart-bin')

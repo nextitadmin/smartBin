@@ -359,7 +359,11 @@ export class ResidentService {
       role: resident.role,
       address: resident.address || null,
       payerId: resident.payerId,
-      userId: resident._id
+      userId: resident._id,
+      totalOutstandingBill: 24000,
+      avaliableBalance: 50000,
+      estimatedAnnualSubscriptionFee: 0,
+      nextPickUpDate: "N/A"
     }
   
 
