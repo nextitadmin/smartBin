@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import * as bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import { Resident, ResidentDocument } from '@models/users/resident.model';
 import { Payer, PayerDocument } from '@models/users/payer.model';
@@ -33,6 +33,7 @@ import {
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 import { date } from 'joi';
 import { SmartBin } from '@models/smart-bin.model';
+import { comparePassword } from '@common/utils';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -71,14 +72,12 @@ export class ResidentService {
       throw new NotFoundException('Invalid payerId');
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const newResident = await this.residentModel.create({
       payerId,
       firstName: payer.firstName,
       lastName: payer.lastName,
       email: payer.email,
-      password: hashedPassword,
+      password: password,
       phoneNumber: payer.phoneNumber,
     });
 
@@ -114,9 +113,8 @@ export class ResidentService {
       throw new NotFoundException('Resident not found');
     }
 
-    const isPasswordMatch = await bcrypt.compare(password, resident.password);
-    console.log({ isPasswordMatch, password });
-    if (!resident) {
+    const isPasswordMatch = comparePassword(password, resident.password);
+    if (!isPasswordMatch) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -126,7 +124,6 @@ export class ResidentService {
     resident.loginCode = loginCode;
     resident.loginCodeExpiry = loginCodeExpiry;
     await resident.save();
-
     await this.cacheService.set(
       CacheKeys.ResidentLoginCode(String(loginCode)),
       String(resident._id),
@@ -232,6 +229,8 @@ export class ResidentService {
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
     const resetTokenExpiry = new Date(Date.now() + 20 * 60 * 1000);
 
+    console.log(resetCode);
+
     const resident = await this.residentModel.findOneAndUpdate(
       { email },
       { $set: { resetToken: resetCode, resetTokenExpiry } },
@@ -289,34 +288,19 @@ export class ResidentService {
         'Reset session expired. Please verify code again.',
       );
     }
-
+    
     if (
       !newPassword ||
       newPassword !== confirmPassword ||
       newPassword.length < 6
     ) {
       throw new BadRequestException('Passwords do not match or are too short');
-    }
-
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    // await this.residentModel.updateOne(
-    //     { _id: userId },
-    //     {
-    //         $set: {
-    //             password: hashedPassword,
-    //             resetToken: null,
-    //             resetTokenExpiry: null,
-    //         },
-    //     },
-    // );
+    }  
 
     const resident = await this.residentModel.findById(userId);
     if (!resident) throw new NotFoundException('Resident not found');
 
-    // Hash and assign new password
-    resident.password = hashedPassword;
-    // resident.resetToken = null;
-    // resident.resetTokenExpiry = null;
+    resident.password = newPassword
 
     await resident.save();
 
