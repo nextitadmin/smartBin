@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import * as bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import {
   defaultManagerFields,
@@ -31,6 +31,8 @@ import { UserRole } from '@models/types';
 import { defaultAgentFields } from '@models/users/agent.model';
 import { ConfigAttributes } from '@src/config';
 import { ConfigService } from '@nestjs/config';
+import { comparePassword } from '@common/utils';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class FacilityManagerService {
@@ -40,6 +42,7 @@ export class FacilityManagerService {
     private facilityModel: Model<FacilityManagerDocument>,
     @InjectModel(Payer.name) private payerModel: Model<PayerDocument>,
     private readonly configService: ConfigService<ConfigAttributes>,
+    private readonly jwtService: JwtService,
     private ee: EventEmitter2,
   ) {}
 
@@ -62,7 +65,7 @@ export class FacilityManagerService {
     const payer = await this.payerModel.findOne({ payerId });
     if (!payer) throw new NotFoundException('Invalid payerId');
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+
     const manager = await this.facilityModel.create({
       payerId,
       organizationName,
@@ -70,7 +73,7 @@ export class FacilityManagerService {
       firstName: payer.firstName,
       lastName: payer.lastName,
       email: payer.email,
-      password: hashedPassword,
+      password: password,
     });
 
     this.ee.emit(
@@ -104,14 +107,13 @@ export class FacilityManagerService {
     const manager = await this.facilityModel.findOne({ email: dto.email });
     if (!manager) throw new NotFoundException('Manager not found');
 
-    const valid = await bcrypt.compare(dto.password, manager.password);
+    const valid = comparePassword(dto.password, manager.password);
+   
     if (!valid) throw new UnauthorizedException('Invalid credentials');
 
     const code = Math.floor(10000 + Math.random() * 90000).toString();
     const expires = 600000; // 10mins
-    // manager.loginCode = code;
-    // manager.loginCodeExpires = expires;
-    // await manager.save();
+
     await this.cacheService.set(
       CacheKeys.FacilityManagerLoginCode(String(code)),
       String(manager._id),
@@ -177,10 +179,12 @@ export class FacilityManagerService {
   async getProfile(userId: string) {
     const manager = await this.facilityModel
       .findById(userId)
-      .select('firstName lastName profilePicture');
+      .select('_id firstName lastName profilePicture email');
     if (!manager) throw new NotFoundException('Manager not found');
 
     return {
+      _id: manager._id,
+      email: manager.email,
       fullName: `${manager.firstName} ${manager.lastName}`,
       profilePicture:
         manager.profilePicture ||
@@ -191,6 +195,8 @@ export class FacilityManagerService {
   async requestPasswordReset(email: string) {
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
     const expiry = 600000;
+
+    console.log(resetCode);
 
     const manager = await this.facilityModel.findOne({ email });
     if (manager) {
@@ -246,19 +252,30 @@ export class FacilityManagerService {
     userId: string,
     param: { newPassword: string; confirmPassword: string },
   ) {
+    console.log(userId);
     if (
       param.newPassword !== param.confirmPassword ||
       param.newPassword.length < 6
     )
       throw new BadRequestException('Passwords do not match or are too short');
 
-    const hashed = await bcrypt.hash(param.newPassword, 10);
+   
     await this.facilityModel.updateOne(
       { _id: userId },
-      { $set: { password: hashed } },
+      { $set: { password: param.newPassword } },
     );
 
     return { message: 'Password reset successful' };
+  }
+
+  public async getFacilityManagerDetailsByToken(token:string)
+  {
+    const tokenDetails = await this.jwtService.decode(token);
+    if (!tokenDetails) {
+      throw new UnauthorizedException('unable to unauthenticate');
+    }
+
+    return this.getProfile(tokenDetails.id);
   }
 
   logout(id) {
