@@ -8,9 +8,13 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import * as bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
-import { Agent, AgentDocument } from '@models/users/agent.model';
+import {
+  Agent,
+  AgentDocument,
+  defaultAgentFields,
+} from '@models/users/agent.model';
 import { Payer, PayerDocument } from '@models/users/payer.model';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -25,6 +29,8 @@ import {
   MailNotificationEvents,
   SendEmailEvent,
 } from '@src/notification/dto/event';
+import { ConfigAttributes } from '@src/config';
+import { comparePassword } from '@common/utils';
 
 @Injectable()
 export class AgentService {
@@ -33,9 +39,9 @@ export class AgentService {
     private readonly jwtService: JwtService,
     @InjectModel(Agent.name) private readonly agentModel: Model<AgentDocument>,
     @InjectModel(Payer.name) private readonly payerModel: Model<PayerDocument>,
-    private readonly configService: ConfigService,
+    private readonly configService: ConfigService<ConfigAttributes>,
     private ee: EventEmitter2,
-  ) { }
+  ) {}
 
   async registerAgent(body: CreateAgentAccountDto) {
     const { payerId, agencyName, password, confirmPassword } = body;
@@ -56,15 +62,13 @@ export class AgentService {
       throw new NotFoundException('Invalid payerId');
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const newAgent = await this.agentModel.create({
-      payerId,
+      payerId: payer._id,
       agencyName,
       firstName: payer.firstName,
       lastName: payer.lastName,
       email: payer.email,
-      password: hashedPassword,
+      password: password,
     });
 
     this.ee.emit(
@@ -92,29 +96,29 @@ export class AgentService {
 
   async login(body: LoginAgentAccountDto) {
     const { email, password } = body;
-    console.log(body);
+
     const agent = await this.agentModel.findOne({ email });
-    console.log(agent);
-    const isPasswordMatch = await bcrypt.compare(password, agent.password);
-    console.log({ isPasswordMatch, password });
-    if (!agent) {
+
+    if(!agent){
+      throw new NotFoundException("Agent does not exist");
+    }
+
+    const isPasswordMatch = comparePassword(password, agent.password);
+   
+    if (!isPasswordMatch) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
     const loginCode = Math.floor(10000 + Math.random() * 90000).toString();
-    const loginCodeExpiry = new Date(Date.now() + 10 * 60 * 1000);
+    const loginCodeExpiry = 600000; // 10mins
 
-    agent.loginCode = loginCode;
-    agent.loginCodeExpiry = loginCodeExpiry;
     await agent.save();
 
-    const ttlSeconds = getSeconds(loginCodeExpiry);
-    console.log({ ttlSeconds }, CacheKeys.AgentLoginCode(String(loginCode)));
     console.log('Setting code', loginCode);
     await this.cacheService.set(
       CacheKeys.AgentLoginCode(String(loginCode)),
       String(agent._id),
-      // ttlSeconds,
+      loginCodeExpiry,
     );
 
     this.ee.emit(
@@ -132,27 +136,24 @@ export class AgentService {
   }
 
   async verifyLoginCode(loginCode: string) {
-    const verificationCode = await this.cacheService.get(
+    const agentId = await this.cacheService.get(
       CacheKeys.AgentLoginCode(loginCode),
     );
 
-    if (!verificationCode) {
+    console.log({ agentId });
+    if (!agentId) {
       throw new BadRequestException('Session expired. Please log in again.');
     }
 
     const agent = await this.agentModel
-      .findOne({
-        _id: verificationCode,
-        loginCode,
-        loginCodeExpiry: { $gt: Date.now() },
-      })
-      .select('-password')
+      .findById(agentId)
+      .select(defaultAgentFields)
       .lean();
 
     if (!agent) {
       throw new BadRequestException('Invalid or expired login code');
     }
-    const secret = this.configService.get<string>('JWT_SECRET');
+    const secret = this.configService.get('jwt.secret', { infer: true });
     const token = jwt.sign(
       {
         id: agent._id,
@@ -167,13 +168,13 @@ export class AgentService {
     return { message: 'Login successful', token, data: agent };
   }
 
-  async updateProfilePicture(userId: string, filePath: string) {
+  async updateProfilePicture(userId: string, fileUrl: string) {
     const agent = await this.agentModel.findById(userId);
     if (!agent) {
       throw new NotFoundException('Agent not found');
     }
 
-    agent.profilePicture = filePath;
+    agent.profilePicture = fileUrl;
     await agent.save();
 
     return {
@@ -185,7 +186,7 @@ export class AgentService {
   async getProfile(agentId: string) {
     const agent = await this.agentModel
       .findById(agentId)
-      .select('-password -createdAt -updatedAt')
+      .select(defaultAgentFields)
       .lean();
     if (!agent) {
       throw new NotFoundException('Agent not found');
@@ -201,15 +202,15 @@ export class AgentService {
 
   async requestPasswordReset(email: string) {
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
-    const resetTokenExpiry = new Date(Date.now() + 20 * 60 * 1000);
+    const expiry = 600000;
 
-    const agent = await this.agentModel.findOneAndUpdate(
-      { email },
-      { $set: { resetToken: resetCode, resetTokenExpiry } },
-      { new: false },
-    );
-
+    const agent = await this.agentModel.findOne({ email });
     if (agent) {
+      await this.cacheService.set(
+        CacheKeys.AgentLoginCode(String(resetCode)),
+        String(agent._id),
+        expiry,
+      );
       this.ee.emit(
         MailNotificationEvents.Account.ForgotPassword,
         new SendEmailEvent({
@@ -222,7 +223,6 @@ export class AgentService {
           },
         }),
       );
-      // await sendResetEmail(agent.email, agent.firstName, resetCode);
     }
 
     return {
@@ -232,32 +232,43 @@ export class AgentService {
     };
   }
 
-  async verifyPasswordResetCode(resetCode: string, session: any) {
-    const agent = await this.agentModel.findOne({
-      resetToken: resetCode,
-      resetTokenExpiry: { $gt: Date.now() },
-    });
+  async verifyPasswordResetCode(resetCode: string) {
+    const agentId = await this.cacheService.get(
+      CacheKeys.AgentLoginCode(resetCode),
+    );
+    if (!agentId) {
+      throw new BadRequestException('Invalid or expired reset code');
+    }
 
+    const agent = await this.agentModel.findById(agentId);
     if (!agent) {
       throw new BadRequestException('Invalid or expired reset code');
     }
 
-    session.passwordResetUserId = agent._id;
-    return { message: 'Code verified. You can now reset your password.' };
+    const secret = this.configService.get('jwt.secret', { infer: true });
+    const token = jwt.sign(
+      {
+        id: agent._id,
+        role: UserRole.Agent,
+        payerId: agent.payerId,
+        email: agent.email,
+      },
+      secret,
+      { expiresIn: '7d' },
+    );
+
+    return { token };
   }
 
-  async resetPassword(
-    newPassword: string,
-    confirmPassword: string,
-    session: any,
-  ) {
-    const userId = session.passwordResetUserId;
-    if (!userId) {
-      throw new UnauthorizedException(
-        'Reset session expired. Please verify code again.',
-      );
-    }
-
+  async completePasswordReset({
+    accountId,
+    newPassword,
+    confirmPassword,
+  }: {
+    accountId: string;
+    newPassword: string;
+    confirmPassword: string;
+  }) {
     if (
       !newPassword ||
       newPassword !== confirmPassword ||
@@ -266,23 +277,23 @@ export class AgentService {
       throw new BadRequestException('Passwords do not match or are too short');
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
     await this.agentModel.updateOne(
-      { _id: userId },
+      { _id: accountId },
       {
         $set: {
-          password: hashedPassword,
-          resetToken: null,
-          resetTokenExpiry: null,
+          password: newPassword,
         },
       },
     );
-
-    session.passwordResetUserId = null;
-    return { message: 'Password has been reset successfully' };
   }
 
-  async logout() {
+  async logout(token: string) {
+    const tokenDetails = await this.jwtService.decode(token);
+
+    const ttl = tokenDetails.exp - Math.floor(Date.now() / 1000);
+
+    await this.cacheService.set(`blacklist:${token}`, true, ttl);
+
     return { message: 'Logged out successfully' };
   }
 
@@ -294,4 +305,6 @@ export class AgentService {
 
     return this.getProfile(tokenDetails.id);
   }
+
+  async verifyResetCode(code: string) {}
 }

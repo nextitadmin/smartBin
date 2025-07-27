@@ -23,11 +23,17 @@ import { PayerModule } from './payer/payer.module';
 import { BillModule } from './bill/bill.module';
 import { AppController } from './app.controller';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { SmartBinModule } from './smart-bin/smart-bin.module';
 import { ResidentModule } from './resident/resident.module';
-import { MailerModule } from '@nestjs-modules/mailer';
-import { mailerConfigOpts } from './config/mailer.config';
-import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
-import { BinApplicationModule } from './bin-application/bin-application.module';
+
+import { APP_GUARD } from '@nestjs/core';
+import { AgentAuthGuard } from '@common/guards/agent.guard';
+import { ResidentAuthGuard } from '@common/guards/resident.guard';
+import { CorporateAuthGuard } from '@common/guards/corporate.guard';
+import { FacilityManagerAuthGuard } from '@common/guards/facility-manager.guard';
+import { MediaModule } from './media/media.module';
+import { FacilityManagerModule } from './facility-manager/facility-manager.module';
+import { IntegrationsModule } from './integrations/integrations.module';
 
 @Module({
   imports: [
@@ -36,30 +42,6 @@ import { BinApplicationModule } from './bin-application/bin-application.module';
     MongooseModule.forRootAsync(mongodbConfigOptions),
     JwtModule.registerAsync(jwtConfigOpts),
     CacheModule.registerAsync(cacheModuleConfigOpts),
-    // MailerModule.forRootAsync({
-    //   inject: [ConfigService],
-    //   useFactory: async (configService: ConfigService<ConfigAttributes>) => ({
-    //     transport: {
-    //       host: configService.get('mail').smtp_host,
-    //       secure: true,
-    //       port: +configService.get('mail').smtp_port,
-    //       auth: {
-    //         user: configService.get('mail').smtp_user,
-    //         pass: configService.get('mail').smtp_password,
-    //       },
-    //     },
-    //     defaults: {
-    //       from: '"LAWMA" <notifications@lawma.co>',
-    //     },
-    //     template: {
-    //       dir: __dirname + '/assets',
-    //       adapter: new HandlebarsAdapter(),
-    //       options: {
-    //         strict: true,
-    //       },
-    //     },
-    //   }),
-    // }),
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
     HttpModule,
@@ -70,19 +52,40 @@ import { BinApplicationModule } from './bin-application/bin-application.module';
     // WebhookModule,
     TransactionModule,
     // VerificationModule,
+    PayerModule,
     AgentModule,
     // CorporateModule,
-    PayerModule,
     ResidentModule,
-    // FacilityManagerModule,
+    FacilityManagerModule,
+
     BillModule,
     DashboardModule,
-    BinApplicationModule,
+    SmartBinModule,
+    MediaModule,
+    IntegrationsModule,
   ],
   controllers: [AppController],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useValue: AgentAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useValue: ResidentAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useValue: CorporateAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useValue: FacilityManagerAuthGuard,
+    },
+  ],
 })
 export class AppModule {
   onApplicationBootstrap() {
-    exec('yarn run copy:assets');
+    exec('npm run copy:assets');
   }
 }

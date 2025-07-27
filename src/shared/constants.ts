@@ -1,4 +1,6 @@
 export const CacheKeys = {
-  AgentLoginCode: (code: string) => `SMTBIN_${code}`,
-  ResidentLoginCode: (code: string) => `SMTBIN_${code}`,
+  AgentLoginCode: (code: string) => `SMTBIN_AG_${code}`,
+  ResidentLoginCode: (code: string) => `SMTBIN_RS_${code}`,
+  FacilityManagerLoginCode: (code: string) => `SMTBIN_FM_${code}`,
+  CorporateLoginCode: (code: string) => `SMTBIN_CM_${code}`,
 };

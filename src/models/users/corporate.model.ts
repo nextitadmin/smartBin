@@ -13,12 +13,12 @@ export interface CorporateAttributes {
   phoneNumber?: string;
   password: string;
   role: UserRole.Corporate;
-    registeredBy?: Types.ObjectId;
+  registeredBy?: Types.ObjectId;
   registeredByModel?: 'Agent';
   loginCode?: string;
-  loginCodeExpires?: Date;
+  loginCodeExpiry?: Date;
   resetToken?: string;
-  resetTokenExpires?: Date;
+  resetTokenExpiry?: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -69,7 +69,7 @@ export class Corporate implements CorporateAttributes {
   loginCode?: string;
 
   @Prop()
-  loginCodeExpires?: Date;
+  loginCodeExpiry?: Date;
 
   @Prop()
   resetToken?: string;

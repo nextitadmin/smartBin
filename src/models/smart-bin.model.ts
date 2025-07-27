@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaTypes, Types } from 'mongoose';
+import { UserRole } from './types';
 
 export enum SmartbinStatus {
   Pending = 'pending',
@@ -17,24 +18,18 @@ export enum LAWMACustomerType {
   New = 'New',
 }
 
-export enum CustomerType {
-  Resident = 'Resident',
-  Corporate = 'Corporate',
-  Facility = 'Facility',
-  Agent = 'Agent',
-}
-
 export enum PaymentMethod {
   AlatByWema = 'Alat',
   Wallet = 'wallet',
 }
+
 export interface SmartBinAttributes {
   _id?: string;
   userId: Types.ObjectId;
   payerId: string;
   binType: BinType;
   status: SmartbinStatus;
-  customerType: CustomerType;
+  customerType: UserRole;
   lawmaCustomerType?: LAWMACustomerType;
   paymentMethod?: PaymentMethod;
   buildingName?: string;
@@ -45,10 +40,14 @@ export interface SmartBinAttributes {
   amount?: number;
   branch?: string;
   closestLandmark?: string;
+  useYourAddress?: boolean;
+  streetName?: string;
   name?: string;
   businessName?: string;
   buildingType?: string;
   houseName?: string;
+  houseNumber?: string;
+  transactionReference?: string;
   flatNumber?: string;
   localGovernmentArea?: string;
   approvalDate?: Date;
@@ -56,9 +55,31 @@ export interface SmartBinAttributes {
   deliveredBy?: string;
   createdAt?: Date;
   updatedAt?: Date;
-  __v?: number;
-
+  applicationHistory: [
+    {
+      timestamp: Date; // date
+      status: string; // activated, delivered, scheduledForDelivery, delivered, cancelled //enum
+      description: string;
+    },
+  ];
 }
+
+@Schema({ _id: false })
+class ApplicationHistoryItem {
+  @Prop({ type: Date, required: true })
+  timestamp: Date;
+
+  @Prop({ type: String, required: true })
+  status: string;
+
+  @Prop({ type: String, required: true })
+  description: string;
+}
+
+const ApplicationHistoryItemSchema = SchemaFactory.createForClass(
+  ApplicationHistoryItem,
+);
+
 @Schema({
   collection: 'smart_bins',
   timestamps: true,
@@ -93,10 +114,10 @@ export class SmartBin extends Document {
 
   @Prop({
     type: String,
-    enum: Object.values(CustomerType),
-    default: CustomerType.Resident,
+    enum: Object.values(UserRole),
+    default: UserRole.Resident,
   })
-  customerType: CustomerType;
+  customerType: UserRole;
 
   @Prop({
     type: String,
@@ -111,6 +132,18 @@ export class SmartBin extends Document {
     default: PaymentMethod.Wallet,
   })
   paymentMethod?: PaymentMethod;
+
+  @Prop({
+    type: Boolean,
+    default: false,
+  })
+  useYourAddress?: boolean;
+
+  @Prop({ type: SchemaTypes.String, required: true, unique: true })
+  transactionReference?: string;
+
+  @Prop({ type: SchemaTypes.String, required: false })
+  streetName?: string;
 
   @Prop({ type: SchemaTypes.String, required: false })
   buildingName?: string;
@@ -149,10 +182,16 @@ export class SmartBin extends Document {
   houseName?: string;
 
   @Prop({ type: SchemaTypes.String, required: false })
+  houseNumber?: string;
+
+  @Prop({ type: SchemaTypes.String, required: false })
   flatNumber?: string;
 
   @Prop({ type: SchemaTypes.String, required: false })
   localGovernmentArea?: string;
+
+  @Prop({ type: [ApplicationHistoryItemSchema], default: [] })
+  applicationHistory: ApplicationHistoryItem[];
 }
 
 export const SmartBinSchema = SchemaFactory.createForClass(SmartBin);

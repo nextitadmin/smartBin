@@ -1,4 +1,5 @@
 import { UserRole } from '@models/types';
+import { Types } from 'mongoose';
 import { InferAttributes, WhereOptions } from 'sequelize';
 import { Model } from 'sequelize-typescript';
 
@@ -18,9 +19,10 @@ export type AuthUser = {
   id: string;
   email: string;
   role: UserRole;
+  token?: string;
 };
 
-export type CorporateUser = {};
-export type FacilityManagerUser = {};
-export type AgentUser = {};
-export type ResidentUser = {};
+export type CorporateUser = AuthUser;
+export type FacilityManagerUser = AuthUser;
+export type AgentUser = AuthUser;
+export type ResidentUser = AuthUser;

@@ -19,8 +19,14 @@ export interface ResidentAttributes {
   gender?: Gender;
   lawmaCustomerType?: LawmaCustomerType;
   role: UserRole.Resident;
+  address?: string;
+  landmark?:string;
+  nextPickupDate?:string;
+  accountNo?:string;
+  localGovermentArea?:string;
+  buildingType?:string;
   password: string;
-    registeredBy?: Types.ObjectId;
+  registeredBy?: Types.ObjectId;
   registeredByModel?: 'Agent' | 'FacilityManager';
   loginCode?: string;
   loginCodeExpiry?: Date;
@@ -83,6 +89,24 @@ export class Resident implements ResidentAttributes {
     default: UserRole.Resident,
   })
   role: UserRole.Resident;
+
+  @Prop()
+  address?: string;
+
+  @Prop()
+  landmark?:string;
+
+  @Prop()
+  nextPickupDate?:string;
+
+  @Prop()
+  accountNo?:string;
+
+  @Prop()
+  localGovermentArea?:string;
+
+  @Prop()
+  buildingType?:string;
   
   @Prop({ type: Types.ObjectId })
   registeredBy?: Types.ObjectId;

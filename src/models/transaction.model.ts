@@ -1,12 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaTypes, Types } from 'mongoose';
 
-export enum UserType {
-  Resident = 'Resident',
-  Corporate = 'Corporate',
-  Facility = 'Facility',
-  Agent = 'Agent',
-}
+import { UserRole } from './types';
 
 export enum TransactionStatus {
   Abandoned = 'abandoned',
@@ -35,12 +30,10 @@ export enum ServiceType {
 
 export interface TransactionAttributes {
   userId: Types.ObjectId;
-  userType: UserType;
+  userType: UserRole;
   amount: number;
   transactionReference: string;
-  transactionID: string;
   status: TransactionStatus;
-  // action: TransactionAction;
   service: ServiceType;
   paymentMethod: PaymentMethod;
   gatewayResponse?: Record<string, any>;
@@ -60,9 +53,9 @@ export class Transaction implements TransactionAttributes {
   @Prop({
     type: String,
     required: true,
-    enum: Object.values(UserType),
+    enum: Object.values(UserRole),
   })
-  userType: UserType;
+  userType: UserRole;
 
   @Prop({ required: true })
   amount: number;
@@ -70,13 +63,11 @@ export class Transaction implements TransactionAttributes {
   @Prop({ required: true, unique: true })
   transactionReference: string;
 
-  @Prop({ required: true, unique: true })
-  transactionID: string;
 
   @Prop({
     type: String,
     enum: Object.values(TransactionStatus),
-    default: TransactionStatus.Pending,
+    default: TransactionStatus.Abandoned,
   })
   status: TransactionStatus;
 
@@ -91,6 +82,7 @@ export class Transaction implements TransactionAttributes {
     type: String,
     enum: Object.values(PaymentMethod),
     required: true,
+    default: PaymentMethod.Wallet
   })
   paymentMethod: PaymentMethod;
 

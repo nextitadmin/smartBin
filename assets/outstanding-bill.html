@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Login Verification</title>
+  <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 30px;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+        }
+        .holder {
+          margin: auto;
+          max-width:70%;
+          background-color: whitesmoke;
+          padding: 5px;
+          border-radius: 5px;
+          margin-bottom: 5px;
+          position: relative;
+        }
+        .span{
+            position:absolute;
+            right: 20px;
+            font-weight: bold;
+        }
+        .track{
+            max-width: max-content;
+            padding: 5px;
+            margin: 0 auto;
+            border-radius: 5px;
+            background-color: green;
+            color: #fff;
+        }
+    </style>
+</head>
+
+<body>
+  <div class="container">
+  <p><b>Hello, {{firstName}}</b></p>
+  <p>
+    Your account shows an outstanding balance of <b>N</b>{{balance}} for waste management <br>
+    service rendered for the past 30 days. To avoid disruptions, kindly settle this <br>
+    payment by <b>{{date}}</b>.
+  </p>
+  <p>You can make payment via your Portal.</p>
+    <p class="track">Make Payment</p>
+
+  <p>Regards. <br/>
+     LASG Unity Service Management Team.
+  </p>
+  <hr>
+  <footer>
+    <p align="center">
+      <b>© <span id="yr"></span> LASG Unity Service Management. All rights reserved</b>
+      <br/>
+    Got any Issues? Send us a message at help@utilityservice.com
+    </p>
+  </footer>
+
+  <script>
+		const d = new Date();
+		document.getElementById("yr").innerHTML = d.getFullYear();
+	</script>
+  </div>
+</body>
+
+</html>

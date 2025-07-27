@@ -9,9 +9,6 @@ export enum WalletStatus {
 
 export enum SupportedCurrency {
   NGN = 'NGN',
-  // USD = 'USD',
-  // GBP = 'GBP',
-  // EUR = 'EUR',
 }
 
 export interface WalletAttributes {
@@ -20,10 +17,6 @@ export interface WalletAttributes {
   available_balance: number;
   ledger_balance: number;
   status: WalletStatus;
-  // bank_name: string;
-  // account_number: string;
-  // currency: SupportedCurrency;
-  // note?: string;
 }
 
 @Schema({
