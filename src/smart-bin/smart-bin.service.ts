@@ -51,7 +51,10 @@ export class SmartBinService {
   async getFacilityManagerBinApplication(facilityManagerId: string) {
     const [applications] = await Promise.all([
       this.smartbinModel
-        .find({ userId: facilityManagerId, userType: 'Facility' })
+        .find({
+          userId: new Types.ObjectId(facilityManagerId),
+          userType: UserRole.Facility,
+        })
         .sort({ createdAt: -1 })
         .lean(),
     ]);
