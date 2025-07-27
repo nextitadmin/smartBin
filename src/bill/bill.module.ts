@@ -13,6 +13,8 @@ import { Payer, PayerSchema } from '@models/users/payer.model';
 import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
 import { CorporateModule } from '@src/corporate/corporate.module';
 import { SmartBin, SmartBinSchema } from '@models/smart-bin.model';
+import { FacilityManagerService } from '@src/facility-manager/facility-manager.service';
+import { FacilityManager, FacilityManagerSchema } from '@models/users/facility-manager.model';
 
 @Module({
   imports: [
@@ -21,7 +23,8 @@ import { SmartBin, SmartBinSchema } from '@models/smart-bin.model';
       { name: Wallet.name, schema: WalletSchema },
       { name: Resident.name, schema: ResidentSchema },
       { name: Payer.name, schema: PayerSchema },
-      { name: SmartBin.name, schema: SmartBinSchema }
+      { name: SmartBin.name, schema: SmartBinSchema },
+      { name: FacilityManager.name, schema: FacilityManagerSchema }
     ]),
     SmartBinModule,
     CorporateModule,
@@ -31,6 +34,6 @@ import { SmartBin, SmartBinSchema } from '@models/smart-bin.model';
     CorporateBillController,
     FacilityBillController,
   ],
-  providers: [BillService, ResidentService],
+  providers: [BillService, ResidentService, FacilityManagerService],
 })
 export class BillModule {}

@@ -31,6 +31,12 @@ export class LoginManagerAccountDto {
   password: string;
 }
 
+export class ForgetPasswordManagerAccountDto{
+  @ApiProperty()
+  @IsEmail()
+  email: string;
+}
+
 export class VerifyLogin {
   @ApiProperty()
   @IsString()

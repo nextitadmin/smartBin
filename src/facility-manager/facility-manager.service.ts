@@ -32,6 +32,7 @@ import { defaultAgentFields } from '@models/users/agent.model';
 import { ConfigAttributes } from '@src/config';
 import { ConfigService } from '@nestjs/config';
 import { comparePassword } from '@common/utils';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class FacilityManagerService {
@@ -41,6 +42,7 @@ export class FacilityManagerService {
     private facilityModel: Model<FacilityManagerDocument>,
     @InjectModel(Payer.name) private payerModel: Model<PayerDocument>,
     private readonly configService: ConfigService<ConfigAttributes>,
+    private readonly jwtService: JwtService,
     private ee: EventEmitter2,
   ) {}
 
@@ -177,10 +179,12 @@ export class FacilityManagerService {
   async getProfile(userId: string) {
     const manager = await this.facilityModel
       .findById(userId)
-      .select('firstName lastName profilePicture');
+      .select('_id firstName lastName profilePicture email');
     if (!manager) throw new NotFoundException('Manager not found');
 
     return {
+      _id: manager._id,
+      email: manager.email,
       fullName: `${manager.firstName} ${manager.lastName}`,
       profilePicture:
         manager.profilePicture ||
@@ -191,6 +195,8 @@ export class FacilityManagerService {
   async requestPasswordReset(email: string) {
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
     const expiry = 600000;
+
+    console.log(resetCode);
 
     const manager = await this.facilityModel.findOne({ email });
     if (manager) {
@@ -246,6 +252,7 @@ export class FacilityManagerService {
     userId: string,
     param: { newPassword: string; confirmPassword: string },
   ) {
+    console.log(userId);
     if (
       param.newPassword !== param.confirmPassword ||
       param.newPassword.length < 6
@@ -259,6 +266,16 @@ export class FacilityManagerService {
     );
 
     return { message: 'Password reset successful' };
+  }
+
+  public async getFacilityManagerDetailsByToken(token:string)
+  {
+    const tokenDetails = await this.jwtService.decode(token);
+    if (!tokenDetails) {
+      throw new UnauthorizedException('unable to unauthenticate');
+    }
+
+    return this.getProfile(tokenDetails.id);
   }
 
   logout(id) {

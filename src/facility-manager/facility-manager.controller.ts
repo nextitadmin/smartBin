@@ -3,6 +3,7 @@ import { FacilityManagerService } from './facility-manager.service';
 import { Public } from '@common/guards/public.guard';
 import {
   CreateManagerAccountDto,
+  ForgetPasswordManagerAccountDto,
   LoginManagerAccountDto,
   UpdatePasswordDto,
   UpdatePictureDto,
@@ -55,7 +56,7 @@ export class FacilityManagerController {
   @Post('account/password/request')
   @Public()
   async requestFacilityManagerPasswordReset(
-    @Body() body: Pick<LoginManagerAccountDto, 'email'>,
+    @Body() body: ForgetPasswordManagerAccountDto,
   ) {
     const response = await this.facilityManagerService.requestPasswordReset(
       body.email,
