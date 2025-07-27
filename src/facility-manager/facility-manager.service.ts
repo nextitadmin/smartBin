@@ -197,7 +197,6 @@ export class FacilityManagerService {
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
     const expiry = 600000;
 
-    console.log(resetCode);
 
     const manager = await this.facilityModel.findOne({ email });
     if (manager) {

@@ -85,8 +85,7 @@ export class ResidentController {
     @Req() req: Request | any,
   ) {
     const response = await this.residentService.verifyPasswordResetCode(
-      body,
-      req.session,
+      body
     );
     return new SuccessResponse('success', response);
   }
