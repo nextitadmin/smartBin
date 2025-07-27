@@ -91,16 +91,15 @@ export class ResidentController {
     return new SuccessResponse('success', response);
   }
 
-  @Public()
+
   @Post('reset-password')
   async resetPassword(
+    @AuthenticatedResident() resident: AuthUser,
     @Body() body: ResetPasswordDto,
-    @Req() req: Request | any,
   ) {
     const response = await this.residentService.resetPassword(
-      body.password,
-      body.confirmPassword,
-      req.session,
+      resident.id,
+      body
     );
 
     return new SuccessResponse('reset password successful', response);
