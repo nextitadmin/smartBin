@@ -65,7 +65,6 @@ export class FacilityManagerService {
     const payer = await this.payerModel.findOne({ payerId });
     if (!payer) throw new NotFoundException('Invalid payerId');
 
-
     const manager = await this.facilityModel.create({
       payerId,
       organizationName,
@@ -108,11 +107,13 @@ export class FacilityManagerService {
     if (!manager) throw new NotFoundException('Manager not found');
 
     const valid = comparePassword(dto.password, manager.password);
-   
+
     if (!valid) throw new UnauthorizedException('Invalid credentials');
 
     const code = Math.floor(10000 + Math.random() * 90000).toString();
     const expires = 600000; // 10mins
+
+    console.log({ code });
 
     await this.cacheService.set(
       CacheKeys.FacilityManagerLoginCode(String(code)),
@@ -259,7 +260,6 @@ export class FacilityManagerService {
     )
       throw new BadRequestException('Passwords do not match or are too short');
 
-   
     await this.facilityModel.updateOne(
       { _id: userId },
       { $set: { password: param.newPassword } },
@@ -268,8 +268,7 @@ export class FacilityManagerService {
     return { message: 'Password reset successful' };
   }
 
-  public async getFacilityManagerDetailsByToken(token:string)
-  {
+  public async getFacilityManagerDetailsByToken(token: string) {
     const tokenDetails = await this.jwtService.decode(token);
     if (!tokenDetails) {
       throw new UnauthorizedException('unable to unauthenticate');
