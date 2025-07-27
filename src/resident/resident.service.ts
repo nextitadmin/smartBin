@@ -8,7 +8,6 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import { Resident, ResidentDocument } from '@models/users/resident.model';
 import { Payer, PayerDocument } from '@models/users/payer.model';
@@ -35,8 +34,6 @@ import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 import { date } from 'joi';
 import { SmartBin } from '@models/smart-bin.model';
 import { comparePassword } from '@common/utils';
-
-const JWT_SECRET = process.env.JWT_SECRET;
 
 @Injectable()
 export class ResidentService {
@@ -229,20 +226,19 @@ export class ResidentService {
     const { email } = body;
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
     const resetTokenExpiry = new Date(Date.now() + 20 * 60 * 1000);
+    const expiry = 600000;
 
-    console.log(resetCode);
-
-    const resident = await this.residentModel.findOneAndUpdate(
-      { email },
-      { $set: { resetToken: resetCode, resetTokenExpiry } },
-      { new: false },
-    );
-
+    const resident = await this.residentModel.findOne({ email });
     if (resident) {
+      await this.cacheService.set(
+        CacheKeys.ResidentLoginCode(String(resetCode)),
+        String(resident._id),
+        expiry,
+      );
       this.ee.emit(
         MailNotificationEvents.Account.ForgotPassword,
         new SendEmailEvent({
-          to: String(resident.email),
+          to: resident.email,
           from: `"LAWMA REG" <accounts@lawma.co>`,
           subject: 'Password Reset Request',
           context: {
@@ -252,7 +248,6 @@ export class ResidentService {
         }),
       );
     }
-
     return {
       message:
         'If an account with that email exists, a reset code has been sent',
@@ -260,32 +255,34 @@ export class ResidentService {
     };
   }
 
-  async verifyPasswordResetCode(
-    body: ResidentVerifyResetCodeDto,
-    session: any,
-  ) {
+  async verifyPasswordResetCode(body: ResidentVerifyResetCodeDto) {
     const { code } = body;
-    const resident = await this.residentModel.findOne({
-      resetToken: code,
-      resetTokenExpiry: { $gt: Date.now() },
-    });
+    const residentId = await this.cacheService.get(
+      CacheKeys.ResidentLoginCode(code),
+    );
+    const resident = await this.residentModel.findById(residentId);
 
     if (!resident) {
       throw new BadRequestException('Invalid or expired reset code');
     }
 
-    session.passwordResetUserId = resident._id;
-    return { message: 'Code verified. You can now reset your password.' };
+    const secret = this.configService.get('jwt.secret', { infer: true });
+    const token = jwt.sign(
+      {
+        id: resident._id,
+        role: UserRole.Resident,
+        payerId: resident.payerId,
+        email: resident.email,
+      },
+      secret,
+      { expiresIn: '7d' },
+    );
+
+    return { token };
   }
 
-  async resetPassword(
-    userId: string,
-    body: ResetPasswordDto 
-  ) {
-    if (
-      body.password !== body.confirmPassword ||
-      body.password.length < 6
-    )
+  async resetPassword(userId: string, body: ResetPasswordDto) {
+    if (body.password !== body.confirmPassword || body.password.length < 6)
       throw new BadRequestException('Passwords do not match or are too short');
 
     await this.residentModel.updateOne(
