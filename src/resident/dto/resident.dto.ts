@@ -119,9 +119,6 @@ export class CreateApplicationDto {
   @IsString()
   buildingName?: string;
 
-  @ApiProperty()
-  @IsString()
-  amount?: string;
 }
 
 export class VerifyResidentLogin {
