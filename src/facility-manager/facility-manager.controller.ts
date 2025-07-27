@@ -3,6 +3,7 @@ import { FacilityManagerService } from './facility-manager.service';
 import { Public } from '@common/guards/public.guard';
 import {
   CreateManagerAccountDto,
+  ForgetPasswordManagerAccountDto,
   LoginManagerAccountDto,
   UpdatePasswordDto,
   UpdatePictureDto,
@@ -17,6 +18,7 @@ import { AuthUser } from '@common/types';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Facility Managers')
+@FacilityManagerAuth()
 @Controller({
   path: 'facility-managers',
   version: '1',
@@ -39,7 +41,7 @@ export class FacilityManagerController {
     const response = await this.facilityManagerService.login(body);
     return new SuccessResponse(
       'A verification code has been sent to your email.',
-      response,
+      null,
     );
   }
 
@@ -55,12 +57,12 @@ export class FacilityManagerController {
   @Post('account/password/request')
   @Public()
   async requestFacilityManagerPasswordReset(
-    @Body() body: Pick<LoginManagerAccountDto, 'email'>,
+    @Body() body: ForgetPasswordManagerAccountDto,
   ) {
     const response = await this.facilityManagerService.requestPasswordReset(
       body.email,
     );
-    return new SuccessResponse('Password reset request sent', response);
+    return new SuccessResponse(response.message, null);
   }
 
   @Post('account/password/verify')
@@ -73,7 +75,6 @@ export class FacilityManagerController {
   }
 
   @Post('account/password/complete')
-  @FacilityManagerAuth()
   async completeFacilityManagerPasswordReset(
     @AuthenticatedFacilityManager() facilityManager: AuthUser,
     @Body() body: UpdatePasswordDto,
@@ -86,7 +87,6 @@ export class FacilityManagerController {
   }
 
   @Put('account/profile-picture')
-  @FacilityManagerAuth()
   async updateFacilityManagerAccount(
     @Body() body: UpdatePictureDto,
     @AuthenticatedFacilityManager() facilityManager: AuthUser,
@@ -99,7 +99,6 @@ export class FacilityManagerController {
   }
 
   @Get('profile')
-  @FacilityManagerAuth()
   async getFacilityManagerAccount(
     @AuthenticatedFacilityManager() facilityManager: AuthUser,
   ) {
@@ -110,7 +109,6 @@ export class FacilityManagerController {
   }
 
   @Post('account/logout')
-  @FacilityManagerAuth()
   async logoutFacilityManagerAccount(
     @AuthenticatedFacilityManager() facilityManager: AuthUser,
   ) {

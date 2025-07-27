@@ -15,22 +15,27 @@ export class MediaService {
     });
   }
 
-async fileUpload(buffer: Buffer): Promise<{ fileUrl: string; message: string }> {
+  async fileUpload(
+    buffer: Buffer,
+  ): Promise<{ fileUrl: string; message: string }> {
     return new Promise((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-            {
-                folder: 'avatar',
-            },
-            (error, result) => {
-                if (error) return reject(error);
-                resolve({ fileUrl: result.secure_url, message: "file uploaded successfully" });
-            },
-        );
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          folder: 'avatar',
+        },
+        (error, result) => {
+          if (error) return reject(error);
+          resolve({
+            fileUrl: result.secure_url,
+            message: 'file uploaded successfully',
+          });
+        },
+      );
 
-        const readable = new Readable();
-        readable.push(buffer);
-        readable.push(null);
-        readable.pipe(uploadStream);
+      const readable = new Readable();
+      readable.push(buffer);
+      readable.push(null);
+      readable.pipe(uploadStream);
     });
-}
+  }
 }

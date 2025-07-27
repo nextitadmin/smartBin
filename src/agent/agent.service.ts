@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import * as bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import {
   Agent,
@@ -30,6 +30,7 @@ import {
   SendEmailEvent,
 } from '@src/notification/dto/event';
 import { ConfigAttributes } from '@src/config';
+import { comparePassword } from '@common/utils';
 
 @Injectable()
 export class AgentService {
@@ -61,15 +62,13 @@ export class AgentService {
       throw new NotFoundException('Invalid payerId');
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const newAgent = await this.agentModel.create({
       payerId: payer._id,
       agencyName,
       firstName: payer.firstName,
       lastName: payer.lastName,
       email: payer.email,
-      password: hashedPassword,
+      password: password,
     });
 
     this.ee.emit(
@@ -100,9 +99,13 @@ export class AgentService {
 
     const agent = await this.agentModel.findOne({ email });
 
-    const isPasswordMatch = await bcrypt.compare(password, agent.password);
-    console.log({ isPasswordMatch, password });
-    if (!agent) {
+    if(!agent){
+      throw new NotFoundException("Agent does not exist");
+    }
+
+    const isPasswordMatch = comparePassword(password, agent.password);
+   
+    if (!isPasswordMatch) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -273,12 +276,12 @@ export class AgentService {
     ) {
       throw new BadRequestException('Passwords do not match or are too short');
     }
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
     await this.agentModel.updateOne(
       { _id: accountId },
       {
         $set: {
-          password: hashedPassword,
+          password: newPassword,
         },
       },
     );

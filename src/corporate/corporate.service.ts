@@ -8,9 +8,9 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import * as bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcrypt';
 import { Corporate, CorporateDocument } from '@models/users/corporate.model';
-import { generateOtpCode } from '@common/utils';
+import { comparePassword, generateOtpCode } from '@common/utils';
 import {
   MailNotificationEvents,
   SendEmailEvent,
@@ -68,15 +68,13 @@ export class CorporateService {
       throw new NotFoundException('Invalid payerId');
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
     const newBusiness = await this.corporateModel.create({
       payerId,
       businessName,
       firstName: payer.firstName,
       lastName: payer.lastName,
       email: payer.email,
-      password: hashedPassword,
+      password: password,
       phoneNumber: payer.phoneNumber,
     });
 
@@ -112,9 +110,9 @@ export class CorporateService {
     if (!business) {
       throw new NotFoundException('Corporate business does not exist');
     }
-    const isPasswordMatch = await bcrypt.compare(password, business.password);
+    const isPasswordMatch = comparePassword(password, business.password);
 
-    if (!business) {
+    if (!isPasswordMatch) {
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -206,7 +204,6 @@ export class CorporateService {
         },
       }),
     );
-    // await sendResetEmail(business.email, business.businessName, code);
 
     return { message: 'If account exists, a reset email will be sent' };
   }
@@ -229,7 +226,7 @@ export class CorporateService {
       throw new BadRequestException('Invalid or expired reset code');
     }
 
-    business.password = await bcrypt.hash(dto.newPassword, 10);
+    business.password = dto.newPassword
     business.resetToken = null;
     business.resetTokenExpires = null;
     await business.save();

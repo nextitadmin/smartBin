@@ -40,14 +40,14 @@ export interface SmartBinAttributes {
   amount?: number;
   branch?: string;
   closestLandmark?: string;
-  useYourAddress?:boolean;
+  useYourAddress?: boolean;
   streetName?: string;
   name?: string;
   businessName?: string;
   buildingType?: string;
   houseName?: string;
   houseNumber?: string;
-  transactionReference?: string
+  transactionReference?: string;
   flatNumber?: string;
   localGovernmentArea?: string;
   approvalDate?: Date;
@@ -76,8 +76,9 @@ class ApplicationHistoryItem {
   description: string;
 }
 
-const ApplicationHistoryItemSchema = SchemaFactory.createForClass(ApplicationHistoryItem);
-
+const ApplicationHistoryItemSchema = SchemaFactory.createForClass(
+  ApplicationHistoryItem,
+);
 
 @Schema({
   collection: 'smart_bins',
@@ -134,12 +135,12 @@ export class SmartBin extends Document {
 
   @Prop({
     type: Boolean,
-    default: false
+    default: false,
   })
-  useYourAddress?:boolean
+  useYourAddress?: boolean;
 
   @Prop({ type: SchemaTypes.String, required: true, unique: true })
-  transactionReference?:string
+  transactionReference?: string;
 
   @Prop({ type: SchemaTypes.String, required: false })
   streetName?: string;

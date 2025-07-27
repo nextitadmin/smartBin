@@ -1,6 +1,7 @@
 import {
   CanActivate,
   ExecutionContext,
+  Inject,
   Injectable,
   Logger,
   UnauthorizedException,
@@ -9,10 +10,19 @@ import {
 import { Request } from 'express';
 import { AuthUser, FacilityManagerUser } from '../types';
 import { UserRole } from '@models/types';
+import { FacilityManagerService } from '@src/facility-manager/facility-manager.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { IS_PUBLIC_KEY } from './public.guard';
+import { Reflector } from '@nestjs/core';
 
 @Injectable()
 export class FacilityManagerAuthGuard implements CanActivate {
-  //   // constructor(private readonly customerService: CustomerService) {}
+  constructor(
+    private readonly facilityManager: FacilityManagerService,
+    @Inject(CACHE_MANAGER) private cacheService: Cache,
+    private readonly reflector: Reflector,
+  ) {}
 
   private logger = new Logger(FacilityManagerAuthGuard.name);
 
@@ -22,20 +32,32 @@ export class FacilityManagerAuthGuard implements CanActivate {
       facilityManager?: FacilityManagerUser;
     } = ctx.switchToHttp().getRequest();
 
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      ctx.getHandler(),
+      ctx.getClass(),
+    ]);
+    if (isPublic) return true;
+
     const request = ctx.switchToHttp().getRequest();
-    const [type, token] = request.headers?.authorization?.split(' ') ?? [];
-    //     // const customer = await this.customerService.getCustomerDetailsbyToken(
-    //     // token,
-    //     // );
-    //     if (!true) {
-    //       this.logger.warn('failed to auth: no user object in request');
-    //       throw new UnauthorizedException('not authenticated!');
-    //     }
+    const [_, token] = request.headers?.authorization?.split(' ') ?? [];
+
+    const isBlacklisted = await this.cacheService.get(`blacklist:${token}`);
+    if (isBlacklisted) {
+      throw new UnauthorizedException('Not Authorized');
+    }
+
+    const facilityManager =
+      await this.facilityManager.getFacilityManagerDetailsByToken(token);
+    if (!facilityManager) {
+      this.logger.warn('failed to auth: no user object in request');
+      throw new UnauthorizedException('not authenticated!');
+    }
 
     req.facilityManager = {
-      id: '',
-      email: 'demo-failcity-email@test.com',
+      id: String(facilityManager._id),
+      email: facilityManager.email,
       role: UserRole.Facility,
+      token: token,
     };
 
     return true;
