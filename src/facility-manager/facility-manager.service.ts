@@ -253,7 +253,7 @@ export class FacilityManagerService {
     userId: string,
     param: { newPassword: string; confirmPassword: string },
   ) {
-    console.log(userId);
+
     if (
       param.newPassword !== param.confirmPassword ||
       param.newPassword.length < 6

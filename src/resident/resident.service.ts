@@ -29,6 +29,7 @@ import {
   ResidentVerifyResetCodeDto,
   ResidentForgotPasswordDto,
   CreateApplicationDto,
+  ResetPasswordDto,
 } from './dto/resident.dto';
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 import { date } from 'joi';
@@ -278,34 +279,21 @@ export class ResidentService {
   }
 
   async resetPassword(
-    newPassword: string,
-    confirmPassword: string,
-    session: any,
+    userId: string,
+    body: ResetPasswordDto 
   ) {
-    const userId = session.passwordResetUserId;
-    if (!userId) {
-      throw new UnauthorizedException(
-        'Reset session expired. Please verify code again.',
-      );
-    }
-    
     if (
-      !newPassword ||
-      newPassword !== confirmPassword ||
-      newPassword.length < 6
-    ) {
+      body.password !== body.confirmPassword ||
+      body.password.length < 6
+    )
       throw new BadRequestException('Passwords do not match or are too short');
-    }  
 
-    const resident = await this.residentModel.findById(userId);
-    if (!resident) throw new NotFoundException('Resident not found');
+    await this.residentModel.updateOne(
+      { _id: userId },
+      { $set: { password: body.password } },
+    );
 
-    resident.password = newPassword
-
-    await resident.save();
-
-    session.passwordResetUserId = null;
-    return { message: 'Password has been reset successfully' };
+    return { message: 'Password reset successful' };
   }
 
   async logout(token: string) {

@@ -6,7 +6,6 @@ import {
   Logger,
   UnauthorizedException,
 } from '@nestjs/common';
-// // import { CustomerService } from '../../customer/customer.service';
 import { Request } from 'express';
 import { AuthUser, FacilityManagerUser } from '../types';
 import { UserRole } from '@models/types';
