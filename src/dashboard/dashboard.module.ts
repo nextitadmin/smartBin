@@ -11,14 +11,14 @@ import { Bill, BillSchema } from '@models/bill.model';
 import { SmartBin, SmartBinSchema } from '@models/smart-bin.model';
 import { Transaction, TransactionSchema } from '@models/transaction.model';
 import { Wallet, WalletSchema } from '@models/wallet.model';
-import { ResidentDashboardController } from './resident.dashboard.controller';
-import { CorporateDashboardController } from './corporate.dashboard.controller';
 import { DashboardService } from './dashboard.service';
 import { ResidentService } from '@src/resident/resident.service';
 import { Payer, PayerSchema } from '@models/users/payer.model';
 import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
 import { CorporateModule } from '@src/corporate/corporate.module';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
+import { DashboardController } from './dashboard.controller';
+import { CorporateService } from '@src/corporate/corporate.service';
 
 @Module({
   imports: [
@@ -37,7 +37,7 @@ import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
     SmartBinModule,
     CorporateModule,
   ],
-  controllers: [ResidentDashboardController, CorporateDashboardController],
-  providers: [DashboardService, ResidentService],
+  controllers: [DashboardController],
+  providers: [DashboardService, ResidentService, CorporateService],
 })
 export class DashboardModule {}

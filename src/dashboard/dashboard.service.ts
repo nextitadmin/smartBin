@@ -172,13 +172,12 @@ export class DashboardService {
 
   // get Corporate Dashboard
   async getCorporateDashboard(userId: string) {
+    console.log(userId);
     const [
       corporate,
       bills,
       wallet,
       smartbin,
-      // pickups,
-      // disposals,
     ] = await Promise.all([
       this.corporateModel.findById(userId).lean(),
       this.billModel.find({ userId, userType: 'Corporate' }).lean(),
@@ -186,9 +185,7 @@ export class DashboardService {
       this.smartbinModel
         .find({ userId, userType: 'Corporate' })
         .sort({ createdAt: -1 })
-        .lean(),
-      // this.pickupModel.find({ userId, userType: 'corporate' }).sort({ scheduledDate: 1 }).lean(),
-      // this.disposalModel.find({ userId, userType: 'corporate' }).lean(),
+        .lean()
     ]);
 
     const outstandingBills = bills.filter((b) => b.status !== 'completed');
@@ -204,10 +201,6 @@ export class DashboardService {
       smartbinApplicationsCount: smartbin.length,
       latestSmartbinStatus: smartbin[0]?.status || 'none',
       estimatedAnnualSubscription: annualEstimate,
-      // binDisposalAnalytics: {
-      //   totalDisposals: disposals.length,
-      //   disposalBreakdown: this.groupDisposalsByMonth(disposals),
-      // },
     };
   }
 }
