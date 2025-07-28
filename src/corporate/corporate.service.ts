@@ -9,7 +9,6 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as jwt from 'jsonwebtoken';
-// import * as bcrypt from 'bcrypt';
 import { Corporate, CorporateDocument } from '@models/users/corporate.model';
 import { comparePassword, generateOtpCode } from '@common/utils';
 import {
@@ -18,7 +17,7 @@ import {
 } from '@src/notification/dto/event';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { JwtService } from '@nestjs/jwt';
-// import * as jwt from 'jsonwebtoken';
+
 import {
   CorporateLoginDto,
   CreateCorporateAccountDto,
@@ -355,13 +354,13 @@ export class CorporateService {
     );
     return data;
   }
-}
 
-//   async getDetailsByToken(token: string) {
-//     const tokenDetails = await this.jwtService.decode(token);
-//     if (!tokenDetails) {
-//       throw new UnauthorizedException('unable to unauthenticate');
-//     }
-//     return this.getProfile(tokenDetails.id);
-//   }
-// }
+
+  async getDetailsByToken(token: string) {
+    const tokenDetails = await this.jwtService.decode(token);
+    if (!tokenDetails) {
+      throw new UnauthorizedException('unable to unauthenticate');
+    }
+    return this.getProfile(tokenDetails.id);
+  }
+}
