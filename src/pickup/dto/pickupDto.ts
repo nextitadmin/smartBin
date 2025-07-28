@@ -1,7 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsString } from 'class-validator';
-import { Prop } from '@nestjs/mongoose';    
-import { PaymentMethod,CustomerType, Status, } from '@models/pickup';
+import { IsDateString, IsEnum, IsString } from 'class-validator';
+import { Prop } from '@nestjs/mongoose';
+import { Status } from '@models/pickup';
+import { PaymentMethod } from '@models/transaction.model';
+import { UserRole } from '@models/types';
 
 export interface PickupDto {
   _id: string;
@@ -27,9 +29,9 @@ export interface PickupDto {
   time?: string;
   notification?: string;
   customerType?: string;
-  issuedOn?: String;
-  paymentDue?: String;
-  location?: string 
+  issuedOn?: Date;
+  paymentDue?: Date;
+  location?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -39,10 +41,10 @@ export class createPickupDto {
   @IsString()
   address: string;
 
- @ApiProperty()
+  @ApiProperty()
   @IsString()
-  @Prop({required: true })
-  payerId   : string;
+  @Prop({ required: true })
+  payerId: string;
 
   @ApiProperty()
   @IsString()
@@ -56,7 +58,7 @@ export class createPickupDto {
   @IsString()
   customerName?: string;
 
- @ApiProperty()
+  @ApiProperty()
   @IsString()
   branch?: string;
 
@@ -113,18 +115,18 @@ export class createPickupDto {
   notification?: string;
 
   @ApiProperty()
-  @IsEnum(CustomerType)
-  customerType?: CustomerType;
+  @IsEnum(UserRole)
+  accountType?: UserRole;
+
+  @ApiProperty()
+  @IsDateString()
+  issuedOn?: Date;
+
+  @ApiProperty()
+  @IsDateString()
+  paymentDue?: Date;
 
   @ApiProperty()
   @IsString()
-  issuedOn?: String;
-
-  @ApiProperty()
-  @IsString()
-  paymentDue?: String;
-
-  @ApiProperty()
-  @IsString()
-  location?: string 
+  location?: string;
 }

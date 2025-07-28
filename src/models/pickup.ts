@@ -1,36 +1,23 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaTypes, Types } from 'mongoose';
-import { Payer } from '@models/users/payer.model';
+import { UserRole } from './types';
+import { PaymentMethod } from './transaction.model';
 
 export type PickupDocument = Pickup & Document;
 
 export enum Status {
-  Pending = 'Pending',
-  Picked = 'pickedUp',
+  Pending = 'pending',
   Cancelled = 'cancelled',
   Delivered = 'delivered',
-}
-
-export enum CustomerType {
-  Resident = 'Resident',
-  Corporate = 'Corporate',
-  Facility = 'Facility',
-  Agent = 'Agent',
-}
-
-export enum PaymentMethod {
-  AlatByWema = 'Alat',
-  Wallet = 'wallet',
+  Completed = 'completed',
 }
 
 export interface PickupAttributes {
   _id: string;
-  payerId: string;
+  accountId: Types.ObjectId;
+  accountType: UserRole;
   wasteId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  date: Date;
+
   address: string;
   billReference?: string;
   description?: string;
@@ -46,17 +33,31 @@ export interface PickupAttributes {
   paymentMethod?: PaymentMethod;
   time?: string;
   notification?: string;
-  customerType?: CustomerType;
-  issuedOn?: String;
-  paymentDue?: String;
-  location?: string 
+  issuedOn?: Date;
+  paymentDue?: Date;
+  location?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
-@Schema({ timestamps: true })
+
+@Schema({
+  timestamps: true,
+  collection: 'waste_management_pickups',
+  versionKey: false,
+})
 export class Pickup {
-  @Prop({ required: true })
-  date: Date;
+  @Prop({
+    type: SchemaTypes.ObjectId,
+    required: true,
+  })
+  accountId: Types.ObjectId;
+
+  @Prop({
+    type: SchemaTypes.String,
+    enum: Object.values(UserRole),
+    required: true,
+  })
+  accountType: UserRole;
 
   @Prop({ required: true })
   address: string;
@@ -82,22 +83,7 @@ export class Pickup {
   agentNote?: string; // Add agent-specific info here if needed
 
   @Prop({ required: true })
-  payerId: string;
-
-  @Prop({ required: true })
   wasteId: string;
-
-  @Prop({ required: true })
-  firstName: string;
-
-  @Prop({ required: true })
-  lastName: string;
-
-  @Prop({ required: true })
-  email: string;
-
-  @Prop()
-  phoneNumber?: string;
 
   @Prop()
   residentLocation?: string;
@@ -111,7 +97,10 @@ export class Pickup {
   @Prop()
   billReference?: string;
 
-  @Prop()
+  @Prop({
+    type: SchemaTypes.String,
+    enum: Object.values(PaymentMethod),
+  })
   paymentMethod?: PaymentMethod;
 
   @Prop()
@@ -121,16 +110,10 @@ export class Pickup {
   notification?: string;
 
   @Prop()
-  customerType?: CustomerType;
+  issuedOn?: Date;
 
   @Prop()
-  issuedOn?: String;
-
-  @Prop()
-  paymentDue?: String;
-
-  @Prop()
-  location?: string 
+  paymentDue?: Date;
 }
 
 export const PickupSchema = SchemaFactory.createForClass(Pickup);

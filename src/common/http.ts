@@ -2,7 +2,7 @@ interface Meta {
   paging?: Paging | null;
 }
 
-interface Paging {
+export interface Paging {
   page: number;
   pages: number;
   size: number;

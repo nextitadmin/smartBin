@@ -19,10 +19,7 @@ import { SuccessResponse } from '@common/http';
 
 @Injectable()
 export class WalletService {
-  constructor(
-    @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
-    private readonly transactionService: TransactionService,
-  ) {}
+  constructor(@InjectModel(Wallet.name) private walletModel: Model<Wallet>) {}
 
   // Resident
   async getResidentWallet(
