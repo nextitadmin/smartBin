@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { CreatePickupDto } from './dto/createPickup.dto';
@@ -14,25 +18,31 @@ import { SmartBin } from '@models/smart-bin.model';
 import { UserRole } from '@models/types';
 import { Payer } from '@models/users/payer.model';
 
-
 @Injectable()
 export class PickupService {
   constructor(
-    @InjectModel(Pickup.name) private readonly pickupModel: Model<PickupDocument>,
+    @InjectModel(Pickup.name)
+    private readonly pickupModel: Model<PickupDocument>,
     @InjectModel(Agent.name) private readonly agentModel: Model<Agent>,
-    @InjectModel(Corporate.name) private readonly corporateModel: Model<Corporate>,
-    @InjectModel(FacilityManager.name) private readonly facilityManagerModel: Model<FacilityManager>,
+    @InjectModel(Corporate.name)
+    private readonly corporateModel: Model<Corporate>,
+    @InjectModel(FacilityManager.name)
+    private readonly facilityManagerModel: Model<FacilityManager>,
     @InjectModel(Resident.name) private readonly residentModel: Model<Resident>,
     @InjectModel(Bill.name) private readonly billModel: Model<Bill>,
     @InjectModel(Wallet.name) private readonly walletModel: Model<Wallet>,
-    @InjectModel(Transaction.name) private readonly transactionModel: Model<Transaction>,
+    @InjectModel(Transaction.name)
+    private readonly transactionModel: Model<Transaction>,
     @InjectModel(SmartBin.name) private readonly smartBinModel: Model<SmartBin>,
   ) {}
 
   //  findAll pickups
   async getAllPickups() {
-    const pickups = await this.pickupModel.find().sort({ createdAt: -1 }).lean();
-    if(!pickups || pickups.length === 0) {
+    const pickups = await this.pickupModel
+      .find()
+      .sort({ createdAt: -1 })
+      .lean();
+    if (!pickups || pickups.length === 0) {
       throw new NotFoundException('No pickup requests found');
     }
     return pickups;
@@ -43,9 +53,9 @@ export class PickupService {
     const [pickups] = await Promise.all([
       this.pickupModel
         .find({ userId: residentId, userType: UserRole.Resident })
-        .sort({ createdAt: -1})
-        .lean()
-    ])
+        .sort({ createdAt: -1 })
+        .lean(),
+    ]);
     return {
       pickups,
     };
@@ -58,24 +68,28 @@ export class PickupService {
         .find({ userId: facilityManagerId, userType: UserRole.Facility })
         .sort({ createdAt: -1 })
         .lean(),
-      ]);
-      this.walletModel.findOne({
-        userId: facilityManagerId,
-        userType: UserRole.Facility,
-      });
-      this.billModel.findOne({
-        userId: facilityManagerId,
-        userType: UserRole.Facility,
-      });
+    ]);
+    this.walletModel.findOne({
+      userId: facilityManagerId,
+      userType: UserRole.Facility,
+    });
+    this.billModel.findOne({
+      userId: facilityManagerId,
+      userType: UserRole.Facility,
+    });
     if (!facilityManager) {
       throw new NotFoundException('Facility Manager not found');
     }
     if (!pickups) {
-      throw new NotFoundException('No pickup requests found for this facility manager');
+      throw new NotFoundException(
+        'No pickup requests found for this facility manager',
+      );
     }
     return {
       id: pickups[0]._id,
-      name: pickups[0].customerName || facilityManager.firstName + ' ' + facilityManager.lastName,
+      name:
+        pickups[0].customerName ||
+        facilityManager.firstName + ' ' + facilityManager.lastName,
       address: pickups[0].address,
       date: pickups[0].date,
       representative: pickups[0].representative,
@@ -92,7 +106,7 @@ export class PickupService {
   }
 
   // For corporate
-  async getCorporatePickups(corporateId: string) {  
+  async getCorporatePickups(corporateId: string) {
     const [corporate] = await Promise.all([
       this.pickupModel
         .find({ userId: corporateId, userType: UserRole.Corporate })
@@ -103,12 +117,12 @@ export class PickupService {
       throw new NotFoundException('Corporate not found');
     }
     return {
-      corporate
+      corporate,
     };
   }
   // For agent
   async getAgentPickups(agentId: string) {
-    const [agent] = await Promise.all([ 
+    const [agent] = await Promise.all([
       this.pickupModel
         .find({ userId: agentId, userType: UserRole.Agent })
         .sort({ createdAt: -1 })
@@ -118,12 +132,11 @@ export class PickupService {
       throw new NotFoundException('Agent not found');
     }
     return {
-      agent
+      agent,
     };
   }
 
-
- //get all pickups by ID
+  //get all pickups by ID
   async getPickupById(id: string) {
     const pickup = await this.pickupModel.findById(id).lean();
     if (!pickup) {
@@ -134,11 +147,9 @@ export class PickupService {
 
   //update pickups status
   async updatePickupStatus(id: string, status: Status) {
-    const pickup = await this.pickupModel.findByIdAndUpdate(
-      id,
-      { status },   
-      { new: true }
-    ).lean();
+    const pickup = await this.pickupModel
+      .findByIdAndUpdate(id, { status }, { new: true })
+      .lean();
     if (!pickup) {
       throw new NotFoundException(`Pickup with ID ${id} not found`);
     }
@@ -146,8 +157,8 @@ export class PickupService {
   }
 
   // get pickup by waste ID
-async getPickupByWasteId(wasteId: string) {
-    const pickup = await this.pickupModel.findOne({ wasteId }).lean(); 
+  async getPickupByWasteId(wasteId: string) {
+    const pickup = await this.pickupModel.findOne({ wasteId }).lean();
     if (!pickup) {
       throw new NotFoundException(`Pickup with waste ID ${wasteId} not found`);
     }
@@ -165,7 +176,9 @@ async getPickupByWasteId(wasteId: string) {
 
   //create pickup
   async createPickup(dto: CreatePickupDto) {
-    const { payerId, ...pickupData } = dto as CreatePickupDto & { payerId: string };
+    const { payerId, ...pickupData } = dto as CreatePickupDto & {
+      payerId: string;
+    };
 
     const user = await this.pickupModel.findById(payerId).lean();
     if (!user) {
@@ -175,7 +188,7 @@ async getPickupByWasteId(wasteId: string) {
     const customerType = user.customerType;
 
     const newPickup = new this.pickupModel({
-      payerId: new Types.ObjectId(payerId), 
+      payerId: new Types.ObjectId(payerId),
       ...pickupData,
       customerType: customerType,
       status: Status.Pending, // Default status
@@ -185,4 +198,3 @@ async getPickupByWasteId(wasteId: string) {
     return newPickup;
   }
 }
-
