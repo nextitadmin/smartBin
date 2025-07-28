@@ -14,6 +14,8 @@ import { Bill, BillSchema } from '@models/bill.model'
 import { Wallet, WalletSchema } from '@models/wallet.model'
 import { Transaction, TransactionSchema } from '@models/transaction.model'
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
+import { KycApplicationController } from './kyc-application/kyc-application.controller';
+import { KycModule } from '@src/kyc/kyc.module';
 
 
 @Module({
@@ -57,9 +59,10 @@ import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
       },
       { name: UserKyc.name, schema: UserKycSchema }
     ]),
-    SmartBinModule
+    SmartBinModule,
+    KycModule
   ],
-  controllers: [ResidentController],
+  controllers: [ResidentController, KycApplicationController],
   exports: [ResidentService, SmartBinService],
   providers: [ResidentService, SmartBinService],
 })

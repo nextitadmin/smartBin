@@ -13,6 +13,8 @@ import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
 import { FacilityController } from './facility/facility.controller';
 import { FacilityService } from './facility/facility.service';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
+import { KycApplicationController } from './kyc-application/kyc-application.controller';
+import { KycModule } from '@src/kyc/kyc.module';
 
 @Module({
   imports: [
@@ -22,11 +24,13 @@ import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
       { name: UserKyc.name, schema: UserKycSchema }
     ]),
     SmartBinModule,
+    KycModule
   ],
   controllers: [
     FacilityManagerController,
     SmartBinController,
     FacilityController,
+    KycApplicationController
   ],
   providers: [FacilityManagerService, FacilityService],
 })
