@@ -113,7 +113,7 @@ export class FacilityManagerController {
     @AuthenticatedFacilityManager() facilityManager: AuthUser,
   ) {
     const response = await this.facilityManagerService.logout(
-      facilityManager.id,
+      facilityManager.token,
     );
     return new SuccessResponse('Manager account logged out', response);
   }

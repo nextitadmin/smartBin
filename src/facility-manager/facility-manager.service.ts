@@ -276,7 +276,13 @@ export class FacilityManagerService {
     return this.getProfile(tokenDetails.id);
   }
 
-  logout(id) {
+  async logout(token: string) {
+    const tokenDetails = await this.jwtService.decode(token);
+
+    const ttl = tokenDetails.exp - Math.floor(Date.now() / 1000);
+
+    await this.cacheService.set(`blacklist:${token}`, true, ttl);
+
     return { message: 'Logged out successfully' };
   }
 }

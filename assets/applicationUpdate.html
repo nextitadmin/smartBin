@@ -4,7 +4,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Your LAWMA Payer ID</title>
+    <title>Application Update</title>
     <style>
       body {
         font-family: "Inter", sans-serif;
@@ -269,22 +269,19 @@
       <div class="content">
         <p class="greeting">Hello, <span class="capitalize">{{name}}</span></p>
 
-        <p>Your <strong>Payer ID</strong> has been successfully generated:</p>
-        <div class="otp-container">
-          <div class="otp-box" id="otpBox">
-            <span class="otp-text" id="otpText">{{payerId}}</span>
+        <p>Your Application has been received and is awaiting approval.</p>
+        <div class="order-box">
+          <div class="order-header">
+            <span>Order Details</span>
+            <span>#{{orderId}}</span>
           </div>
-          <img
-            src="/icons/copy.png"
-            alt="copy-otp"
-            id="copyIcon"
-            style="cursor: pointer"
-            title="Copy OTP"
-          />
+          <p>Applied On: {{date}}</p>
+          <p>Amount: ₦{{amount}}</p>
+          <p>Destination: {{destination}}</p>
         </div>
-        <p class="content-line">
-          Please keep this safe, as you'll need it to complete your KYC registration with LAWMA.
-        </p>
+        <div class="button-container">
+          <a href="{{buttonLink}}" class="button">Track Application</a>
+        </div>
 
         <div class="salutation">
           <span>Regards,</span>

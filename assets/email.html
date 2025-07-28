@@ -4,7 +4,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Your LAWMA Payer ID</title>
+    <title>Email Notification</title>
     <style>
       body {
         font-family: "Inter", sans-serif;
@@ -269,10 +269,10 @@
       <div class="content">
         <p class="greeting">Hello, <span class="capitalize">{{name}}</span></p>
 
-        <p>Your <strong>Payer ID</strong> has been successfully generated:</p>
+        <p>Please use the following verification code to proceed:</p>
         <div class="otp-container">
           <div class="otp-box" id="otpBox">
-            <span class="otp-text" id="otpText">{{payerId}}</span>
+            <span class="otp-text" id="otpText">{{otp}}</span>
           </div>
           <img
             src="/icons/copy.png"
@@ -283,8 +283,22 @@
           />
         </div>
         <p class="content-line">
-          Please keep this safe, as you'll need it to complete your KYC registration with LAWMA.
+          This OTP is valid for 15 minutes from the time it was sent to you and can only be used once.
+          If you didn’t initiate the request, you can safely ignore the mail.
         </p>
+
+        {{#if isBillNotice}}
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <p class="content-line">
+            Your account shows an outstanding balance of ₦{{amount}} for waste management service
+            rendered for the past 30 days. Kindly settle this payment by <strong>{{dueDate}}</strong>.
+          </p>
+          <p>You can make payment via your Portal.</p>
+          <div class="button-container">
+            <a href="{{paymentLink}}" class="button">Make Payment</a>
+          </div>
+        </div>
+        {{/if}}
 
         <div class="salutation">
           <span>Regards,</span>

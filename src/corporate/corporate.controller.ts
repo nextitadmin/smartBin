@@ -39,110 +39,63 @@ export class CorporateController {
       });
     }
   
-    // @Public()
-    // @Post('request-password-reset')
-    // async requestPasswordReset(@Body() body: CorporateForgotPasswordDto) {
-    //   const corporate = await this.corporateService.requestPasswordReset(body);
-    //   return new SuccessResponse(corporate.message, null);
-    // }
+    @Public()
+    @Post('request-password-reset')
+    async requestPasswordReset(@Body() body: CorporateForgotPasswordDto) {
+      const corporate = await this.corporateService.requestPasswordReset(body);
+      return new SuccessResponse(corporate.message, null);
+    }
   
-    // @Public()
-    // @Post('verify-password-reset')
-    // async verifyReset(
-    //   @Body() body: CorporateVerifyResetCodeDto,
-    //   @Req() req: Request | any,
-    // ) {
-    //   const response = await this.corporateService.verifyPasswordResetCode(
-    //     body,
-    //     req.session,
-    //   );
-    //   return new SuccessResponse('success', response);
-    // }
+    @Public()
+    @Post('verify-password-reset')
+    async verifyReset(
+      @Body() body: CorporateVerifyResetCodeDto,
+    ) {
+      const response = await this.corporateService.verifyPasswordResetCode(
+        body,
+      );
+      return new SuccessResponse('success', response);
+    }
   
-    // @Public()
-    // @Post('reset-password')
-    // async resetPassword(
-    //   @Body() body: ResetPasswordDto,
-    //   @Req() req: Request | any,
-    // ) {
-    //   const response = await this.corporateService.resetPassword(
-    //     body.password,
-    //     body.confirmPassword,
-    //     req.session,
-    //   );
+    @Post('reset-password')
+    async resetPassword(
+      @AuthenticatedCorporate() corporate: AuthUser,
+      @Body() body: ResetPasswordDto,
+    ) {
+      const response = await this.corporateService.resetPassword(
+        corporate.id,
+        body
+      );
   
-    //   return new SuccessResponse('reset password successful', response);
-    // }
+      return new SuccessResponse('reset password successful', response);
+    }
   
-    // @Get('profile')
-    // @CorporateAuth()
-    // async getProfile(@AuthenticatedCorporate() resident: AuthUser) {
-    //   const response = await this.corporateService.getProfile(resident.id);
-    //   return new SuccessResponse('Resident details fetcted', response);
-    // }
+    @Get('profile')
+    @CorporateAuth()
+    async getProfile(@AuthenticatedCorporate() corporate: AuthUser) {
+      console.log(corporate)
+      const response = await this.corporateService.getProfile(corporate.id);
+      return new SuccessResponse('Corporate details fetcted', response);
+    }
   
-    // @Post('logout')
-    // @CorporateAuth()
-    // async logout(@AuthenticatedCorporate() resident: AuthUser) {
-    //   const response = await this.corporateService.logout(resident.token);
-    //   return new SuccessResponse(response.message, null);
-    // }
+    @Post('logout')
+    @CorporateAuth()
+    async logout(@AuthenticatedCorporate() corporate: AuthUser) {
+      const response = await this.corporateService.logout(corporate.token);
+      return new SuccessResponse(response.message, null);
+    }
   
-    // @Patch('profile-picture')
-    // @CorporateAuth()
-    // async updateProfilePicture(
-    //   @Body() body: ProfileDto,
-    //   @AuthenticatedCorporate() corporate: AuthUser,
-    // ) {
-    //   const response = await this.corporateService.updateProfilePicture(
-    //     corporate.id,
-    //     body.imageUrl,
-    //   );
-    //   return new SuccessResponse('profile picture updated', null);
-    // }
+    @Patch('profile-picture')
+    @CorporateAuth()
+    async updateProfilePicture(
+      @Body() body: ProfileDto,
+      @AuthenticatedCorporate() corporate: AuthUser,
+    ) {
+      const response = await this.corporateService.updateProfilePicture(
+        corporate.id,
+        body.imageUrl,
+      );
+      return new SuccessResponse('profile picture updated', null);
+    }
   
-    // @Post('apply-smart-bin')
-    // @CorporateAuth()
-    // async createSmartBinApplication(
-    //   @Body() body: CreateApplicationDto,
-    //   @AuthenticatedCorporate() corporate: AuthUser,
-    // ) {
-    //   const response = await this.corporateService.createBinApplication(body);
-    //   return new SuccessResponse(
-    //     'Application for smart bin submitted successfully',
-    //     response,
-    //   );
-    // }
-  
-    // @Get('smart-bin-applications')
-    // @CorporateAuth()
-    // async getAllCorporateBinApplications(
-    //   @AuthenticatedCorporate() resident: AuthUser,
-    // ) {
-    //   const response = await this.corporateService.getAllCorporateApplications(
-    //     resident.id,
-    //     resident.role,
-    //   );
-    //   return new SuccessResponse(
-    //     'Application for smart bin submitted successfully',
-    //     response,
-    //   );
-    // }
-  
-    // @Get('smart-bin-applications/:applicationId')
-    // @CorporateAuth()
-    // @UsePipes(new ValidationPipe({ transform: true }))
-    // async getApplicationDetails(
-    //   @AuthenticatedCorporate() corporate: AuthUser,
-    //   @Param() params: GetApplicationParamDto,
-    // ) {
-    //   const { applicationId } = params;
-    //   const response = await this.corporateService.getApplicationDetails(
-    //     applicationId,
-    //   );
-    //   return new SuccessResponse(
-    //     'Smart Bin application retrieved successfully',
-    //     response,
-    //   );
-    // }
 }
