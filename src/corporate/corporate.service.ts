@@ -214,6 +214,12 @@ export class CorporateService {
       payerId: business.payerId || null,
       fullName: `${business.firstName} ${business.lastName}` || null,
       email: business.email || null,
+      // address: business.address || null,
+      // landmark: business.landmark || null,
+      // nextPickupDate: business.nextPickupDate || null,
+      // accountNumber: business.accountNo || null,
+      // localGovermentArea: business.localGovermentArea || null,
+      // buildingType: business.buildingType || null,
     };
     return {
       message: 'Corporate profile retrieved successfully',
@@ -228,11 +234,10 @@ export class CorporateService {
   async requestPasswordReset(body: CorporateForgotPasswordDto) {
     const { email } = body;
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
-    const resetTokenExpires = new Date(Date.now() + 10 * 60 * 1000);
-    const expiry = 600000; // 10 minutes in milliseconds
+    const expiry = 600000;
 
     const business = await this.corporateModel.findOne({ email });
-    if (!business) {
+    if (business) {
       await this.cacheService.set(
         CacheKeys.CorporateLoginCode(String(resetCode)),
         String(business._id),
@@ -260,7 +265,7 @@ export class CorporateService {
       CacheKeys.CorporateLoginCode(code),
     );
 
-    const business = await this.corporateModel.findOne(businessId)
+    const business = await this.corporateModel.findById(businessId)
     if (!business) {
       throw new BadRequestException('Invalid Or Expired Reset Code');
     }
@@ -327,32 +332,6 @@ export class CorporateService {
       message: 'Business Dashboard details retrived successfully',
       data,
     };
-  }
-
-  async createBinApplication(
-    body: CreateApplicationDto & { businesstId: string },
-  ) {
-    const data = await this.smartBinService.createBinApplication({
-      accountId: body.businesstId,
-      accountType: UserRole.Corporate,
-      applicationData: body,
-    });
-    return data;
-  }
-
-  async getAllCorporateApplications(userId: string, role: string) {
-    const data = await this.smartBinService.getBinApplicationsByUserId(
-      userId,
-      role,
-    );
-    return data;
-  }
-
-  async getApplicationDetails (applicationId: string) {
-    const data = await this.smartBinService.getBinApplicationDetails(
-      applicationId,
-    );
-    return data;
   }
 
 

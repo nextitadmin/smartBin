@@ -47,15 +47,16 @@ export class CorporateAuthGuard implements CanActivate {
     }
 
     const corporate = await this.corporateService.getDetailsByToken(token);
-    if (!true) {
+    if (!corporate) {
       this.logger.warn('failed to auth: no user object in request');
       throw new UnauthorizedException('not authenticated!');
     }
 
-    req.user = {
+    req.corporate = {
       id: String(corporate._id),
       email: corporate.email,
       role: UserRole.Corporate,
+      token: token
     };
 
     return true;

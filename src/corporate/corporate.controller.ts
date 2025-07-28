@@ -50,7 +50,6 @@ export class CorporateController {
     @Post('verify-password-reset')
     async verifyReset(
       @Body() body: CorporateVerifyResetCodeDto,
-      @Req() req: Request | any,
     ) {
       const response = await this.corporateService.verifyPasswordResetCode(
         body,
@@ -74,6 +73,7 @@ export class CorporateController {
     @Get('profile')
     @CorporateAuth()
     async getProfile(@AuthenticatedCorporate() corporate: AuthUser) {
+      console.log(corporate)
       const response = await this.corporateService.getProfile(corporate.id);
       return new SuccessResponse('Corporate details fetcted', response);
     }
@@ -98,51 +98,4 @@ export class CorporateController {
       return new SuccessResponse('profile picture updated', null);
     }
   
-    @Post('apply-smart-bin')
-    @CorporateAuth()
-    async createSmartBinApplication(
-      @Body() body: CreateApplicationDto,
-      @AuthenticatedCorporate() corporate: AuthUser,
-    ) {
-      const response = await this.corporateService.createBinApplication(
-       { ...body,
-        businesstId: corporate.id,
-      });
-      return new SuccessResponse(
-        'Application for smart bin submitted successfully',
-        response,
-      );
-    }
-  
-    @Get('smart-bin-applications')
-    @CorporateAuth()
-    async getAllCorporateBinApplications(
-      @AuthenticatedCorporate() corporate: AuthUser,
-    ) {
-      const response = await this.corporateService.getAllCorporateApplications(
-        corporate.id,
-        corporate.role,
-      );
-      return new SuccessResponse(
-        'Application for smart bin submitted successfully',
-        response,
-      );
-    }
-  
-    @Get('smart-bin-applications/:applicationId')
-    @CorporateAuth()
-    @UsePipes(new ValidationPipe({ transform: true }))
-    async getApplicationDetails(
-      @AuthenticatedCorporate() corporate: AuthUser,
-      @Param() params: GetApplicationParamDto,
-    ) {
-      const { applicationId } = params;
-      const response = await this.corporateService.getApplicationDetails(
-        applicationId,
-      );
-      return new SuccessResponse(
-        'Smart Bin application retrieved successfully',
-        response,
-      );
-    }
 }
