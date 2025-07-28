@@ -33,6 +33,7 @@ import { ConfigAttributes } from '@src/config';
 import { ConfigService } from '@nestjs/config';
 import { comparePassword } from '@common/utils';
 import { JwtService } from '@nestjs/jwt';
+import { UserKyc } from '@models/user-kyc.model';
 
 @Injectable()
 export class FacilityManagerService {
@@ -41,6 +42,7 @@ export class FacilityManagerService {
     @InjectModel(FacilityManager.name)
     private facilityModel: Model<FacilityManagerDocument>,
     @InjectModel(Payer.name) private payerModel: Model<PayerDocument>,
+    @InjectModel(UserKyc.name) private userKycModel: Model<UserKyc>,
     private readonly configService: ConfigService<ConfigAttributes>,
     private readonly jwtService: JwtService,
     private ee: EventEmitter2,
@@ -73,6 +75,11 @@ export class FacilityManagerService {
       lastName: payer.lastName,
       email: payer.email,
       password: password,
+    });
+
+    await this.userKycModel.create({
+      userId: manager._id,
+      userType: UserRole.Facility,
     });
 
     this.ee.emit(
@@ -197,7 +204,6 @@ export class FacilityManagerService {
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
     const expiry = 600000;
 
-
     const manager = await this.facilityModel.findOne({ email });
     if (manager) {
       await this.cacheService.set(
@@ -252,7 +258,6 @@ export class FacilityManagerService {
     userId: string,
     param: { newPassword: string; confirmPassword: string },
   ) {
-
     if (
       param.newPassword !== param.confirmPassword ||
       param.newPassword.length < 6

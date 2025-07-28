@@ -24,6 +24,7 @@ import { SmartBin, SmartBinSchema } from '@models/smart-bin.model';
 import { Bill, BillSchema } from '@models/bill.model'
 import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
 import { TransactionModule } from '@src/transaction/transaction.module';
+import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 
 @Module({
   imports: [
@@ -36,7 +37,8 @@ import { TransactionModule } from '@src/transaction/transaction.module';
       { name: Agent.name, schema: AgentSchema },
       { name: FacilityManager.name, schema: FacilityManagerSchema },
       { name: SmartBin.name, schema: SmartBinSchema },
-      { name: Bill.name, schema: BillSchema }
+      { name: Bill.name, schema: BillSchema },
+      { name: UserKyc.name, schema: UserKycSchema }
 
     ]),
     SmartBinModule,

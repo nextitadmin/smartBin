@@ -37,7 +37,7 @@ import { UserRole } from '@models/types';
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 import { SmartBin } from '@models/smart-bin.model';
 import { ConfigService } from '@nestjs/config';
-import { create } from 'domain';
+import { UserKyc } from '@models/user-kyc.model';
 
 @Injectable()
 export class CorporateService {
@@ -46,6 +46,7 @@ export class CorporateService {
     @InjectModel(Corporate.name)
     private corporateModel: Model<CorporateDocument>,
     @InjectModel(Payer.name) private readonly payerModel: Model<PayerDocument>,
+    @InjectModel(UserKyc.name) private userKycModel: Model<UserKyc>,
     private ee: EventEmitter2,
     private jwtService: JwtService,
     private readonly configService: ConfigService,
@@ -82,6 +83,11 @@ export class CorporateService {
       email: payer.email,
       password: password,
       phoneNumber: payer.phoneNumber,
+    });
+
+     await this.userKycModel.create({
+      userId: newBusiness._id,
+      userType: UserRole.Corporate,
     });
 
     this.ee.emit(

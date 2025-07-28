@@ -9,6 +9,7 @@ import { Wallet, WalletSchema } from '@models/wallet.model';
 import { WalletService } from '@src/wallet/wallet.service';
 import { WalletModule } from '@src/wallet/wallet.module';
 import { TransactionService } from '@src/transaction/transaction.service';
+import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 
 @Module({
   imports: [
@@ -25,6 +26,10 @@ import { TransactionService } from '@src/transaction/transaction.service';
         name: Wallet.name,
         schema: WalletSchema,
       },
+      {
+        name: UserKyc.name,
+        schema: UserKycSchema
+      }
     ]),
     forwardRef(() => WalletModule),
   ],

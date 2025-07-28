@@ -18,6 +18,7 @@ import { ResidentService } from '@src/resident/resident.service';
 import { Payer, PayerSchema } from '@models/users/payer.model';
 import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
 import { CorporateModule } from '@src/corporate/corporate.module';
+import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { CorporateModule } from '@src/corporate/corporate.module';
       { name: Transaction.name, schema: TransactionSchema },
       { name: SmartBin.name, schema: SmartBinSchema },
       { name: Payer.name, schema: PayerSchema },
+      { name: UserKyc.name, schema: UserKycSchema }
     ]),
     SmartBinModule,
     CorporateModule,

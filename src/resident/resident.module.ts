@@ -13,6 +13,7 @@ import { FacilityManager, FacilityManagerSchema } from '@models/users/facility-m
 import { Bill, BillSchema } from '@models/bill.model'
 import { Wallet, WalletSchema } from '@models/wallet.model'
 import { Transaction, TransactionSchema } from '@models/transaction.model'
+import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 
 
 @Module({
@@ -53,7 +54,8 @@ import { Transaction, TransactionSchema } from '@models/transaction.model'
       {
         name: Transaction.name,
         schema: TransactionSchema
-      }
+      },
+      { name: UserKyc.name, schema: UserKycSchema }
     ]),
     SmartBinModule
   ],

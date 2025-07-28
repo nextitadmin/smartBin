@@ -33,6 +33,7 @@ import {
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 import { SmartBin } from '@models/smart-bin.model';
 import { comparePassword } from '@common/utils';
+import { UserKyc } from '@models/user-kyc.model';
 
 @Injectable()
 export class ResidentService {
@@ -43,6 +44,7 @@ export class ResidentService {
     private readonly jwtService: JwtService,
     @InjectModel(Resident.name)
     private readonly residentModel: Model<ResidentDocument>,
+    @InjectModel(UserKyc.name) private readonly userKycModel: Model<UserKyc>,
     @InjectModel(Payer.name) private readonly payerModel: Model<PayerDocument>,
     @InjectModel(SmartBin.name) private readonly smartBinModel: Model<SmartBin>,
     private ee: EventEmitter2,
@@ -77,6 +79,11 @@ export class ResidentService {
       password: password,
       phoneNumber: payer.phoneNumber,
     });
+
+    await this.userKycModel.create({
+      userId: newResident._id,
+      userType: UserRole.Resident
+    })
 
     this.ee.emit(
       MailNotificationEvents.Account.Welcome,

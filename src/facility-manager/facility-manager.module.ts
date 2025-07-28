@@ -12,12 +12,14 @@ import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
 import { FacilityController } from './facility/facility.controller';
 import { FacilityService } from './facility/facility.service';
+import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Payer.name, schema: PayerSchema },
       { name: FacilityManager.name, schema: FacilityManagerSchema },
+      { name: UserKyc.name, schema: UserKycSchema }
     ]),
     SmartBinModule,
   ],
