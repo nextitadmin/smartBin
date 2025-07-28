@@ -12,6 +12,12 @@ export class PaymentService {
     // );
   }
 
+  async handlePaymentNotification(notification: any): Promise<any> {
+    this.logger.log('Received payment notification', notification);
+    // Process the notification here
+    // For example, update the payment status in the database
+    return null;
+  }
   async verifyPayment(reference: string): Promise<any> {
     // const payload = {
     //   tx_ref: reference,
