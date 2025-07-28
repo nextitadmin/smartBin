@@ -17,10 +17,7 @@ export interface PickupAttributes {
   accountId: Types.ObjectId;
   accountType: UserRole;
   wasteId: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  date: Date;
+
   address: string;
   billReference?: string;
   description?: string;
@@ -88,18 +85,6 @@ export class Pickup {
   @Prop({ required: true })
   wasteId: string;
 
-  @Prop({ required: true })
-  firstName: string;
-
-  @Prop({ required: true })
-  lastName: string;
-
-  @Prop({ required: true })
-  email: string;
-
-  @Prop()
-  phoneNumber?: string;
-
   @Prop()
   residentLocation?: string;
 
@@ -115,7 +100,6 @@ export class Pickup {
   @Prop({
     type: SchemaTypes.String,
     enum: Object.values(PaymentMethod),
-    required: true,
   })
   paymentMethod?: PaymentMethod;
 
@@ -130,9 +114,6 @@ export class Pickup {
 
   @Prop()
   paymentDue?: Date;
-
-  @Prop()
-  location?: string;
 }
 
 export const PickupSchema = SchemaFactory.createForClass(Pickup);

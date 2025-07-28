@@ -76,7 +76,7 @@ export class PickupService {
   async getCorporatePickups(corporateId: string) {
     const query = {
       accountId: new Types.ObjectId(corporateId),
-      userType: UserRole.Corporate,
+      accountType: UserRole.Corporate,
     };
     const totalDocument = await this.pickupModel.countDocuments(query);
     const pickups = await this.pickupModel
