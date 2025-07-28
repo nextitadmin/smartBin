@@ -160,7 +160,7 @@ export class SmartBin extends Document {
   @Prop({ type: SchemaTypes.String, required: false })
   phoneNumber?: string;
 
-  @Prop({ type: SchemaTypes.Number, required: false })
+  @Prop({ type: SchemaTypes.Number, required: false, default: 100000})
   amount?: number;
 
   @Prop({ type: SchemaTypes.String, required: false })

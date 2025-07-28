@@ -31,7 +31,6 @@ import {
   ResetPasswordDto,
 } from './dto/resident.dto';
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
-import { date } from 'joi';
 import { SmartBin } from '@models/smart-bin.model';
 import { comparePassword } from '@common/utils';
 
