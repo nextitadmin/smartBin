@@ -38,7 +38,7 @@ export class SmartBinService {
   async getResidentBinApplication(residentId: string) {
     const [applications] = await Promise.all([
       this.smartbinModel
-        .find({ userId: residentId, userType: UserRole.Resident })
+        .find({ userId: new Types.ObjectId(residentId), customerType: UserRole.Resident })
         .sort({ createdAt: -1 })
         .lean(),
     ]);
