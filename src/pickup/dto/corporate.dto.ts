@@ -9,12 +9,12 @@ export class CorporateWasteMgtDto {
   nextPickupDate: Date;
   status: string;
 
-  constructor(data: Pickup) {
-    this.wasteId = data[0]._id;
-    this.branch = data.branch || '';
-    this.date = data.date;
-    this.address = data.address;
-    this.nextPickupDate = data.nextPickupDate || new Date();
-    this.status = data.status;
+  constructor(public data: Pickup) {
+    // this.wasteId = data[0]._id;
+    // this.branch = data.branch || '';
+    // this.date = data.date;
+    // this.address = data.address;
+    // this.nextPickupDate = data.nextPickupDate || new Date();
+    // this.status = data.status;
   }
 }

@@ -34,10 +34,10 @@ import { CacheKeys } from '@src/shared/constants';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { UserRole } from '@models/types';
-import { SmartBinService } from '@src/smart-bin/smart-bin.service';
-import { SmartBin } from '@models/smart-bin.model';
 import { ConfigService } from '@nestjs/config';
 import { UserKyc } from '@models/user-kyc.model';
+import { PickupService } from '@src/pickup/pickup.service';
+import { ConfigAttributes } from '@src/config';
 
 @Injectable()
 export class CorporateService {
@@ -49,9 +49,8 @@ export class CorporateService {
     @InjectModel(UserKyc.name) private userKycModel: Model<UserKyc>,
     private ee: EventEmitter2,
     private jwtService: JwtService,
-    private readonly configService: ConfigService,
-    @InjectModel(SmartBin.name) private readonly smartBinService: SmartBinService,
-  ) { }
+    private readonly configService: ConfigService<ConfigAttributes>,
+  ) {}
 
   async registerCorporate(body: CreateCorporateAccountDto) {
     const { password, payerId, businessName, confirmPassword } = body;
@@ -85,7 +84,7 @@ export class CorporateService {
       phoneNumber: payer.phoneNumber,
     });
 
-     await this.userKycModel.create({
+    await this.userKycModel.create({
       userId: newBusiness._id,
       userType: UserRole.Corporate,
     });
@@ -173,14 +172,16 @@ export class CorporateService {
     if (!business) {
       throw new BadRequestException('Invalid or expired login code');
     }
-    const secret = String(this.configService.get<string>('JWT_SECRET'));
+    const secret = String(
+      this.configService.get('jwt.secret', { infer: true }),
+    );
     const token = jwt.sign(
       {
         id: business._id,
         role: UserRole.Corporate,
         payerId: business.payerId,
         email: business.email,
-        businessName: business.businessName
+        businessName: business.businessName,
       },
       secret,
       { expiresIn: '7d' },
@@ -236,7 +237,6 @@ export class CorporateService {
     };
   }
 
-
   async requestPasswordReset(body: CorporateForgotPasswordDto) {
     const { email } = body;
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
@@ -271,7 +271,7 @@ export class CorporateService {
       CacheKeys.CorporateLoginCode(code),
     );
 
-    const business = await this.corporateModel.findById(businessId)
+    const business = await this.corporateModel.findById(businessId);
     if (!business) {
       throw new BadRequestException('Invalid Or Expired Reset Code');
     }
@@ -339,7 +339,6 @@ export class CorporateService {
       data,
     };
   }
-
 
   async getDetailsByToken(token: string) {
     const tokenDetails = await this.jwtService.decode(token);

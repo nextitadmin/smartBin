@@ -17,35 +17,22 @@ import { Transaction } from '@models/transaction.model';
 import { SmartBin } from '@models/smart-bin.model';
 import { UserRole } from '@models/types';
 import { Payer } from '@models/users/payer.model';
+import { Paging } from '@common/http';
+import { generateRandomChars } from '@common/utils';
 
 @Injectable()
 export class PickupService {
   constructor(
     @InjectModel(Pickup.name)
     private readonly pickupModel: Model<PickupDocument>,
-    @InjectModel(Agent.name) private readonly agentModel: Model<Agent>,
-    @InjectModel(Corporate.name)
-    private readonly corporateModel: Model<Corporate>,
-    @InjectModel(FacilityManager.name)
-    private readonly facilityManagerModel: Model<FacilityManager>,
-    @InjectModel(Resident.name) private readonly residentModel: Model<Resident>,
-    @InjectModel(Bill.name) private readonly billModel: Model<Bill>,
-    @InjectModel(Wallet.name) private readonly walletModel: Model<Wallet>,
-    @InjectModel(Transaction.name)
-    private readonly transactionModel: Model<Transaction>,
-    @InjectModel(SmartBin.name) private readonly smartBinModel: Model<SmartBin>,
   ) {}
 
   //  findAll pickups
-  async getAllPickups() {
-    const pickups = await this.pickupModel
-      .find()
+  async getAllPickups(accountId: Types.ObjectId) {
+    return await this.pickupModel
+      .find({ accountId })
       .sort({ createdAt: -1 })
       .lean();
-    if (!pickups || pickups.length === 0) {
-      throw new NotFoundException('No pickup requests found');
-    }
-    return pickups;
   }
 
   // resident pickups
@@ -60,66 +47,56 @@ export class PickupService {
       pickups,
     };
   }
+
   // For facility manager
   async getFacilityManagerPickups(facilityManagerId: string) {
-    const [facilityManager, pickups] = await Promise.all([
-      this.facilityManagerModel.findById(facilityManagerId).lean(),
-      this.pickupModel
-        .find({ userId: facilityManagerId, userType: UserRole.Facility })
-        .sort({ createdAt: -1 })
-        .lean(),
-    ]);
-    this.walletModel.findOne({
-      userId: facilityManagerId,
+    const query = {
+      accountId: new Types.ObjectId(facilityManagerId),
       userType: UserRole.Facility,
-    });
-    this.billModel.findOne({
-      userId: facilityManagerId,
-      userType: UserRole.Facility,
-    });
-    if (!facilityManager) {
-      throw new NotFoundException('Facility Manager not found');
-    }
-    if (!pickups) {
-      throw new NotFoundException(
-        'No pickup requests found for this facility manager',
-      );
-    }
+    };
+    const totalDocument = await this.pickupModel.countDocuments(query);
+    const pickups = await this.pickupModel
+      .find(query)
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const pagingMeta: Paging = {
+      page: 1,
+      pages: Math.ceil(totalDocument / 10), // Assuming 10 items per page
+      size: totalDocument,
+      total: totalDocument,
+    };
+
     return {
-      id: pickups[0]._id,
-      name:
-        pickups[0].customerName ||
-        facilityManager.firstName + ' ' + facilityManager.lastName,
-      address: pickups[0].address,
-      date: pickups[0].date,
-      representative: pickups[0].representative,
-      status: pickups[0].status || Status.Pending,
-      agentNote: pickups[0].agentNote,
-      time: pickups[0].time,
-      wasteId: pickups[0].wasteId,
-      issuedOn: pickups[0].issuedOn,
-      paymentDue: pickups[0].paymentDue,
-      billRef: pickups[0].billReference,
-      facilityManager,
-      pickups,
+      data: pickups,
+      paging: pagingMeta,
     };
   }
 
-  // For corporate
   async getCorporatePickups(corporateId: string) {
-    const [corporate] = await Promise.all([
-      this.pickupModel
-        .find({ userId: corporateId, userType: UserRole.Corporate })
-        .sort({ createdAt: -1 })
-        .lean(),
-    ]);
-    if (!corporate) {
-      throw new NotFoundException('Corporate not found');
-    }
+    const query = {
+      accountId: new Types.ObjectId(corporateId),
+      userType: UserRole.Corporate,
+    };
+    const totalDocument = await this.pickupModel.countDocuments(query);
+    const pickups = await this.pickupModel
+      .find(query)
+      .sort({ createdAt: -1 })
+      .lean();
+
+    const pagingMeta: Paging = {
+      page: 1,
+      pages: Math.ceil(totalDocument / 10), // Assuming 10 items per page
+      size: totalDocument,
+      total: totalDocument,
+    };
+
     return {
-      corporate,
+      data: pickups,
+      paging: pagingMeta,
     };
   }
+
   // For agent
   async getAgentPickups(agentId: string) {
     const [agent] = await Promise.all([
@@ -176,25 +153,16 @@ export class PickupService {
 
   //create pickup
   async createPickup(dto: CreatePickupDto) {
-    const { payerId, ...pickupData } = dto as CreatePickupDto & {
-      payerId: string;
-    };
+    const wasteId = `W#${generateRandomChars(12).toUpperCase()}`;
 
-    const user = await this.pickupModel.findById(payerId).lean();
-    if (!user) {
-      throw new NotFoundException(`User with ID ${payerId} not found`);
-    }
-
-    const customerType = user.customerType;
-
-    const newPickup = new this.pickupModel({
-      payerId: new Types.ObjectId(payerId),
-      ...pickupData,
-      customerType: customerType,
-      status: Status.Pending, // Default status
+    await this.pickupModel.create({
+      ...dto,
+      wasteId,
     });
 
-    await newPickup.save();
-    return newPickup;
+    return {
+      wasteId,
+      amount: 100000,
+    };
   }
 }

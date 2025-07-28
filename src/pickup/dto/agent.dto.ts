@@ -8,13 +8,13 @@ export class AgentWasteMgtDto {
   agentNote?: string;
   status: string;
 
-  constructor(data: Pickup) {
-    this.wasteId = data[0]._id;
-    this.date = data.date;
-    this.address = data.address;
-    this.representative = data.representative;
-    this.agentNote = data.agentNote;
-    this.status = data.status;
+  constructor(public data: Pickup) {
+    // this.wasteId = data[0]._id;
+    // this.date = data.date;
+    // this.address = data.address;
+    // this.representative = data.representative;
+    // this.agentNote = data.agentNote;
+    // this.status = data.status;
   }
 }
 export class AgentPickupDto {
@@ -25,12 +25,12 @@ export class AgentPickupDto {
   agentNote?: string;
   status: string;
 
-  constructor(data: Pickup) {
-    this.wasteId = data[0]._id;
-    this.date = data.date;
-    this.address = data.address;
-    this.representative = data.representative;
-    this.agentNote = data.agentNote;
-    this.status = data.status;
+  constructor(public data: Pickup) {
+    // this.wasteId = data[0]._id;
+    // this.date = data.date;
+    // this.address = data.address;
+    // this.representative = data.representative;
+    // this.agentNote = data.agentNote;
+    // this.status = data.status;
   }
 }

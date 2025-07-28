@@ -21,7 +21,7 @@ import { CorporateService } from '@src/corporate/corporate.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 import { SmartBin, SmartBinSchema } from '@models/smart-bin.model';
-import { Bill, BillSchema } from '@models/bill.model'
+import { Bill, BillSchema } from '@models/bill.model';
 import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
 import { TransactionModule } from '@src/transaction/transaction.module';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
@@ -38,14 +38,25 @@ import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
       { name: FacilityManager.name, schema: FacilityManagerSchema },
       { name: SmartBin.name, schema: SmartBinSchema },
       { name: Bill.name, schema: BillSchema },
-      { name: UserKyc.name, schema: UserKycSchema }
-
+      { name: UserKyc.name, schema: UserKycSchema },
     ]),
-    SmartBinModule,
-    TransactionModule,
+    // SmartBinModule,
+    // TransactionModule,
   ],
-  providers: [WalletService, TransactionService, ResidentService, CorporateService, FacilityManagerService, AgentService, SmartBinService],
-  controllers: [ResidentWalletController, FacilityWalletController, AgentController, ],
+  providers: [
+    WalletService,
+    TransactionService,
+    ResidentService,
+    CorporateService,
+    FacilityManagerService,
+    AgentService,
+    SmartBinService,
+  ],
+  controllers: [
+    ResidentWalletController,
+    FacilityWalletController,
+    AgentController,
+  ],
 
   exports: [WalletService],
 })

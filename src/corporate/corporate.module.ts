@@ -14,10 +14,18 @@ import { Agent, AgentSchema } from '@models/users/agent.model';
 import { Bill, BillSchema } from '@models/bill.model';
 import { Wallet, WalletSchema } from '@models/wallet.model';
 import { Transaction, TransactionSchema } from '@models/transaction.model';
-import { FacilityManager, FacilityManagerSchema } from '@models/users/facility-manager.model';
+import {
+  FacilityManager,
+  FacilityManagerSchema,
+} from '@models/users/facility-manager.model';
 import { SmartBinController } from './smart-bin/smart-bin.controller';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
-
+import { WasteManagementController } from './waste-management/waste-management.controller';
+import { PickupModule } from '@src/pickup/pickup.module';
+import { WasteManagementService } from './waste-management/waste-management.service';
+import { PickupService } from '@src/pickup/pickup.service';
+import { Pickup, PickupSchema } from '@models/pickup';
+import { WasteManagementModule } from '@src/waste-management/waste-management.module';
 
 @Module({
   imports: [
@@ -31,12 +39,25 @@ import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
       { name: Wallet.name, schema: WalletSchema },
       { name: Transaction.name, schema: TransactionSchema },
       { name: Resident.name, schema: ResidentSchema },
-      { name: UserKyc.name, schema: UserKycSchema }
+      { name: UserKyc.name, schema: UserKycSchema },
+      { name: Pickup.name, schema: PickupSchema },
     ]),
+    // WalletModule,
+    PickupModule,
     forwardRef(() => WalletModule),
   ],
-  controllers: [CorporateController, CorporateWalletController, SmartBinController],
-  providers: [CorporateService, TransactionService, SmartBinService],
+  controllers: [
+    CorporateController,
+    CorporateWalletController,
+    SmartBinController,
+    WasteManagementController,
+  ],
+  providers: [
+    CorporateService,
+    TransactionService,
+    SmartBinService,
+    WasteManagementService,
+  ],
   exports: [CorporateService],
 })
 export class CorporateModule {}
