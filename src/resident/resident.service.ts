@@ -7,7 +7,7 @@ import {
   Inject,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import * as jwt from 'jsonwebtoken';
 import { Resident, ResidentDocument } from '@models/users/resident.model';
 import { Payer, PayerDocument } from '@models/users/payer.model';
@@ -201,9 +201,11 @@ export class ResidentService {
     const resident = await this.residentModel
       .findById(residentId)
       .select(
-        'firstName lastName email profilePicture payerId landmark nextPickupDate accountNo localGovermentArea buildingType profilePicture phoneNumber nationality gender lawmaCustomerType address role',
+      'firstName lastName email profilePicture payerId landmark nextPickupDate accountNo localGovermentArea buildingType profilePicture phoneNumber nationality gender lawmaCustomerType address role',
       )
       .lean();
+
+    const userKyc = await this.userKycModel.findOne({ userId: new Types.ObjectId(residentId) }).lean();
 
     if (!resident) {
       throw new NotFoundException('Resident not found');
@@ -213,12 +215,12 @@ export class ResidentService {
       'https://res.cloudinary.com/demo/image/upload/avatar.png';
 
     const data = {
-      address: resident.address || null,
-      landmark: resident.landmark || null,
+      address: userKyc.address || null,
+      landmark: userKyc.closestLandmark || null,
       nextPickupDate: resident.nextPickupDate || null,
       accountNumber: resident.accountNo || null,
-      localGovermentArea: resident.localGovermentArea || null,
-      buildingType: resident.buildingType || null,
+      localGovermentArea: userKyc.localGovernment || null,
+      buildingType: userKyc.buildingType || null,
     };
     return {
       ...resident,

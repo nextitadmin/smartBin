@@ -6,7 +6,7 @@ import {
   Inject,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import {
@@ -187,16 +187,23 @@ export class FacilityManagerService {
   async getProfile(userId: string) {
     const manager = await this.facilityModel
       .findById(userId)
-      .select('_id firstName lastName profilePicture email');
+      .select('_id firstName lastName profilePicture email profilePicture payerId phoneNumber nationality gender lawmaCustomerType role');
+
+    const userKyc = await this.userKycModel.findOne({ userId: new Types.ObjectId(userId) }).lean();
     if (!manager) throw new NotFoundException('Manager not found');
 
     return {
       _id: manager._id,
       email: manager.email,
       fullName: `${manager.firstName} ${manager.lastName}`,
+      phoneNumber: manager.phoneNumber || null,
       profilePicture:
         manager.profilePicture ||
         'https://res.cloudinary.com/demo/image/upload/avatar.png',
+      address: userKyc.address || null,
+      landmark: userKyc.closestLandmark || null,
+      localGovermentArea: userKyc.localGovernment || null,
+      buildingType: userKyc.buildingType || null,
     };
   }
 

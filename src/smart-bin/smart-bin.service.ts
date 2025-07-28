@@ -53,7 +53,7 @@ export class SmartBinService {
       this.smartbinModel
         .find({
           userId: new Types.ObjectId(facilityManagerId),
-          userType: UserRole.Facility,
+          customerType: UserRole.Facility,
         })
         .sort({ createdAt: -1 })
         .lean(),
@@ -64,7 +64,7 @@ export class SmartBinService {
   async getAgentBinApplication(agentId: Types.ObjectId) {
     const [applications] = await Promise.all([
       this.smartbinModel
-        .find({ userId: new Types.ObjectId(agentId), userType: UserRole.Agent })
+        .find({ userId: new Types.ObjectId(agentId), customerType: UserRole.Agent })
         .sort({ createdAt: -1 })
         .lean(),
     ]);
@@ -75,7 +75,7 @@ export class SmartBinService {
   async getCorporateBinApplication(corporateId: string) {
     const [applications] = await Promise.all([
       this.smartbinModel
-        .find({ userId: new Types.ObjectId(corporateId), userType: UserRole.Corporate })
+        .find({ userId: new Types.ObjectId(corporateId), customerType: UserRole.Corporate })
         .sort({ createdAt: -1 })
         .lean(),
     ]);
