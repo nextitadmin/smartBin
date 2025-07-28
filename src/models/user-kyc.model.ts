@@ -17,20 +17,20 @@ export enum AddressVerificationStatus {
 export interface UserKycAttributes {
   userId: Types.ObjectId;
   userType: UserRole;
-  lawmaCustomerType: string;
-  ninNumber: string;
-  idDocument: string;
-  buildingType: string;
-  houseNumber: string;
-  flatNumber: string;
-  address: string;
-  localGovernment: string;
-  closestLandmark: string;
-  hasSubmittedPersonalInformation: boolean;
-  hasSubmittedIdentity: boolean;
-  hasSubmittedAddress: boolean;
-  identityVerificationStatus: '';
-  addressVerificationStatus: '';
+  lawmaCustomerType?: string;
+  ninNumber?: string;
+  idDocument?: string;
+  buildingType?: string;
+  houseNumber?: string;
+  flatNumber?: string;
+  address?: string;
+  localGovernment?: string;
+  closestLandmark?: string;
+  hasSubmittedPersonalInformation?: boolean;
+  hasSubmittedIdentity?: boolean;
+  hasSubmittedAddress?: boolean;
+  identityVerificationStatus?: IdVerificationStatus;
+  addressVerificationStatus?: AddressVerificationStatus;
   createdAt?: Date;
   updatedAt?: Date;
 }

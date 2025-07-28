@@ -15,6 +15,8 @@ import { Bill, BillSchema } from '@models/bill.model';
 import { Wallet, WalletSchema } from '@models/wallet.model';
 import { Transaction, TransactionSchema } from '@models/transaction.model';
 import { FacilityManager, FacilityManagerSchema } from '@models/users/facility-manager.model';
+import { SmartBinController } from './smart-bin/smart-bin.controller';
+import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 
 
 @Module({
@@ -28,11 +30,12 @@ import { FacilityManager, FacilityManagerSchema } from '@models/users/facility-m
       { name: Bill.name, schema: BillSchema },
       { name: Wallet.name, schema: WalletSchema },
       { name: Transaction.name, schema: TransactionSchema },
-      { name: Resident.name, schema: ResidentSchema }
+      { name: Resident.name, schema: ResidentSchema },
+      { name: UserKyc.name, schema: UserKycSchema }
     ]),
     forwardRef(() => WalletModule),
   ],
-  controllers: [CorporateController, CorporateWalletController],
+  controllers: [CorporateController, CorporateWalletController, SmartBinController],
   providers: [CorporateService, TransactionService, SmartBinService],
   exports: [CorporateService],
 })

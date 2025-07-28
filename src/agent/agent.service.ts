@@ -31,6 +31,7 @@ import {
 } from '@src/notification/dto/event';
 import { ConfigAttributes } from '@src/config';
 import { comparePassword } from '@common/utils';
+import { UserKyc } from '@models/user-kyc.model';
 
 @Injectable()
 export class AgentService {
@@ -39,6 +40,7 @@ export class AgentService {
     private readonly jwtService: JwtService,
     @InjectModel(Agent.name) private readonly agentModel: Model<AgentDocument>,
     @InjectModel(Payer.name) private readonly payerModel: Model<PayerDocument>,
+    @InjectModel(UserKyc.name) private readonly userKycModel: Model<UserKyc>,
     private readonly configService: ConfigService<ConfigAttributes>,
     private ee: EventEmitter2,
   ) {}
@@ -69,6 +71,11 @@ export class AgentService {
       lastName: payer.lastName,
       email: payer.email,
       password: password,
+    });
+
+    await this.userKycModel.create({
+      userId: newAgent._id,
+      userType: UserRole.Agent,
     });
 
     this.ee.emit(

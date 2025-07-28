@@ -4,7 +4,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Your LAWMA Payer ID</title>
+    <title>Bill Notice</title>
     <style>
       body {
         font-family: "Inter", sans-serif;
@@ -269,22 +269,16 @@
       <div class="content">
         <p class="greeting">Hello, <span class="capitalize">{{name}}</span></p>
 
-        <p>Your <strong>Payer ID</strong> has been successfully generated:</p>
-        <div class="otp-container">
-          <div class="otp-box" id="otpBox">
-            <span class="otp-text" id="otpText">{{payerId}}</span>
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <p class="content-line">
+            Your account shows an outstanding balance of ₦{{amount}} for waste management service
+            rendered for the past 30 days. Kindly settle this payment by <strong>{{dueDate}}</strong>.
+          </p>
+          <p>You can make payment via your Portal.</p>
+          <div class="button-container">
+            <a href="{{paymentLink}}" class="button">Make Payment</a>
           </div>
-          <img
-            src="/icons/copy.png"
-            alt="copy-otp"
-            id="copyIcon"
-            style="cursor: pointer"
-            title="Copy OTP"
-          />
         </div>
-        <p class="content-line">
-          Please keep this safe, as you'll need it to complete your KYC registration with LAWMA.
-        </p>
 
         <div class="salutation">
           <span>Regards,</span>

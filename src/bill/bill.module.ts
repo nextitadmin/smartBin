@@ -15,6 +15,7 @@ import { CorporateModule } from '@src/corporate/corporate.module';
 import { SmartBin, SmartBinSchema } from '@models/smart-bin.model';
 import { FacilityManagerService } from '@src/facility-manager/facility-manager.service';
 import { FacilityManager, FacilityManagerSchema } from '@models/users/facility-manager.model';
+import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 
 @Module({
   imports: [
@@ -24,7 +25,8 @@ import { FacilityManager, FacilityManagerSchema } from '@models/users/facility-m
       { name: Resident.name, schema: ResidentSchema },
       { name: Payer.name, schema: PayerSchema },
       { name: SmartBin.name, schema: SmartBinSchema },
-      { name: FacilityManager.name, schema: FacilityManagerSchema }
+      { name: FacilityManager.name, schema: FacilityManagerSchema },
+      { name: UserKyc.name, schema: UserKycSchema }
     ]),
     SmartBinModule,
     CorporateModule,

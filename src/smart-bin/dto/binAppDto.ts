@@ -106,3 +106,57 @@ export class CreateApplicationDto {
   @IsString()
   buildingName?: string;
 }
+
+
+export class CreateBusinessApplicationDto {
+  @ApiProperty()
+  @IsString()
+  firstName: string;
+
+  @ApiProperty()
+  @IsString()
+  surname: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  email?: string;
+
+  @ApiProperty()
+  @IsString()
+  phoneNumber?: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  payerId: string;
+
+  @ApiProperty()
+  @IsString()
+  address?: string;
+
+  @ApiProperty()
+  @IsString()
+  closestLandmark?: string;
+
+  @ApiProperty()
+  @IsString()
+  localGovernmentArea?: string;
+
+  @ApiProperty()
+  @IsString()
+  branch?: string;
+
+  @ApiProperty({ enum: LAWMACustomerType, required: false })
+  @IsOptional()
+  @IsEnum(LAWMACustomerType, {
+    message: `Lawma Customer Type must be either '${LAWMACustomerType.New}' or '${LAWMACustomerType.Returning}'`,
+  })
+  lawmaCustomerType?: LAWMACustomerType;
+
+  @ApiProperty({ enum: BinType, default: BinType.Smart })
+  @IsEnum(BinType, {
+    message: `Bin Type must be either '${BinType.Smart}' or '${BinType.Non_Smart}'`,
+  })
+  binType: BinType = BinType.Smart;
+}

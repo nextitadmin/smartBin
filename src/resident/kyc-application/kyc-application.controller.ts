@@ -1,64 +1,85 @@
 import {
-  AuthenticatedFacilityManager,
-  FacilityManagerAuth,
+  AuthenticatedResident,
+  ResidentAuth,
 } from '@common/decorators/auth.decorator';
 import { SuccessResponse } from '@common/http';
-import { FacilityManagerUser } from '@common/types';
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { ResidentUser } from '@common/types';
+import { Body, Controller, Get, Patch } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CreateApplicationDto } from '@src/smart-bin/dto/binAppDto';
-import { SmartBinService } from '@src/smart-bin/smart-bin.service';
+import { AddressVerificationDto, IdVerificationDto, PersonalInfoDto } from '@src/kyc/dto/kyc.dto';
+import { KycService } from '@src/kyc/kyc.service';
 
-@ApiTags('Facility Manager Smart Bin')
+@ApiTags('Resident Kyc Application')
 @Controller({
-  path: 'facility-managers/smart-bin',
+  path: 'resident/kyc',
   version: '1',
 })
-@FacilityManagerAuth()
-export class SmartBinController {
-  constructor(private readonly smartBinService: SmartBinService) {}
+@ResidentAuth()
+export class KycApplicationController {
+  constructor(private readonly kycService: KycService) {}
 
-  @Get('applications')
-  async getSmartBinApplications(
-    @AuthenticatedFacilityManager() facilityManager: FacilityManagerUser,
+  @Patch('personal-info')
+  async submitPersonalInformation(
+    @AuthenticatedResident() resident: ResidentUser,
+    @Body() dto: PersonalInfoDto,
   ) {
-    const response =
-      await this.smartBinService.getFacilityManagerBinApplication(
-        facilityManager.id,
-      );
-
-    return new SuccessResponse(
-      'Smart Bin applications retrieved successfully',
-      response,
-    );
-  }
-
-  @Post('applications')
-  async createSmartBinApplication(
-    @AuthenticatedFacilityManager() facilityManager: FacilityManagerUser,
-    @Body() dto: CreateApplicationDto,
-  ) {
-    const response = await this.smartBinService.createBinApplication({
-      accountId: facilityManager.id,
-      accountType: facilityManager.role,
-      applicationData: dto,
+    const response = await this.kycService.submitPersonalInformation({
+      userId: resident.id,
+      accountType: resident.role,
+      applicationData: dto
     });
 
     return new SuccessResponse(
-      'Smart Bin application created successfully',
+      'Personal Information submitted successfully',
       response,
     );
   }
 
-  @Get('applications/:id')
-  async getSmartBinApplicationById(
-    @AuthenticatedFacilityManager() facilityManager: FacilityManagerUser,
-    @Param('id') id: string,
+  @Patch('id-verification')
+  async idVerification(
+    @AuthenticatedResident() resident: ResidentUser,
+    @Body() dto: IdVerificationDto,
   ) {
-    const response = await this.smartBinService.getBinApplicationDetails(id);
+    const response = await this.kycService.idVerification({
+      userId: resident.id,
+      accountType: resident.role,
+      applicationData: dto
+    });
 
     return new SuccessResponse(
-      'Smart Bin application retrieved successfully',
+      'Identify Information submitted successfully',
+      response,
+    );
+  }
+
+  @Patch('address')
+  async addressVerification(
+    @AuthenticatedResident() resident: ResidentUser,
+    @Body() dto: AddressVerificationDto,
+  ) {
+    const response = await this.kycService.addressVerification({
+      userId: resident.id,
+      accountType: resident.role,
+      applicationData: dto
+    });
+
+    return new SuccessResponse(
+      'Address details submitted successfully',
+      response,
+    );
+  }
+
+  @Get('status')
+  async getKycApplicationStatus(
+    @AuthenticatedResident() resident: ResidentUser,
+  ) {
+    const response = await this.kycService.verifyKycStatus({
+      userId: resident.id,
+      accountType: resident.role,
+    });
+
+    return new SuccessResponse(
+      'Kyc status retrieved successfully',
       response,
     );
   }
