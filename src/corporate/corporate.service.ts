@@ -7,7 +7,7 @@ import {
   Inject,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import * as jwt from 'jsonwebtoken';
 import { Corporate, CorporateDocument } from '@models/users/corporate.model';
 import { comparePassword, generateOtpCode } from '@common/utils';
@@ -206,6 +206,7 @@ export class CorporateService {
   }
 
   async getProfile(userId: string) {
+    console.log("hereagain.....")
     const business = await this.corporateModel
       .findById(userId)
       .select('-password -loginCode -loginCodeExpires')
@@ -213,6 +214,8 @@ export class CorporateService {
     if (!business) {
       throw new NotFoundException('Corporate business not found');
     }
+
+    const userKyc = await this.userKycModel.findOne({ userId: new Types.ObjectId(userId) }).lean();
     const defaultAvatar =
       'https://res.cloudinary.com/demo/image/upload/avatar.png';
 
@@ -221,12 +224,12 @@ export class CorporateService {
       payerId: business.payerId || null,
       fullName: `${business.firstName} ${business.lastName}` || null,
       email: business.email || null,
-      // address: business.address || null,
-      // landmark: business.landmark || null,
-      // nextPickupDate: business.nextPickupDate || null,
-      // accountNumber: business.accountNo || null,
-      // localGovermentArea: business.localGovermentArea || null,
-      // buildingType: business.buildingType || null,
+      address: userKyc.address || null,
+      landmark: userKyc.closestLandmark || null,
+      nextPickupDate: null,
+      accountNumber:  null,
+      localGovermentArea: userKyc.localGovernment || null,
+      buildingType: userKyc.buildingType || null,
     };
     return {
       message: 'Corporate profile retrieved successfully',
