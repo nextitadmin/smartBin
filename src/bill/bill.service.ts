@@ -6,6 +6,7 @@ import {
 import { Bill, BillStatus, PaymentMethod } from '@models/bill.model';
 import { SuccessResponse } from '@common/http';
 import { InjectModel } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
 import { Model } from 'mongoose';
 import { PayBillDto, BillResponseDto, FacilityBillResponseDto, CorporateBillResponseDto } from './dtos/bill.dto';
 import { Resident } from '@models/users/resident.model';
@@ -226,7 +227,8 @@ export class BillService {
 
     async getCorporateBills(userId: string): Promise<SuccessResponse<CorporateBillResponseDto[]>> {
         const bills = await this.billModel
-            .find({ userId, userType: 'Corporate' })
+
+            .find({ userId: new Types.ObjectId(userId), userType: 'Corporate' })
             .sort({ dueDate: -1 })
             .lean();
 
@@ -253,7 +255,7 @@ export class BillService {
         const bill = await this.billModel.findOne({
             userId,
             billId: dto.billId,
-            userType: 'FacilityManager',
+            userType: 'Corporate',
         });
 
         if (!bill) throw new NotFoundException('Bill not found');

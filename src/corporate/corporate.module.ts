@@ -3,7 +3,7 @@ import { CorporateService } from './corporate.service';
 import { CorporateController } from './corporate.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Corporate, CorporateSchema } from '@models/users/corporate.model';
-import { CorporateWalletController } from './corporate-wallet.controller';
+import { CorporateWalletController } from './wallet.controller';
 import { WalletModule } from '@src/wallet/wallet.module';
 import { TransactionService } from '@src/transaction/transaction.service';
 import { Payer, PayerSchema } from '@models/users/payer.model';
@@ -14,6 +14,7 @@ import { Agent, AgentSchema } from '@models/users/agent.model';
 import { Bill, BillSchema } from '@models/bill.model';
 import { Wallet, WalletSchema } from '@models/wallet.model';
 import { Transaction, TransactionSchema } from '@models/transaction.model';
+import { CorporateBillController } from './bill/bill.controller';
 import {
   FacilityManager,
   FacilityManagerSchema,
@@ -26,6 +27,8 @@ import { WasteManagementService } from './waste-management/waste-management.serv
 import { PickupService } from '@src/pickup/pickup.service';
 import { Pickup, PickupSchema } from '@models/pickup';
 import { WasteManagementModule } from '@src/waste-management/waste-management.module';
+import { BillService } from '@src/bill/bill.service';
+import { BillController } from '@src/bill/bill.controller';
 
 @Module({
   imports: [
@@ -45,19 +48,24 @@ import { WasteManagementModule } from '@src/waste-management/waste-management.mo
     // WalletModule,
     PickupModule,
     forwardRef(() => WalletModule),
+
   ],
+
   controllers: [
     CorporateController,
     CorporateWalletController,
+    CorporateBillController,
     SmartBinController,
+    BillController,
     WasteManagementController,
   ],
   providers: [
     CorporateService,
     TransactionService,
     SmartBinService,
+    BillService,
     WasteManagementService,
   ],
   exports: [CorporateService],
 })
-export class CorporateModule {}
+export class CorporateModule { }

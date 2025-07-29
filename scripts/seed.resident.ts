@@ -19,9 +19,9 @@ async function bootstrap() {
 
 
 
-  const residents = await residentModel.find();
+  const residents = await corporateModel.find();
   if (residents.length === 0) {
-    console.warn('⚠️ No resident users found. Seed skipped.');
+    console.warn('⚠️ No Corporate users found. Seed skipped.');
     return;
   }
 

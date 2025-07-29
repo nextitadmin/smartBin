@@ -18,20 +18,6 @@ import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 export class SmartBinController {
   constructor(private readonly smartBinService: SmartBinService) { }
 
-  // @Get('applications')
-  // async getSmartBinApplications(
-  //   @AuthenticatedCorporate() corporate: CorporateUser,
-  // ) {
-  //   const response =
-  //     await this.smartBinService.getCorporateBinApplication(corporate.id);
-
-  //   return new SuccessResponse(
-  //     'Smart Bin applications retrieved successfully',
-  //     response,
-  //   );
-  // }
-
-
   @Get('applications')
   async getSmartBinApplications(
     @AuthenticatedCorporate() corporate: CorporateUser,

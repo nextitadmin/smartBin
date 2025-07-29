@@ -12,10 +12,12 @@ import { Corporate, CorporateSchema } from '@models/users/corporate.model';
 import { FacilityManager, FacilityManagerSchema } from '@models/users/facility-manager.model'
 import { Bill, BillSchema } from '@models/bill.model'
 import { Wallet, WalletSchema } from '@models/wallet.model'
+import { ResidentBillController } from './bill/bill.controller';
 import { Transaction, TransactionSchema } from '@models/transaction.model'
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { KycApplicationController } from './kyc-application/kyc-application.controller';
 import { KycModule } from '@src/kyc/kyc.module';
+import { BillService } from '@src/bill/bill.service';
 
 
 @Module({
@@ -62,8 +64,8 @@ import { KycModule } from '@src/kyc/kyc.module';
     SmartBinModule,
     KycModule
   ],
-  controllers: [ResidentController, KycApplicationController],
-  exports: [ResidentService, SmartBinService],
-  providers: [ResidentService, SmartBinService],
+  controllers: [ResidentController, KycApplicationController, ResidentBillController],
+  exports: [ResidentService, SmartBinService, BillService],
+  providers: [ResidentService, SmartBinService, BillService],
 })
 export class ResidentModule { }
