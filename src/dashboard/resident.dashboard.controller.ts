@@ -17,11 +17,10 @@ import { ApiTags } from '@nestjs/swagger';
 })
 export class DashboardController {
   constructor(private readonly dasboard: DashboardService) {}
-
-  @CorporateAuth()
-  @Get('corporate')
-  async getCorporateDashboard(@AuthenticatedCorporate() corporate:AuthUser) {
-    const response = await this.dasboard.getCorporateDashboard(corporate.id);
-    return new SuccessResponse('Corporate business dashboard retrieved successfully', response);
+  @ResidentAuth()
+  @Get('resident')
+  async getResidentDashboard(@AuthenticatedResident() resident:AuthUser) {
+    const response = await this.dasboard.getResidentDashboard(resident.id);
+    return new SuccessResponse('Resident dashboard retrieved successfully', response);
   }
 }
