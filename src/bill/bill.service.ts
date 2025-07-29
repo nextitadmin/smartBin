@@ -263,7 +263,7 @@ export class BillService {
       paidAt: bill.paidAt,
       branch: bill.branch,
     }));
-    console.log(Bills);
+
     return new SuccessResponse<CorporateBillResponseDto[]>(
       'Corporate Bills retrieved successfully',
       Bills,

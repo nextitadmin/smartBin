@@ -21,7 +21,6 @@ export class NotificationService {
 
   @OnEvent(MailNotificationEvents.Account.Welcome)
   async onAccountWelcome(event: SendEmailEvent) {
-    console.log('dfefs');
     const { from, context, to, subject } = event.data;
     await this.mailerService.sendMail({
       from,
@@ -34,7 +33,6 @@ export class NotificationService {
 
   @OnEvent(MailNotificationEvents.Account.ForgotPassword)
   async onAccountReset(event: SendEmailEvent) {
-    console.log('received envet');
     const { from, context, to, subject } = event.data;
     await this.mailerService.sendMail({
       from,

@@ -209,7 +209,6 @@ export class CorporateService {
   }
 
   async getProfile(userId: string) {
-    console.log('hereagain.....');
     const business = await this.corporateModel
       .findById(userId)
       .select('-password -loginCode -loginCodeExpires')

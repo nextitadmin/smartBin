@@ -18,7 +18,7 @@ export const mailerConfigOpts: any = {
     if (!smtp_host || !smtp_user || !smtp_password || !smtp_port) {
       throw new Error('Missing SMTP configuration values');
     }
-    console.log({ smtp_host, smtp_password }, 'passs');
+    
     return {
       transport: {
         host: smtp_host,
