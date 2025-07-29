@@ -10,14 +10,19 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { MediaService } from './media.service';
 import { SuccessResponse } from '@common/http';
+import { Public } from '@common/guards/public.guard';
+import { AuthGuard } from '@common/guards/actor.guard';
+import { Auth } from '@common/decorators/auth.decorator';
 
 @ApiTags('Media')
 @Controller({
   path: 'media',
   version: '1',
 })
+@Auth()
 export class MediaController {
   constructor(private readonly mediaService: MediaService) {}
+
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
   @ApiConsumes('multipart/form-data')
@@ -38,16 +43,17 @@ export class MediaController {
         .addFileTypeValidator({
           fileType: '.(png|jpeg|jpg)',
         })
-        .addMaxSizeValidator({ maxSize: 3000000, message:'File cannot be greater than 1MB' })
-        .build(
-          {
-            errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
-          }
-        ),
+        .addMaxSizeValidator({
+          maxSize: 3000000,
+          message: 'File cannot be greater than 1MB',
+        })
+        .build({
+          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+        }),
     )
     file: Express.Multer.File,
   ) {
     const response = await this.mediaService.fileUpload(file.buffer);
-    return new SuccessResponse(response.message, response);
+    return new SuccessResponse('file uploaded successful', response);
   }
 }

@@ -6,6 +6,7 @@ import {
   GetWalletResponseDto,
 } from '../wallet/dtos/wallet.dto';
 import {
+  Auth,
   AuthenticatedCorporate,
   CorporateAuth,
 } from '@common/decorators/auth.decorator';

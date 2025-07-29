@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { WalletService } from './wallet.service';
-import { ResidentWalletController } from './resident.wallet.controller';
 import { FacilityWalletController } from './facilityM.wallet.controller';
 import { AgentController } from '@src/agent/agent.controller';
 import { Wallet, WalletSchema } from '../models/wallet.model';
@@ -26,6 +25,7 @@ import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
 import { TransactionModule } from '@src/transaction/transaction.module';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { Branch, BranchSchema } from '@models/branch.model';
+import { WalletController } from './wallet.controller';
 
 @Module({
   imports: [
@@ -43,7 +43,7 @@ import { Branch, BranchSchema } from '@models/branch.model';
       { name: Branch.name, schema: BranchSchema }
     ]),
     // SmartBinModule,
-    // TransactionModule,
+    TransactionModule,
   ],
   providers: [
     WalletService,
@@ -54,11 +54,7 @@ import { Branch, BranchSchema } from '@models/branch.model';
     AgentService,
     SmartBinService,
   ],
-  controllers: [
-    ResidentWalletController,
-    FacilityWalletController,
-    AgentController,
-  ],
+  controllers: [WalletController, FacilityWalletController, AgentController],
 
   exports: [WalletService],
 })

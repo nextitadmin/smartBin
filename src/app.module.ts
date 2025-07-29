@@ -37,6 +37,7 @@ import { IntegrationsModule } from './integrations/integrations.module';
 import { WasteManagementModule } from './waste-management/waste-management.module';
 import { PickupModule } from './pickup/pickup.module';
 import { UtilityModule } from './utility/utility.module';
+import { AuthGuard } from '@common/guards/actor.guard';
 
 @Module({
   imports: [
@@ -87,6 +88,10 @@ import { UtilityModule } from './utility/utility.module';
     {
       provide: APP_GUARD,
       useValue: FacilityManagerAuthGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useValue: AuthGuard,
     },
   ],
 })

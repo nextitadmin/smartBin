@@ -11,6 +11,7 @@ import { FacilityManagerAuthGuard } from '../guards/facility-manager.guard';
 import { CorporateAuthGuard } from '../guards/corporate.guard';
 import { Request } from 'express';
 import { AuthUser } from '../types';
+import { AuthGuard } from '@common/guards/actor.guard';
 
 export function AgentAuth() {
   return applyDecorators(UseGuards(AgentAuthGuard));
@@ -26,6 +27,10 @@ export function FacilityManagerAuth() {
 
 export function CorporateAuth() {
   return applyDecorators(UseGuards(CorporateAuthGuard));
+}
+
+export function Auth() {
+  return applyDecorators(UseGuards(AuthGuard));
 }
 
 export const AuthenticatedAgent = createParamDecorator(
