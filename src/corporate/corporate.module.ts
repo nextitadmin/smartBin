@@ -49,7 +49,9 @@ import { DashboardModule } from '@src/dashboard/dashboard.module';
     ]),
     WalletModule,
     PickupModule,
-    forwardRef(() => WalletModule),
+    DashboardModule
+    // forwardRef(() => WalletModule),
+
   ],
 
   controllers: [
@@ -57,7 +59,6 @@ import { DashboardModule } from '@src/dashboard/dashboard.module';
     CorporateWalletController,
     CorporateBillController,
     SmartBinController,
-    BillController,
     WasteManagementController,
     DashboardController
   ],
