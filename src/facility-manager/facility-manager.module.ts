@@ -21,17 +21,18 @@ import { KycModule } from '@src/kyc/kyc.module';
     MongooseModule.forFeature([
       { name: Payer.name, schema: PayerSchema },
       { name: FacilityManager.name, schema: FacilityManagerSchema },
-      { name: UserKyc.name, schema: UserKycSchema }
+      { name: UserKyc.name, schema: UserKycSchema },
     ]),
     SmartBinModule,
-    KycModule
+    KycModule,
   ],
   controllers: [
     FacilityManagerController,
     SmartBinController,
     FacilityController,
-    KycApplicationController
+    KycApplicationController,
   ],
   providers: [FacilityManagerService, FacilityService],
+  exports: [FacilityManagerService, FacilityService],
 })
 export class FacilityManagerModule {}

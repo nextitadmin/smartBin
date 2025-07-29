@@ -9,18 +9,23 @@ import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
 import { SmartBin, SmartBinSchema } from '@models/smart-bin.model';
 import { Agent, AgentSchema } from '@models/users/agent.model';
 import { Corporate, CorporateSchema } from '@models/users/corporate.model';
-import { FacilityManager, FacilityManagerSchema } from '@models/users/facility-manager.model'
-import { Bill, BillSchema } from '@models/bill.model'
-import { Wallet, WalletSchema } from '@models/wallet.model'
+import {
+  FacilityManager,
+  FacilityManagerSchema,
+} from '@models/users/facility-manager.model';
+import { Bill, BillSchema } from '@models/bill.model';
+import { Wallet, WalletSchema } from '@models/wallet.model';
 import { ResidentBillController } from './bill/bill.controller';
-import { Transaction, TransactionSchema } from '@models/transaction.model'
+import { Transaction, TransactionSchema } from '@models/transaction.model';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { KycApplicationController } from './kyc-application/kyc-application.controller';
 import { KycModule } from '@src/kyc/kyc.module';
 import { BillService } from '@src/bill/bill.service';
 import { DashboardController } from './dashboard/dashboard.controller';
 import { DashboardModule } from '@src/dashboard/dashboard.module';
-
+import { CorporateModule } from '@src/corporate/corporate.module';
+import { AgentModule } from '@src/agent/agent.module';
+import { FacilityManagerModule } from '@src/facility-manager/facility-manager.module';
 
 @Module({
   imports: [
@@ -35,40 +40,45 @@ import { DashboardModule } from '@src/dashboard/dashboard.module';
       },
       {
         name: SmartBin.name,
-        schema: SmartBinSchema
+        schema: SmartBinSchema,
       },
       {
         name: Agent.name,
-        schema: AgentSchema
+        schema: AgentSchema,
       },
       {
         name: Corporate.name,
-        schema: CorporateSchema
+        schema: CorporateSchema,
       },
       {
         name: FacilityManager.name,
-        schema: FacilityManagerSchema
+        schema: FacilityManagerSchema,
       },
       {
         name: Bill.name,
-        schema: BillSchema
+        schema: BillSchema,
       },
       {
         name: Wallet.name,
-        schema: WalletSchema
+        schema: WalletSchema,
       },
       {
         name: Transaction.name,
-        schema: TransactionSchema
+        schema: TransactionSchema,
       },
-      { name: UserKyc.name, schema: UserKycSchema }
+      { name: UserKyc.name, schema: UserKycSchema },
     ]),
     SmartBinModule,
     KycModule,
-    DashboardModule
+    DashboardModule,
   ],
-  controllers: [ResidentController, KycApplicationController, ResidentBillController, DashboardController],
-  exports: [ResidentService, SmartBinService, BillService],
+  controllers: [
+    ResidentController,
+    KycApplicationController,
+    ResidentBillController,
+    DashboardController,
+  ],
   providers: [ResidentService, SmartBinService, BillService],
+  exports: [ResidentService, SmartBinService, BillService],
 })
-export class ResidentModule { }
+export class ResidentModule {}

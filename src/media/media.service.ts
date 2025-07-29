@@ -15,19 +15,16 @@ export class MediaService {
     });
   }
 
-  async fileUpload(
-    buffer: Buffer,
-  ): Promise<{ fileUrl: string; message: string }> {
+  async fileUpload(buffer: Buffer): Promise<{ fileUrl: string }> {
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
-          folder: 'avatar',
+          folder: 'media',
         },
         (error, result) => {
           if (error) return reject(error);
           resolve({
             fileUrl: result.secure_url,
-            message: 'file uploaded successfully',
           });
         },
       );
