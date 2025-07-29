@@ -10,7 +10,7 @@ export class CreateCorporateAccountDto {
 
   @ApiProperty()
   @IsNotEmpty()
-  businessName:string;
+  businessName: string;
 
   @ApiProperty()
   @IsString()
@@ -34,77 +34,77 @@ export class CorporateLoginDto {
   password: string;
 }
 
-export class ProfileDto{
+export class ProfileDto {
   @ApiProperty()
   imageUrl: string
 }
 
-export class CreateApplicationDto{
-    @ApiProperty()
-    @IsString()
-    firstName:string
+export class CreateApplicationDto {
+  @ApiProperty()
+  @IsString()
+  firstName: string
 
-    @ApiProperty()
-    @IsString()
-    surname:string
+  @ApiProperty()
+  @IsString()
+  surname: string
 
-    @ApiProperty()
-    @IsString()
-    @IsNotEmpty()
-    email?: string;
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  email?: string;
 
-    @ApiProperty()
-    @IsString()
-    phoneNumber?: string;
+  @ApiProperty()
+  @IsString()
+  phoneNumber?: string;
 
-    @ApiProperty()
-    @IsString()
-    @IsNotEmpty()
-    payerId: string;
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  payerId: string;
 
-    @ApiProperty()
-    @IsString()
-    buildingType?: string;
+  @ApiProperty()
+  @IsString()
+  buildingType?: string;
 
-    @ApiProperty()
-    @IsString()
-    houseName?: string;
+  @ApiProperty()
+  @IsString()
+  houseName?: string;
 
-    @ApiProperty()
-    @IsString()
-    houseNumber?: string;
+  @ApiProperty()
+  @IsString()
+  houseNumber?: string;
 
-    @ApiProperty()
-    @IsString()
-    flatNumber?: string;
+  @ApiProperty()
+  @IsString()
+  flatNumber?: string;
 
-    @ApiProperty()
-    @IsString()
-    address?: string;
+  @ApiProperty()
+  @IsString()
+  address?: string;
 
-    @ApiProperty()
-    @IsString()
-    closestLandmark?: string;
+  @ApiProperty()
+  @IsString()
+  closestLandmark?: string;
 
-    @ApiProperty()
-    @IsString()
-    localGovernmentArea?: string;
+  @ApiProperty()
+  @IsString()
+  localGovernmentArea?: string;
 
-    @ApiProperty()
-    @IsString()
-    lawmaCustomerType?: LAWMACustomerType;
+  @ApiProperty()
+  @IsString()
+  lawmaCustomerType?: LAWMACustomerType;
 
-    @ApiProperty()
-    @IsString()
-    binType: BinType;
+  @ApiProperty()
+  @IsString()
+  binType: BinType;
 
-    @ApiProperty()
-    @IsString()
-    buildingName?: string;
+  @ApiProperty()
+  @IsString()
+  buildingName?: string;
 
-    @ApiProperty()
-    @IsString()
-    amount?: string;
+  @ApiProperty()
+  @IsString()
+  amount?: string;
 
 }
 

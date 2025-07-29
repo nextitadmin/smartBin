@@ -1,9 +1,6 @@
 import { Module } from '@nestjs/common';
 import { BillService } from './bill.service';
 import { BillController } from './bill.controller';
-import { ResidentBillController } from './resident.bill.controller';
-import { CorporateBillController } from './corporate.bill.controller';
-import { FacilityBillController } from './facilityM.bill.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Bill, BillSchema } from '@models/bill.model';
 import { Wallet, WalletSchema } from '@models/wallet.model';
@@ -16,6 +13,7 @@ import { SmartBin, SmartBinSchema } from '@models/smart-bin.model';
 import { FacilityManagerService } from '@src/facility-manager/facility-manager.service';
 import { FacilityManager, FacilityManagerSchema } from '@models/users/facility-manager.model';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
+import { ResidentModule } from '@src/resident/resident.module';
 
 @Module({
   imports: [
@@ -30,12 +28,9 @@ import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
     ]),
     SmartBinModule,
     CorporateModule,
+    ResidentModule,
   ],
-  controllers: [
-    ResidentBillController,
-    CorporateBillController,
-    FacilityBillController,
-  ],
+  controllers: [],
   providers: [BillService, ResidentService, FacilityManagerService],
 })
-export class BillModule {}
+export class BillModule { }
