@@ -29,6 +29,8 @@ import { Pickup, PickupSchema } from '@models/pickup';
 import { WasteManagementModule } from '@src/waste-management/waste-management.module';
 import { BillService } from '@src/bill/bill.service';
 import { BillController } from '@src/bill/bill.controller';
+import { DashboardController } from './dashboard/dashboard.controller';
+import { DashboardModule } from '@src/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -45,10 +47,9 @@ import { BillController } from '@src/bill/bill.controller';
       { name: UserKyc.name, schema: UserKycSchema },
       { name: Pickup.name, schema: PickupSchema },
     ]),
-    // WalletModule,
+    WalletModule,
     PickupModule,
     forwardRef(() => WalletModule),
-
   ],
 
   controllers: [
@@ -58,6 +59,7 @@ import { BillController } from '@src/bill/bill.controller';
     SmartBinController,
     BillController,
     WasteManagementController,
+    DashboardController
   ],
   providers: [
     CorporateService,

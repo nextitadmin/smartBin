@@ -18,6 +18,8 @@ import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { KycApplicationController } from './kyc-application/kyc-application.controller';
 import { KycModule } from '@src/kyc/kyc.module';
 import { BillService } from '@src/bill/bill.service';
+import { DashboardController } from './dashboard/dashboard.controller';
+import { DashboardModule } from '@src/dashboard/dashboard.module';
 
 
 @Module({
@@ -62,9 +64,10 @@ import { BillService } from '@src/bill/bill.service';
       { name: UserKyc.name, schema: UserKycSchema }
     ]),
     SmartBinModule,
-    KycModule
+    KycModule,
+    DashboardModule
   ],
-  controllers: [ResidentController, KycApplicationController, ResidentBillController],
+  controllers: [ResidentController, KycApplicationController, ResidentBillController, DashboardController],
   exports: [ResidentService, SmartBinService, BillService],
   providers: [ResidentService, SmartBinService, BillService],
 })
