@@ -21,16 +21,19 @@ import { SuccessResponse } from '@common/http';
 export class CorporateWalletController {
   constructor(private readonly walletService: WalletService) {}
 
-  @Get('wallet')
+  @Get()
   async getWallet(@AuthenticatedCorporate() corporate: CorporateUser) {
     const response = await this.walletService.getWallet(corporate);
     return new SuccessResponse('Wallet retrieved', response);
   }
 
-  //   @Post('topup')
-  //   async topUp(@Req() req, @Body() dto: TopUpWalletDto) {
-  //     const userId = req.user.id;
-  //     const response = this.walletService.initiateTopUp(userId, 'Corporate', dto);
-  //     return new SuccessResponse(' Wallet topped up successfully', response);
+  @Post('topup')
+  async topUp(
+    @AuthenticatedCorporate() corporate: CorporateUser,
+    @Body() dto: TopUpWalletDto,
+  ) {
+    const response = await this.walletService.initiateTopUp(corporate, dto);
+    return new SuccessResponse('Wallet topped up successfully', response);
+  }
   //   }
 }

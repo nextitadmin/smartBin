@@ -127,7 +127,7 @@ export class WalletService {
     };
   }
 
-  async initiateTopUp(userId: string, role: UserRole, dto: TopUpWalletDto) {
+  async initiateTopUp(user: AuthUser, dto: TopUpWalletDto) {
     const transactionReference = `ALAT-${generateRandomChars(16, 'alphanum')}`;
     //   const userType = role.charAt(0).toUpperCase() + role.slice(1);
     //   let wallet = await this.walletModel.findOne({ userId });
