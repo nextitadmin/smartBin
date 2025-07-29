@@ -343,6 +343,16 @@ export class CorporateService {
     };
   }
 
+  async addBranch(userId: string, body: CreateApplicationDto) {
+
+    return {}
+  }
+
+  async fetchBranches(userId)
+  {
+    return {}
+  }
+
   async getDetailsByToken(token: string) {
     const tokenDetails = await this.jwtService.decode(token);
     if (!tokenDetails) {
