@@ -2,11 +2,15 @@ import {
   AuthenticatedCorporate,
   CorporateAuth,
 } from '@common/decorators/auth.decorator';
+import { PaginationQueryDto } from '@common/dto';
 import { SuccessResponse, PaginatedSuccessResponse } from '@common/http';
 import { CorporateUser, FacilityManagerUser } from '@common/types';
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CreateApplicationDto, CreateBusinessApplicationDto } from '@src/smart-bin/dto/binAppDto';
+import {
+  CreateApplicationDto,
+  CreateBusinessApplicationDto,
+} from '@src/smart-bin/dto/binAppDto';
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 
 @ApiTags('Corporate Smart Bin')
@@ -16,14 +20,14 @@ import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 })
 @CorporateAuth()
 export class SmartBinController {
-  constructor(private readonly smartBinService: SmartBinService) { }
+  constructor(private readonly smartBinService: SmartBinService) {}
 
   @Get('applications')
   async getSmartBinApplications(
     @AuthenticatedCorporate() corporate: CorporateUser,
-    @Query('page') page = '1',
-    @Query('limit') limit = '10',
+    @Query() query: PaginationQueryDto,
   ) {
+    const { page = '1', limit = '10' } = query;
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
 
@@ -44,7 +48,7 @@ export class SmartBinController {
   @Post('applications')
   async createSmartBinApplication(
     @AuthenticatedCorporate() corporate: CorporateUser,
-    @Body() dto: CreateBusinessApplicationDto
+    @Body() dto: CreateBusinessApplicationDto,
   ) {
     const response = await this.smartBinService.createBinApplication({
       accountId: corporate.id,

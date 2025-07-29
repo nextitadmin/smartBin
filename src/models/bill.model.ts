@@ -41,7 +41,6 @@ export class Bill implements BillAttributes {
   @Prop()
   branch: string;
 
-
   @Prop({ required: true })
   amount: number;
 
@@ -67,3 +66,7 @@ export class Bill implements BillAttributes {
 
 export type BillDocument = Bill & Document;
 export const BillSchema = SchemaFactory.createForClass(Bill);
+
+BillSchema.pre<BillDocument>('find', function () {
+  this.userId = new Types.ObjectId(this.userId);
+});

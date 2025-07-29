@@ -1,7 +1,19 @@
-import { BinType, LAWMACustomerType, PaymentMethod, SmartbinStatus } from '@models/smart-bin.model';
+import {
+  BinType,
+  LAWMACustomerType,
+  PaymentMethod,
+  SmartbinStatus,
+} from '@models/smart-bin.model';
 import { UserRole } from '@models/types';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsMongoId, IsString, MinLength, IsNotEmpty, IsNumber } from 'class-validator';
+import {
+  IsEmail,
+  IsMongoId,
+  IsString,
+  MinLength,
+  IsNotEmpty,
+  IsNumber,
+} from 'class-validator';
 
 export class CreateCorporateAccountDto {
   @ApiProperty()
@@ -36,17 +48,17 @@ export class CorporateLoginDto {
 
 export class ProfileDto {
   @ApiProperty()
-  imageUrl: string
+  imageUrl: string;
 }
 
 export class CreateApplicationDto {
   @ApiProperty()
   @IsString()
-  firstName: string
+  firstName: string;
 
   @ApiProperty()
   @IsString()
-  surname: string
+  surname: string;
 
   @ApiProperty()
   @IsString()
@@ -105,7 +117,6 @@ export class CreateApplicationDto {
   @ApiProperty()
   @IsString()
   amount?: string;
-
 }
 
 export class VerifyCorporateLogin {

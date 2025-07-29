@@ -25,14 +25,14 @@ export class AgentWalletController {
   @Get()
   @AgentAuth()
   async getWallet(@AuthenticatedAgent() agent: AuthUser) {
-    const response = await this.walletService.getWallet(agent.id);
+    const response = await this.walletService.getWallet(agent);
     return new SuccessResponse(' Wallet retrieved', response);
   }
 
-  @Post('topup')
-  async topUp(@Req() req, @Body() dto: TopUpWalletDto) {
-    const userId = req.user.id;
-    const response = this.walletService.initiateTopUp(userId, 'Agent', dto);
-    return new SuccessResponse(' Wallet topped up successfully', response);
-  }
+  // @Post('topup')
+  // async topUp(@Req() req, @Body() dto: TopUpWalletDto) {
+  //   const userId = req.user.id;
+  //   const response = this.walletService.initiateTopUp(userId, 'Agent', dto);
+  //   return new SuccessResponse(' Wallet topped up successfully', response);
+  // }
 }

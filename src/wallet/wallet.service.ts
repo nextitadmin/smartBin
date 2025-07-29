@@ -17,6 +17,8 @@ import { Transaction } from '@models/transaction.model';
 import { TransactionService } from '../transaction/transaction.service';
 import { SuccessResponse } from '@common/http';
 import { UserRole } from '@models/types';
+import { generateRandomChars } from '@common/utils';
+import { AuthUser } from '@common/types';
 
 @Injectable()
 export class WalletService {
@@ -107,51 +109,54 @@ export class WalletService {
 
   // to-do :Facility Managers-corporate
 
-  async getWallet(agentId: string): Promise<GetWalletResponseDto> {
-    const wallet = await this.walletModel
-      .findOne({ userId: new Types.ObjectId(agentId) })
+  async getWallet(user: AuthUser) {
+    let wallet = await this.walletModel
+      .findOne({ userId: new Types.ObjectId(user.id) })
       .lean();
-    if (!wallet) throw new NotFoundException('Wallet not found');
+    if (!wallet) {
+      wallet = await this.walletModel.create({
+        userId: new Types.ObjectId(user.id),
+        userType: user.role,
+        status: WalletStatus.Active,
+      });
+    }
 
     return {
-      ledger_balance: wallet.ledger_balance,
+      balance: wallet.available_balance,
       status: wallet.status,
     };
   }
 
-  // async initiateTopUp(userId: string, role: string, dto: TopUpWalletDto) {
-  //   const { amount } = dto;
-
-  //   const shortId = crypto.randomBytes(4).toString('hex').toUpperCase();
-  //   const reference = `ALAT-${shortId}`;
-  //   const userType = role.charAt(0).toUpperCase() + role.slice(1);
-
-  //   let wallet = await this.walletModel.findOne({ userId });
-  //   if (!wallet) {
-  //     wallet = await this.walletModel.create({
-  //       userId,
-  //       available_balance: 0,
-  //       ledger_balance: 0,
-  //     });
-  //   }
-
-  //   // create transaction
-  //   // await this.transactionService.createTransaction({
-  //   //   userId,
-  //   //   userType,
-  //   //   amount,
-  //   //   transactionReference: reference,
-  //   //   transactionID: reference,
-  //   //   status: 'pending',
-  //   //   action: 'wallet_topup',
-  //   //   service: 'Wallet Top-Up',
-  //   //   paymentMethod: 'Alat By Wema',
-  //   //   description: 'Wallet top-up via AlatPay',
-  //   // });
-
-  //   const mockPaymentUrl = `${process.env.BASE_URL}/api/wallets/mock-verify?reference=${reference}`;
-  //   return { reference, payment_url: mockPaymentUrl };
-  // }
+  async initiateTopUp(userId: string, role: UserRole, dto: TopUpWalletDto) {
+    const transactionReference = `ALAT-${generateRandomChars(16, 'alphanum')}`;
+    //   const userType = role.charAt(0).toUpperCase() + role.slice(1);
+    //   let wallet = await this.walletModel.findOne({ userId });
+    //   if (!wallet) {
+    //     wallet = await this.walletModel.create({
+    //       userId,
+    //       available_balance: 0,
+    //       ledger_balance: 0,
+    //     });
+    //   }
+    //   // create transaction
+    //   // await this.transactionService.createTransaction({
+    //   //   userId,
+    //   //   userType,
+    //   //   amount,
+    //   //   transactionReference: reference,
+    //   //   transactionID: reference,
+    //   //   status: 'pending',
+    //   //   action: 'wallet_topup',
+    //   //   service: 'Wallet Top-Up',
+    //   //   paymentMethod: 'Alat By Wema',
+    //   //   description: 'Wallet top-up via AlatPay',
+    //   // });
+    //   const mockPaymentUrl = `${process.env.BASE_URL}/api/wallets/mock-verify?reference=${reference}`;
+    return {
+      transactionReference,
+      callback: this.getWalletCallback(transactionReference),
+    };
+  }
 
   async getWalletCallback(reference: string) {
     const payment_url = `${process.env.BASE_URL}/api/wallets/mock-verify?reference=${reference}`;

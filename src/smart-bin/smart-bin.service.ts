@@ -14,7 +14,11 @@ import { FacilityManager } from '@models/users/facility-manager.model';
 import { Bill } from '@models/bill.model';
 import { Wallet } from '@models/wallet.model';
 import { ServiceType, Transaction } from '@models/transaction.model';
-import { BinAppDto, CreateApplicationDto } from './dto/binAppDto';
+import {
+  BinAppDto,
+  CreateApplicationDto,
+  CreateBusinessApplicationDto,
+} from './dto/binAppDto';
 import { SmartBinApplicationStatus, UserRole } from '@models/types';
 import { generateRandomChars } from '@common/utils';
 
@@ -32,7 +36,7 @@ export class SmartBinService {
     @InjectModel(Wallet.name) private readonly walletModel: Model<Wallet>,
     @InjectModel(Transaction.name)
     private readonly transactionModel: Model<Transaction>,
-  ) { }
+  ) {}
 
   // For Resident
   // async getResidentBinApplication(residentId: string) {
@@ -50,7 +54,6 @@ export class SmartBinService {
   //     applications,
   //   };
   // }
-
 
   async getResidentBinApplication(residentId: string, page = 1, limit = 10) {
     const skip = (page - 1) * limit;
@@ -122,7 +125,6 @@ export class SmartBinService {
 
   //   return applications;
   // }
-
 
   async getCorporateBinApplication(corporateId: string, page = 1, limit = 10) {
     const skip = (page - 1) * limit;
@@ -204,7 +206,7 @@ export class SmartBinService {
   }: {
     accountId: string;
     accountType: UserRole;
-    applicationData: CreateApplicationDto;
+    applicationData: CreateBusinessApplicationDto;
   }) {
     const generateTransactionRef = generateRandomChars(10, 'alphanum');
     const newBinApplication = new this.smartbinModel({
@@ -229,6 +231,9 @@ export class SmartBinService {
       userType: accountType,
       amount: newBinApplication.amount,
       service: ServiceType.SmartBinPurchase,
+      meta: {
+        branch: applicationData?.branch,
+      },
     });
 
     return {
