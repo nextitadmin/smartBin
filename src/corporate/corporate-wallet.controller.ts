@@ -5,7 +5,11 @@ import {
   TopUpWalletDto,
   GetWalletResponseDto,
 } from '../wallet/dtos/wallet.dto';
-import { CorporateAuth } from 'src/common/decorators/auth.decorator';
+import {
+  AuthenticatedCorporate,
+  CorporateAuth,
+} from '@common/decorators/auth.decorator';
+import { CorporateUser, FacilityManagerUser } from '@common/types';
 import { SuccessResponse } from '@common/http';
 
 @ApiTags('Corporate-Wallet')
@@ -16,13 +20,16 @@ import { SuccessResponse } from '@common/http';
   version: '1',
 })
 export class CorporateWalletController {
-  constructor(private readonly walletService: WalletService) {}
+  constructor(private readonly walletService: WalletService) { }
 
-  @Get()
-  async getWallet(@Req() req): Promise<SuccessResponse<GetWalletResponseDto>> {
-    const userId = req.user.id;
-    const response = await this.walletService.getWallet(userId);
-    return new SuccessResponse(' Wallet retrieved', response);
+
+
+  @Get('wallet')
+  @CorporateAuth()
+  async getWallet(@AuthenticatedCorporate() corporate: CorporateUser,
+  ): Promise<SuccessResponse<GetWalletResponseDto>> {
+    const response = await this.walletService.getWallet(corporate.id);
+    return new SuccessResponse('Wallet retrieved', response);
   }
 
   @Post('topup')

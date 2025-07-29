@@ -2,9 +2,9 @@ import {
   AuthenticatedCorporate,
   CorporateAuth,
 } from '@common/decorators/auth.decorator';
-import { SuccessResponse } from '@common/http';
+import { SuccessResponse, PaginatedSuccessResponse } from '@common/http';
 import { CorporateUser, FacilityManagerUser } from '@common/types';
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { CreateApplicationDto, CreateBusinessApplicationDto } from '@src/smart-bin/dto/binAppDto';
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
@@ -16,18 +16,42 @@ import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 })
 @CorporateAuth()
 export class SmartBinController {
-  constructor(private readonly smartBinService: SmartBinService) {}
+  constructor(private readonly smartBinService: SmartBinService) { }
+
+  // @Get('applications')
+  // async getSmartBinApplications(
+  //   @AuthenticatedCorporate() corporate: CorporateUser,
+  // ) {
+  //   const response =
+  //     await this.smartBinService.getCorporateBinApplication(corporate.id);
+
+  //   return new SuccessResponse(
+  //     'Smart Bin applications retrieved successfully',
+  //     response,
+  //   );
+  // }
+
 
   @Get('applications')
   async getSmartBinApplications(
     @AuthenticatedCorporate() corporate: CorporateUser,
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
   ) {
-    const response =
-      await this.smartBinService.getCorporateBinApplication(corporate.id);
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
 
-    return new SuccessResponse(
+    const { data, paging } =
+      await this.smartBinService.getCorporateBinApplication(
+        corporate.id,
+        pageNumber,
+        limitNumber,
+      );
+
+    return new PaginatedSuccessResponse(
       'Smart Bin applications retrieved successfully',
-      response,
+      data,
+      paging,
     );
   }
 

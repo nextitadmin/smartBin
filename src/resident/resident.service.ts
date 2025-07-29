@@ -48,7 +48,7 @@ export class ResidentService {
     @InjectModel(Payer.name) private readonly payerModel: Model<PayerDocument>,
     @InjectModel(SmartBin.name) private readonly smartBinModel: Model<SmartBin>,
     private ee: EventEmitter2,
-  ) {}
+  ) { }
 
   async registerResident(body: CreateResidentAccountDto) {
     const { payerId, password, confirmPassword } = body;
@@ -201,7 +201,7 @@ export class ResidentService {
     const resident = await this.residentModel
       .findById(residentId)
       .select(
-      'firstName lastName email profilePicture payerId landmark nextPickupDate accountNo localGovermentArea buildingType profilePicture phoneNumber nationality gender lawmaCustomerType address role',
+        'firstName lastName email profilePicture payerId landmark nextPickupDate accountNo localGovermentArea buildingType profilePicture phoneNumber nationality gender lawmaCustomerType address role',
       )
       .lean();
 
@@ -360,13 +360,10 @@ export class ResidentService {
     return data;
   }
 
-  async getAllResidentApplications(userId: string, role: string) {
-    const data = await this.smartBinService.getBinApplicationsByUserId(
-      userId,
-      role,
-    );
-    return data;
+  async getAllResidentApplications(userId: string, page = 1, limit = 10) {
+    return this.smartBinService.getResidentBinApplication(userId, page, limit);
   }
+
 
   async getApplicationDetails(applicationId: string) {
     const data = await this.smartBinService.getBinApplicationDetails(
