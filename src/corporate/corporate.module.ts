@@ -31,6 +31,7 @@ import { BillService } from '@src/bill/bill.service';
 import { BillController } from '@src/bill/bill.controller';
 import { DashboardController } from './dashboard/dashboard.controller';
 import { DashboardModule } from '@src/dashboard/dashboard.module';
+import { Branch, BranchSchema } from '@models/branch.model';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { DashboardModule } from '@src/dashboard/dashboard.module';
       { name: Resident.name, schema: ResidentSchema },
       { name: UserKyc.name, schema: UserKycSchema },
       { name: Pickup.name, schema: PickupSchema },
+      { name: Branch.name, schema: BranchSchema }
     ]),
     WalletModule,
     PickupModule,

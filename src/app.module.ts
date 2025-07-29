@@ -36,6 +36,7 @@ import { FacilityManagerModule } from './facility-manager/facility-manager.modul
 import { IntegrationsModule } from './integrations/integrations.module';
 import { WasteManagementModule } from './waste-management/waste-management.module';
 import { PickupModule } from './pickup/pickup.module';
+import { UtilityModule } from './utility/utility.module';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { PickupModule } from './pickup/pickup.module';
     DashboardModule,
     SmartBinModule,
     MediaModule,
+    UtilityModule,
     IntegrationsModule,
     PickupModule,
     // WasteManagementModule,

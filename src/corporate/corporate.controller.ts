@@ -19,6 +19,7 @@ import {
 } from '@common/decorators/auth.decorator';
 import { AuthUser } from '@common/types';
 import {
+  AddCorporateBranchDto,
   CorporateForgotPasswordDto,
   CorporateLoginDto,
   CorporateVerifyResetCodeDto,
@@ -120,12 +121,11 @@ export class CorporateController {
   @Post('add-branch')
   @CorporateAuth()
   async addBranch(
-    @Body() body: CreateApplicationDto,
+    @Body() body: AddCorporateBranchDto,
     @AuthenticatedCorporate() corporate: AuthUser,
-  
   ) {
     const response = await this.corporateService.addBranch(corporate.id, body);
-    return new SuccessResponse('success', null);
+    return new SuccessResponse('Branch added to corporation successfully', response);
   }
 
 
@@ -133,6 +133,6 @@ export class CorporateController {
   @CorporateAuth()
   async fetchBranches(@AuthenticatedCorporate() corporate: AuthUser) {
     const response = await this.corporateService.fetchBranches(corporate.id);
-    return new SuccessResponse('success', response);
+    return new SuccessResponse(response.message, response);
   }
 }
