@@ -28,7 +28,7 @@ export class WalletService {
     @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
     private readonly transactionService: TransactionService,
     private readonly configService: ConfigService<ConfigAttributes>,
-  ) {}
+  ) { }
 
   // Resident
   async getResidentWallet(

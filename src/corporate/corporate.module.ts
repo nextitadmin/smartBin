@@ -31,6 +31,9 @@ import { BillService } from '@src/bill/bill.service';
 import { BillController } from '@src/bill/bill.controller';
 import { DashboardController } from './dashboard/dashboard.controller';
 import { DashboardModule } from '@src/dashboard/dashboard.module';
+import { CorporateNotificationSettingsController } from './notifications/notification.controller';
+import { NotificationModule } from '@src/notification/notification.module';
+import { NotificationSettingsService } from '@src/notification/notification-setting.service';
 
 @Module({
   imports: [
@@ -49,8 +52,9 @@ import { DashboardModule } from '@src/dashboard/dashboard.module';
     ]),
     WalletModule,
     PickupModule,
-    DashboardModule
-    // forwardRef(() => WalletModule),
+    DashboardModule,
+    NotificationModule
+
 
   ],
 
@@ -60,14 +64,15 @@ import { DashboardModule } from '@src/dashboard/dashboard.module';
     CorporateBillController,
     SmartBinController,
     WasteManagementController,
-    DashboardController
+    DashboardController,
+    CorporateNotificationSettingsController
   ],
   providers: [
     CorporateService,
     TransactionService,
     SmartBinService,
     BillService,
-    WasteManagementService,
+    WasteManagementService
   ],
   exports: [CorporateService],
 })
