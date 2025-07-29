@@ -16,6 +16,8 @@ import { Transaction, TransactionSchema } from '@models/transaction.model'
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { KycApplicationController } from './kyc-application/kyc-application.controller';
 import { KycModule } from '@src/kyc/kyc.module';
+import { DashboardController } from './dashboard/dashboard.controller';
+import { DashboardModule } from '@src/dashboard/dashboard.module';
 
 
 @Module({
@@ -60,9 +62,10 @@ import { KycModule } from '@src/kyc/kyc.module';
       { name: UserKyc.name, schema: UserKycSchema }
     ]),
     SmartBinModule,
-    KycModule
+    KycModule,
+    DashboardModule
   ],
-  controllers: [ResidentController, KycApplicationController],
+  controllers: [ResidentController, KycApplicationController, DashboardController],
   exports: [ResidentService, SmartBinService],
   providers: [ResidentService, SmartBinService],
 })

@@ -17,7 +17,6 @@ import { Payer, PayerSchema } from '@models/users/payer.model';
 import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
 import { CorporateModule } from '@src/corporate/corporate.module';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
-import { DashboardController } from './dashboard.controller';
 import { CorporateService } from '@src/corporate/corporate.service';
 
 @Module({
@@ -34,10 +33,10 @@ import { CorporateService } from '@src/corporate/corporate.service';
       { name: Payer.name, schema: PayerSchema },
       { name: UserKyc.name, schema: UserKycSchema }
     ]),
-    SmartBinModule,
-    CorporateModule,
+    SmartBinModule
   ],
-  controllers: [DashboardController],
-  providers: [DashboardService, ResidentService, CorporateService],
+  controllers: [],
+  providers: [DashboardService],
+  exports: [DashboardService]
 })
 export class DashboardModule {}
