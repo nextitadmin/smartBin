@@ -26,6 +26,8 @@ import { WasteManagementService } from './waste-management/waste-management.serv
 import { PickupService } from '@src/pickup/pickup.service';
 import { Pickup, PickupSchema } from '@models/pickup';
 import { WasteManagementModule } from '@src/waste-management/waste-management.module';
+import { DashboardController } from './dashboard/dashboard.controller';
+import { DashboardModule } from '@src/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -42,15 +44,17 @@ import { WasteManagementModule } from '@src/waste-management/waste-management.mo
       { name: UserKyc.name, schema: UserKycSchema },
       { name: Pickup.name, schema: PickupSchema },
     ]),
-    // WalletModule,
+    WalletModule,
     PickupModule,
-    forwardRef(() => WalletModule),
+    DashboardModule
+    // forwardRef(() => WalletModule),
   ],
   controllers: [
     CorporateController,
     CorporateWalletController,
     SmartBinController,
     WasteManagementController,
+    DashboardController
   ],
   providers: [
     CorporateService,
