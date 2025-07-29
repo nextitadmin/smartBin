@@ -5,6 +5,7 @@ import {
   Patch,
   Body,
   Req,
+  Query,
   Res,
   UploadedFile,
   UseInterceptors,
@@ -36,7 +37,7 @@ import {
 } from './dto/resident.dto';
 
 import { ApiTags } from '@nestjs/swagger';
-import { SuccessResponse } from '@common/http';
+import { SuccessResponse, PaginatedSuccessResponse } from '@common/http';
 import { Public } from '@common/guards/public.guard';
 
 @ApiTags('Residents')
@@ -45,7 +46,7 @@ import { Public } from '@common/guards/public.guard';
   version: '1',
 })
 export class ResidentController {
-  constructor(private readonly residentService: ResidentService) {}
+  constructor(private readonly residentService: ResidentService) { }
 
   @Public()
   @Post('register')
@@ -156,20 +157,45 @@ export class ResidentController {
     );
   }
 
+  // @Get('smart-bin-applications')
+  // @ResidentAuth()
+  // async getAllResidentBinApplications(
+  //   @AuthenticatedResident() resident: AuthUser,
+  // ) {
+  //   const response = await this.residentService.getAllResidentApplications(
+  //     resident.id,
+  //     resident.role,
+  //   );
+  //   return new SuccessResponse(
+  //     'Application for smart bin submitted successfully',
+  //     response,
+  //   );
+  // }
+
+
   @Get('smart-bin-applications')
   @ResidentAuth()
   async getAllResidentBinApplications(
     @AuthenticatedResident() resident: AuthUser,
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
   ) {
-    const response = await this.residentService.getAllResidentApplications(
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+
+    const { data, paging } = await this.residentService.getAllResidentApplications(
       resident.id,
-      resident.role,
+      pageNumber,
+      limitNumber,
     );
-    return new SuccessResponse(
-      'Application for smart bin submitted successfully',
-      response,
+
+    return new PaginatedSuccessResponse(
+      'Smart bin applications retrieved successfully',
+      data,
+      paging,
     );
   }
+
 
   @Get('smart-bin-applications/:applicationId')
   @ResidentAuth()

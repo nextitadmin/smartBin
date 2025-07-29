@@ -1,24 +1,25 @@
 import { Controller, Get, Req, UseGuards, Param, Post, Body } from '@nestjs/common';
-import { BillService } from './bill.service';
-import { BillResponseDto, PayBillDto } from './dtos/bill.dto';
-import { ResidentAuth } from '@common/decorators/auth.decorator';
+import { BillService } from '@src/bill/bill.service';
+import { BillResponseDto, PayBillDto } from '@src/bill/dtos/bill.dto';
+import { ResidentAuth, AuthenticatedResident } from '@common/decorators/auth.decorator';
+import { ResidentUser } from '@common/types';
 import { SuccessResponse } from '@common/http';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 
-@ApiBearerAuth()
-@ApiTags('Bills')
-@ResidentAuth()
+
+@ApiTags('Resident-Bills')
 @Controller({
     path: '/resident/bills',
     version: '1',
 })
+
+@ResidentAuth()
 export class ResidentBillController {
     constructor(private readonly billService: BillService) { }
 
     @Get()
-    async getResidentBills(@Req() req): Promise<SuccessResponse<BillResponseDto[]>> {
-        const userId = req.user.id;
-        return await this.billService.getResidentBills(userId);
+    async getResidentBills(@AuthenticatedResident() resident: ResidentUser): Promise<SuccessResponse<BillResponseDto[]>> {
+        return await this.billService.getResidentBills(resident.id);
     }
 
     @Post(':billId/pay')

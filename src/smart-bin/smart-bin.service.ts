@@ -32,24 +32,55 @@ export class SmartBinService {
     @InjectModel(Wallet.name) private readonly walletModel: Model<Wallet>,
     @InjectModel(Transaction.name)
     private readonly transactionModel: Model<Transaction>,
-  ) {}
+  ) { }
 
   // For Resident
-  async getResidentBinApplication(residentId: string) {
-    const [applications] = await Promise.all([
+  // async getResidentBinApplication(residentId: string) {
+  //   const [applications] = await Promise.all([
+  //     this.smartbinModel
+  //       .find({
+  //         userId: new Types.ObjectId(residentId),
+  //         customerType: UserRole.Resident,
+  //       })
+  //       .sort({ createdAt: -1 })
+  //       .lean(),
+  //   ]);
+
+  //   return {
+  //     applications,
+  //   };
+  // }
+
+
+  async getResidentBinApplication(residentId: string, page = 1, limit = 10) {
+    const skip = (page - 1) * limit;
+    const [applications, total] = await Promise.all([
       this.smartbinModel
         .find({
           userId: new Types.ObjectId(residentId),
           customerType: UserRole.Resident,
         })
         .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
         .lean(),
+      this.smartbinModel.countDocuments({
+        userId: new Types.ObjectId(residentId),
+        customerType: UserRole.Resident,
+      }),
     ]);
 
     return {
-      applications,
+      data: applications,
+      paging: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        size: limit,
+      },
     };
   }
+
   // For FAcilityManager
   async getFacilityManagerBinApplication(facilityManagerId: string) {
     const [applications] = await Promise.all([
@@ -78,18 +109,49 @@ export class SmartBinService {
     return applications;
   }
   // For Corporate
-  async getCorporateBinApplication(corporateId: string) {
-    const [applications] = await Promise.all([
+  // async getCorporateBinApplication(corporateId: string) {
+  //   const [applications] = await Promise.all([
+  //     this.smartbinModel
+  //       .find({
+  //         userId: new Types.ObjectId(corporateId),
+  //         customerType: UserRole.Corporate,
+  //       })
+  //       .sort({ createdAt: -1 })
+  //       .lean(),
+  //   ]);
+
+  //   return applications;
+  // }
+
+
+  async getCorporateBinApplication(corporateId: string, page = 1, limit = 10) {
+    const skip = (page - 1) * limit;
+
+    const [applications, total] = await Promise.all([
       this.smartbinModel
         .find({
           userId: new Types.ObjectId(corporateId),
           customerType: UserRole.Corporate,
         })
         .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
         .lean(),
+      this.smartbinModel.countDocuments({
+        userId: new Types.ObjectId(corporateId),
+        customerType: UserRole.Corporate,
+      }),
     ]);
 
-    return applications;
+    return {
+      data: applications,
+      paging: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        size: limit,
+      },
+    };
   }
 
   private estimateAnnualSubscription(bills: Bill[]): number {
