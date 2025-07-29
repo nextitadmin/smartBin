@@ -36,7 +36,7 @@ export class SmartBinService {
     @InjectModel(Wallet.name) private readonly walletModel: Model<Wallet>,
     @InjectModel(Transaction.name)
     private readonly transactionModel: Model<Transaction>,
-  ) {}
+  ) { }
 
   // For Resident
   // async getResidentBinApplication(residentId: string) {

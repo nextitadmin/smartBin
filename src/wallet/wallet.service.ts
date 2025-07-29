@@ -19,10 +19,13 @@ import { SuccessResponse } from '@common/http';
 import { UserRole } from '@models/types';
 import { generateRandomChars } from '@common/utils';
 import { AuthUser } from '@common/types';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class WalletService {
-  constructor(@InjectModel(Wallet.name) private walletModel: Model<Wallet>) {}
+  constructor(@InjectModel(Wallet.name) private walletModel: Model<Wallet>,
+    private ee: EventEmitter2,
+  ) { }
 
   // Resident
   async getResidentWallet(
