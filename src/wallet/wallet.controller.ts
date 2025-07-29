@@ -1,24 +1,30 @@
-import { Controller, Get, Post, Body, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Req, Query } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { TopUpWalletDto, GetWalletResponseDto } from './dtos/wallet.dto';
+import {
+  TopUpWalletDto,
+  GetWalletResponseDto,
+  WalletMockVerifyDto,
+} from './dtos/wallet.dto';
 import { ResidentAuth } from 'src/common/decorators/auth.decorator';
 import { SuccessResponse } from '@common/http';
+import { Public } from '@common/guards/public.guard';
 
 @ApiTags('Wallet')
-@ApiBearerAuth()
-@ResidentAuth()
 @Controller({
-  path: 'resident/wallets',
+  path: 'wallets',
   version: '1',
 })
-export class ResidentWalletController {
+export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 
-  @Get()
-  async getWallet(@Req() req): Promise<SuccessResponse<GetWalletResponseDto>> {
-    const userId = req.user.id;
-    return this.walletService.getResidentWallet(userId);
+  @Public()
+  @Get('mock-verify')
+  async mockVerify(@Query() query: WalletMockVerifyDto) {
+    const response = await this.walletService.mockWalletCallback(
+      query.reference,
+    );
+    return new SuccessResponse('Wallet callback URL retrieved', response);
   }
 
   // @Post('topup')

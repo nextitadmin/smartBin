@@ -1,16 +1,14 @@
-import { IsNumber, Min, Max } from 'class-validator';
+import { IsNumber, Min, Max, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { WalletStatus } from "@models/wallet.model"
-
+import { WalletStatus } from '@models/wallet.model';
 
 export class GetWalletResponseDto {
   @ApiProperty()
   ledger_balance: number;
 
   @ApiProperty()
-  status: WalletStatus
+  status: WalletStatus;
 }
-
 
 export class TopUpWalletDto {
   @ApiProperty({ minimum: 100, maximum: 1000000 })
@@ -20,8 +18,6 @@ export class TopUpWalletDto {
   amount: number;
 }
 
-
-
 export class TopUpWalletResponseDto {
   @ApiProperty()
   reference: string;
@@ -30,6 +26,11 @@ export class TopUpWalletResponseDto {
   payment_url: string;
 }
 
+export class WalletMockVerifyDto {
+  @ApiProperty()
+  @IsString()
+  reference: string;
+}
 
 export class VerifyTopUpResponseDto {
   @ApiProperty()
