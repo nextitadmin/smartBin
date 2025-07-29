@@ -31,6 +31,7 @@ import { BillService } from '@src/bill/bill.service';
 import { BillController } from '@src/bill/bill.controller';
 import { DashboardController } from './dashboard/dashboard.controller';
 import { DashboardModule } from '@src/dashboard/dashboard.module';
+import { Branch, BranchSchema } from '@models/branch.model';
 import { CorporateNotificationSettingsController } from './notifications/notification.controller';
 import { NotificationModule } from '@src/notification/notification.module';
 import { NotificationSettingsService } from '@src/notification/notification-setting.service';
@@ -49,6 +50,7 @@ import { NotificationSettingsService } from '@src/notification/notification-sett
       { name: Resident.name, schema: ResidentSchema },
       { name: UserKyc.name, schema: UserKycSchema },
       { name: Pickup.name, schema: PickupSchema },
+      { name: Branch.name, schema: BranchSchema }
     ]),
     WalletModule,
     PickupModule,

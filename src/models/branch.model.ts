@@ -1,9 +1,9 @@
 import { SchemaTypes, Types } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
-
 export interface BranchAttributes {
   _id?: Types.ObjectId;
+  userId: Types.ObjectId;
   branchName: string;
   branchAddress: string;
   localGovernmentArea: string;
@@ -12,11 +12,16 @@ export interface BranchAttributes {
 }
 
 @Schema({
-  collection: 'states',
+  collection: 'corporate_branches',
   timestamps: true,
   versionKey: false,
 })
 export class Branch implements BranchAttributes {
+  @Prop({
+    required: true,
+    type: SchemaTypes.ObjectId,
+  })
+  userId: Types.ObjectId;
   @Prop({
     required: true,
     type: SchemaTypes.String,
@@ -47,4 +52,4 @@ export class Branch implements BranchAttributes {
   })
   state: string;
 }
-export const branchSchema = SchemaFactory.createForClass(Branch);
+export const BranchSchema = SchemaFactory.createForClass(Branch);

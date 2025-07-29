@@ -11,6 +11,7 @@ import {
 } from '@models/user-kyc.model';
 import {
   AddressVerificationDto,
+  CompanyInfoDto,
   IdVerificationDto,
   PersonalInfoDto,
 } from './dto/kyc.dto';
@@ -28,9 +29,8 @@ export class KycService {
   async submitPersonalInformation(dto: {
     userId: string;
     accountType: UserRole;
-    applicationData: PersonalInfoDto;
+    applicationData: PersonalInfoDto | CompanyInfoDto;
   }) {
-    console.log(dto.applicationData);
     if (dto.accountType === UserRole.Resident) {
       await this.residentModel.findByIdAndUpdate(
         new Types.ObjectId(dto.userId),
@@ -119,5 +119,25 @@ export class KycService {
       hasSubmittedAddress: userKyc.hasSubmittedAddress,
       hasSubmittedIdentity: userKyc.hasSubmittedIdentity
     };
+  }
+
+  async addSignatories(dto){
+    return {}
+  }
+
+  async addCorporateSignatory(dto){
+    return {}
+  }
+
+  async getAllSignatories(dto){
+    return {}
+  }
+
+  async updateSignatory(dto){
+    return {}
+  }
+
+  async removeSignatory(dto){
+    return {}
   }
 }

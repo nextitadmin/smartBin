@@ -28,6 +28,7 @@ import {
   ProfileDto,
   CreateApplicationDto,
   GetApplicationParamDto,
+  AddCorporateBranchDto,
 } from './dto/corporate.dto';
 import { Payer, PayerDocument } from '@models/users/payer.model';
 import { CacheKeys } from '@src/shared/constants';
@@ -38,6 +39,7 @@ import { ConfigService } from '@nestjs/config';
 import { UserKyc } from '@models/user-kyc.model';
 import { PickupService } from '@src/pickup/pickup.service';
 import { ConfigAttributes } from '@src/config';
+import { Branch } from '@models/branch.model';
 
 @Injectable()
 export class CorporateService {
@@ -47,6 +49,7 @@ export class CorporateService {
     private corporateModel: Model<CorporateDocument>,
     @InjectModel(Payer.name) private readonly payerModel: Model<PayerDocument>,
     @InjectModel(UserKyc.name) private userKycModel: Model<UserKyc>,
+    @InjectModel(Branch.name) private branchModel: Model<Branch>,
     private ee: EventEmitter2,
     private jwtService: JwtService,
     private readonly configService: ConfigService<ConfigAttributes>,
@@ -206,7 +209,6 @@ export class CorporateService {
   }
 
   async getProfile(userId: string) {
-    console.log('hereagain.....');
     const business = await this.corporateModel
       .findById(userId)
       .select('-password -loginCode -loginCodeExpires')
@@ -345,12 +347,23 @@ export class CorporateService {
     };
   }
 
-  async addBranch(userId: string, body: CreateApplicationDto) {
-    return {};
+  async addBranch(userId: string, body: AddCorporateBranchDto) {
+
+    const data = await this.branchModel.create({...body, userId: userId})
+
+    return {
+      message: 'Branch added to corporation successfully',
+      data
+    }
   }
 
-  async fetchBranches(userId) {
-    return {};
+  async fetchBranches(userId: string)
+  {
+    const data = await this.branchModel.find({userId: userId})
+    return {
+      message: "Corporation branches fetched successfully",
+      data
+    }
   }
 
   async getDetailsByToken(token: string) {

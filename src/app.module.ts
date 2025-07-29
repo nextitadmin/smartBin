@@ -34,8 +34,8 @@ import { FacilityManagerAuthGuard } from '@common/guards/facility-manager.guard'
 import { MediaModule } from './media/media.module';
 import { FacilityManagerModule } from './facility-manager/facility-manager.module';
 import { IntegrationsModule } from './integrations/integrations.module';
-import { WasteManagementModule } from './waste-management/waste-management.module';
 import { PickupModule } from './pickup/pickup.module';
+import { UtilityModule } from './utility/utility.module';
 import { AuthGuard } from '@common/guards/actor.guard';
 
 @Module({
@@ -65,6 +65,7 @@ import { AuthGuard } from '@common/guards/actor.guard';
     DashboardModule,
     SmartBinModule,
     MediaModule,
+    UtilityModule,
     IntegrationsModule,
     PickupModule,
     // WasteManagementModule,

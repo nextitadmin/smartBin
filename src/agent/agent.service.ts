@@ -121,7 +121,6 @@ export class AgentService {
 
     await agent.save();
 
-    console.log('Setting code', loginCode);
     await this.cacheService.set(
       CacheKeys.AgentLoginCode(String(loginCode)),
       String(agent._id),
@@ -147,7 +146,6 @@ export class AgentService {
       CacheKeys.AgentLoginCode(loginCode),
     );
 
-    console.log({ agentId });
     if (!agentId) {
       throw new BadRequestException('Session expired. Please log in again.');
     }
