@@ -21,10 +21,10 @@ export class ResidentWalletController {
     return this.walletService.getResidentWallet(userId);
   }
 
-  @Post('topup')
-  async topUp(@Req() req, @Body() dto: TopUpWalletDto) {
-    const userId = req.user.id;
-    const response = this.walletService.initiateResidentTopUp(userId, dto);
-    return new SuccessResponse(' Wallet topped up initiated', response);
-  }
+  // @Post('topup')
+  // async topUp(@Req() req, @Body() dto: TopUpWalletDto) {
+  //   const userId = req.user.id;
+  //   const response = this.walletService.initiateResidentTopUp(userId, dto);
+  //   return new SuccessResponse(' Wallet topped up initiated', response);
+  // }
 }

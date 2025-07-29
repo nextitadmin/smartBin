@@ -1,5 +1,6 @@
 import { Model, SchemaTypes, Types } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { UserRole } from './types';
 
 export enum WalletStatus {
   Pending = 'pending',
@@ -14,6 +15,7 @@ export enum SupportedCurrency {
 export interface WalletAttributes {
   _id?: string;
   userId: Types.ObjectId;
+  userType: UserRole;
   available_balance: number;
   ledger_balance: number;
   status: WalletStatus;
@@ -30,6 +32,12 @@ export class Wallet implements WalletAttributes {
     type: SchemaTypes.ObjectId,
   })
   userId: Types.ObjectId;
+
+  @Prop({
+    required: true,
+    enum: Object.values(UserRole),
+  })
+  userType: UserRole;
 
   @Prop({
     required: false,

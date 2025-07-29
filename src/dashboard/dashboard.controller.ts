@@ -20,15 +20,21 @@ export class DashboardController {
 
   @CorporateAuth()
   @Get('corporate')
-  async getCorporateDashboard(@AuthenticatedCorporate() corporate:AuthUser) {
+  async getCorporateDashboard(@AuthenticatedCorporate() corporate: AuthUser) {
     const response = await this.dasboard.getCorporateDashboard(corporate.id);
-    return new SuccessResponse('Corporate business dashboard retrieved successfully', response);
+    return new SuccessResponse(
+      'Corporate business dashboard retrieved successfully',
+      response,
+    );
   }
 
   @ResidentAuth()
   @Get('resident')
-  async getResidentDashboard(@AuthenticatedResident() resident:AuthUser) {
+  async getResidentDashboard(@AuthenticatedResident() resident: AuthUser) {
     const response = await this.dasboard.getResidentDashboard(resident.id);
-    return new SuccessResponse('Resident dashboard retrieved successfully', response);
+    return new SuccessResponse(
+      'Resident dashboard retrieved successfully',
+      response,
+    );
   }
 }

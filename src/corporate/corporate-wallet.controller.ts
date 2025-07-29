@@ -5,11 +5,14 @@ import {
   TopUpWalletDto,
   GetWalletResponseDto,
 } from '../wallet/dtos/wallet.dto';
-import { CorporateAuth } from 'src/common/decorators/auth.decorator';
+import {
+  AuthenticatedCorporate,
+  CorporateAuth,
+} from 'src/common/decorators/auth.decorator';
 import { SuccessResponse } from '@common/http';
+import { CorporateUser } from '@common/types';
 
 @ApiTags('Corporate-Wallet')
-@ApiBearerAuth()
 @CorporateAuth()
 @Controller({
   path: 'corporate/wallets',
@@ -19,16 +22,21 @@ export class CorporateWalletController {
   constructor(private readonly walletService: WalletService) {}
 
   @Get()
-  async getWallet(@Req() req): Promise<SuccessResponse<GetWalletResponseDto>> {
-    const userId = req.user.id;
-    const response = await this.walletService.getWallet(userId);
+  async getWallet(@AuthenticatedCorporate() corporate: CorporateUser) {
+    const response = await this.walletService.getWallet(corporate.id);
     return new SuccessResponse(' Wallet retrieved', response);
   }
 
   @Post('topup')
-  async topUp(@Req() req, @Body() dto: TopUpWalletDto) {
-    const userId = req.user.id;
-    const response = this.walletService.initiateTopUp(userId, 'Corporate', dto);
+  async topUp(
+    @AuthenticatedCorporate() corporate: CorporateUser,
+    @Body() dto: TopUpWalletDto,
+  ) {
+    const response = await this.walletService.initiateTopUp(
+      corporate.id,
+      'Corporate',
+      dto,
+    );
     return new SuccessResponse(' Wallet topped up successfully', response);
   }
 }

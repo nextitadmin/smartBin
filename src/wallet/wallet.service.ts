@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Wallet } from '@models/wallet.model';
+import { Wallet, WalletStatus } from '@models/wallet.model';
 import {
   TopUpWalletDto,
   TopUpWalletResponseDto,
@@ -16,6 +16,7 @@ import * as crypto from 'crypto';
 import { Transaction } from '@models/transaction.model';
 import { TransactionService } from '../transaction/transaction.service';
 import { SuccessResponse } from '@common/http';
+import { UserRole } from '@models/types';
 
 @Injectable()
 export class WalletService {
@@ -37,27 +38,32 @@ export class WalletService {
     });
   }
 
-  async initiateResidentTopUp(
-    userId: string,
-    dto: TopUpWalletDto,
-  ): Promise<SuccessResponse<TopUpWalletResponseDto>> {
+  async initiateTopup({
+    accountId,
+    accountType,
+    dto,
+  }: {
+    accountId: string;
+    dto: TopUpWalletDto;
+    accountType: UserRole;
+  }) {
     const { amount } = dto;
 
     const shortId = crypto.randomBytes(4).toString('hex').toUpperCase();
     const reference = `ALAT-${shortId}`;
 
     let wallet = await this.walletModel.findOne({
-      userId,
-      userType: 'Resident',
+      userId: accountId,
+      userType: accountType,
     });
 
     if (!wallet) {
       wallet = await this.walletModel.create({
-        userId,
-        userType: 'Resident',
+        userId: accountId,
+        userType: accountType,
         available_balance: 0,
         ledger_balance: 0,
-        status: 'Active',
+        status: WalletStatus.Active,
       });
     }
 
@@ -74,12 +80,10 @@ export class WalletService {
     //   description: 'Wallet top-up via AlatPay',
     // });
 
-    const payment_url = `${process.env.BASE_URL}/api/wallets/mock-verify?reference=${reference}`;
-
-    return new SuccessResponse('Top-up initiated', {
+    return {
       reference,
-      payment_url,
-    });
+      ...this.getWalletCallback(reference),
+    };
   }
 
   // async verifyTopUp(reference: string) {
@@ -115,42 +119,46 @@ export class WalletService {
     };
   }
 
-  async initiateTopUp(
-    userId: Types.ObjectId,
-    role: string,
-    dto: TopUpWalletDto,
-  ) {
-    const { amount } = dto;
+  // async initiateTopUp(userId: string, role: string, dto: TopUpWalletDto) {
+  //   const { amount } = dto;
 
-    const shortId = crypto.randomBytes(4).toString('hex').toUpperCase();
-    const reference = `ALAT-${shortId}`;
-    const userType = role.charAt(0).toUpperCase() + role.slice(1);
+  //   const shortId = crypto.randomBytes(4).toString('hex').toUpperCase();
+  //   const reference = `ALAT-${shortId}`;
+  //   const userType = role.charAt(0).toUpperCase() + role.slice(1);
 
-    let wallet = await this.walletModel.findOne({ userId });
-    if (!wallet) {
-      wallet = await this.walletModel.create({
-        userId,
-        available_balance: 0,
-        ledger_balance: 0,
-      });
-    }
+  //   let wallet = await this.walletModel.findOne({ userId });
+  //   if (!wallet) {
+  //     wallet = await this.walletModel.create({
+  //       userId,
+  //       available_balance: 0,
+  //       ledger_balance: 0,
+  //     });
+  //   }
 
-    // create transaction
-    // await this.transactionService.createTransaction({
-    //   userId,
-    //   userType,
-    //   amount,
-    //   transactionReference: reference,
-    //   transactionID: reference,
-    //   status: 'pending',
-    //   action: 'wallet_topup',
-    //   service: 'Wallet Top-Up',
-    //   paymentMethod: 'Alat By Wema',
-    //   description: 'Wallet top-up via AlatPay',
-    // });
+  //   // create transaction
+  //   // await this.transactionService.createTransaction({
+  //   //   userId,
+  //   //   userType,
+  //   //   amount,
+  //   //   transactionReference: reference,
+  //   //   transactionID: reference,
+  //   //   status: 'pending',
+  //   //   action: 'wallet_topup',
+  //   //   service: 'Wallet Top-Up',
+  //   //   paymentMethod: 'Alat By Wema',
+  //   //   description: 'Wallet top-up via AlatPay',
+  //   // });
 
-    const mockPaymentUrl = `${process.env.BASE_URL}/api/wallets/mock-verify?reference=${reference}`;
-    return { reference, payment_url: mockPaymentUrl };
+  //   const mockPaymentUrl = `${process.env.BASE_URL}/api/wallets/mock-verify?reference=${reference}`;
+  //   return { reference, payment_url: mockPaymentUrl };
+  // }
+
+  async getWalletCallback(reference: string) {
+    const payment_url = `${process.env.BASE_URL}/api/wallets/mock-verify?reference=${reference}`;
+    return {
+      paymentCallbackUrl: payment_url,
+      method: 'GET',
+    };
   }
 
   // async verifyTopUp(reference: string) {
