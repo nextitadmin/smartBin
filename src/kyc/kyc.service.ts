@@ -116,6 +116,8 @@ export class KycService {
     return {
       identityVerificationStatus: userKyc.identityVerificationStatus,
       addressVerificationStatus: userKyc.addressVerificationStatus,
+      hasSubmittedAddress: userKyc.hasSubmittedAddress,
+      hasSubmittedIdentity: userKyc.hasSubmittedIdentity
     };
   }
 }
