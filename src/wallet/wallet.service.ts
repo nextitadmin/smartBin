@@ -13,18 +13,21 @@ import {
   GetWalletResponseDto,
 } from './dtos/wallet.dto';
 import * as crypto from 'crypto';
-import { Transaction } from '@models/transaction.model';
+import { ServiceType, Transaction } from '@models/transaction.model';
 import { TransactionService } from '../transaction/transaction.service';
 import { SuccessResponse } from '@common/http';
 import { UserRole } from '@models/types';
 import { generateRandomChars } from '@common/utils';
 import { AuthUser } from '@common/types';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { ConfigService } from '@nestjs/config';
+import { ConfigAttributes } from '@src/config';
 
 @Injectable()
 export class WalletService {
-  constructor(@InjectModel(Wallet.name) private walletModel: Model<Wallet>,
-    private ee: EventEmitter2,
+  constructor(
+    @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
+    private readonly transactionService: TransactionService,
+    private readonly configService: ConfigService<ConfigAttributes>,
   ) { }
 
   // Resident
@@ -131,37 +134,53 @@ export class WalletService {
   }
 
   async initiateTopUp(user: AuthUser, dto: TopUpWalletDto) {
-    const transactionReference = `ALAT-${generateRandomChars(16, 'alphanum')}`;
+    const transactionReference = `ALAT-${generateRandomChars(
+      16,
+      'alphanum',
+    ).toUpperCase()}`;
     //   const userType = role.charAt(0).toUpperCase() + role.slice(1);
-    //   let wallet = await this.walletModel.findOne({ userId });
-    //   if (!wallet) {
-    //     wallet = await this.walletModel.create({
-    //       userId,
-    //       available_balance: 0,
-    //       ledger_balance: 0,
-    //     });
-    //   }
+    let wallet = await this.walletModel.findOne({
+      userId: new Types.ObjectId(user.id),
+    });
+    if (!wallet) {
+      wallet = await this.walletModel.create({
+        userId: user.id,
+        available_balance: 0,
+        ledger_balance: 0,
+      });
+    }
     //   // create transaction
-    //   // await this.transactionService.createTransaction({
-    //   //   userId,
-    //   //   userType,
-    //   //   amount,
-    //   //   transactionReference: reference,
-    //   //   transactionID: reference,
-    //   //   status: 'pending',
-    //   //   action: 'wallet_topup',
-    //   //   service: 'Wallet Top-Up',
-    //   //   paymentMethod: 'Alat By Wema',
-    //   //   description: 'Wallet top-up via AlatPay',
-    //   // });
-    //   const mockPaymentUrl = `${process.env.BASE_URL}/api/wallets/mock-verify?reference=${reference}`;
+    const response = await this.transactionService.initiateTransaction({
+      userId: user.id,
+      userType: user.role,
+      amount: dto.amount,
+      reference: transactionReference,
+      service: ServiceType.WalletTopUp,
+      walletId: String(wallet._id),
+      metadata: {
+        description: 'Wallet top-up via AlatPay',
+        paymentMethod: 'Alat By Wema',
+      },
+    });
+    if (!response.success) {
+      throw new BadRequestException(response.message);
+    }
+
     return {
       transactionReference,
       callback: this.getWalletCallback(transactionReference),
     };
   }
 
-  async getWalletCallback(reference: string) {
+  async mockWalletCallback(reference: string) {
+    if (this.configService.get('nodeEnv') === 'production') {
+      throw new UnauthorizedException();
+    }
+
+    await this.transactionService.mockTransactionPaid(reference);
+  }
+
+  getWalletCallback(reference: string) {
     const payment_url = `${process.env.BASE_URL}/api/wallets/mock-verify?reference=${reference}`;
     return {
       paymentCallbackUrl: payment_url,

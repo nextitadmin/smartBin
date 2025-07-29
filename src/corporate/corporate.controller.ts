@@ -116,4 +116,23 @@ export class CorporateController {
     );
     return new SuccessResponse('profile picture updated', null);
   }
+
+  @Post('add-branch')
+  @CorporateAuth()
+  async addBranch(
+    @Body() body: CreateApplicationDto,
+    @AuthenticatedCorporate() corporate: AuthUser,
+  
+  ) {
+    const response = await this.corporateService.addBranch(corporate.id, body);
+    return new SuccessResponse('success', null);
+  }
+
+
+  @Get('fetch-branches')
+  @CorporateAuth()
+  async fetchBranches(@AuthenticatedCorporate() corporate: AuthUser) {
+    const response = await this.corporateService.fetchBranches(corporate.id);
+    return new SuccessResponse('success', response);
+  }
 }

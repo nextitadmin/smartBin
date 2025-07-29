@@ -206,7 +206,7 @@ export class CorporateService {
   }
 
   async getProfile(userId: string) {
-    console.log("hereagain.....")
+    console.log('hereagain.....');
     const business = await this.corporateModel
       .findById(userId)
       .select('-password -loginCode -loginCodeExpires')
@@ -215,7 +215,9 @@ export class CorporateService {
       throw new NotFoundException('Corporate business not found');
     }
 
-    const userKyc = await this.userKycModel.findOne({ userId: new Types.ObjectId(userId) }).lean();
+    const userKyc = await this.userKycModel
+      .findOne({ userId: new Types.ObjectId(userId) })
+      .lean();
     const defaultAvatar =
       'https://res.cloudinary.com/demo/image/upload/avatar.png';
 
@@ -224,12 +226,12 @@ export class CorporateService {
       payerId: business.payerId || null,
       fullName: `${business.firstName} ${business.lastName}` || null,
       email: business.email || null,
-      address: userKyc.address || null,
-      landmark: userKyc.closestLandmark || null,
+      address: userKyc?.address || null,
+      landmark: userKyc?.closestLandmark || null,
       nextPickupDate: null,
-      accountNumber:  null,
-      localGovermentArea: userKyc.localGovernment || null,
-      buildingType: userKyc.buildingType || null,
+      accountNumber: null,
+      localGovermentArea: userKyc?.localGovernment || null,
+      buildingType: userKyc?.buildingType || null,
     };
     return {
       message: 'Corporate profile retrieved successfully',
@@ -341,6 +343,14 @@ export class CorporateService {
       message: 'Business Dashboard details retrived successfully',
       data,
     };
+  }
+
+  async addBranch(userId: string, body: CreateApplicationDto) {
+    return {};
+  }
+
+  async fetchBranches(userId) {
+    return {};
   }
 
   async getDetailsByToken(token: string) {

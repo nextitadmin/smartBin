@@ -152,3 +152,31 @@ export class GetApplicationParamDto {
   @IsString()
   applicationId: string;
 }
+
+export class AddCorporateBranchDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  branchName: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  branchAddress: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  lgaId: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  closestLandmark: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  stateId: string;
+}
+

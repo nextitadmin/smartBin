@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaTypes, Types } from 'mongoose';
 
 import { UserRole } from './types';
+import { Wallet } from './wallet.model';
 
 export enum TransactionStatus {
   Abandoned = 'abandoned',
@@ -31,6 +32,7 @@ export enum ServiceType {
 export interface TransactionAttributes {
   userId: Types.ObjectId;
   userType: UserRole;
+  walletId?: Types.ObjectId;
   amount: number;
   transactionReference: string;
   status: TransactionStatus;
@@ -42,13 +44,19 @@ export interface TransactionAttributes {
   completedAt?: Date;
 }
 
-@Schema({ timestamps: { createdAt: true, updatedAt: false } })
+@Schema({ timestamps: true })
 export class Transaction implements TransactionAttributes {
   @Prop({
     type: SchemaTypes.ObjectId,
     required: true,
   })
   userId: Types.ObjectId;
+
+  @Prop({
+    type: SchemaTypes.ObjectId,
+    ref: Wallet.name,
+  })
+  walletId: Types.ObjectId;
 
   @Prop({
     type: String,
@@ -62,7 +70,6 @@ export class Transaction implements TransactionAttributes {
 
   @Prop({ required: true, unique: true })
   transactionReference: string;
-
 
   @Prop({
     type: String,
@@ -82,7 +89,7 @@ export class Transaction implements TransactionAttributes {
     type: String,
     enum: Object.values(PaymentMethod),
     required: true,
-    default: PaymentMethod.Wallet
+    default: PaymentMethod.Wallet,
   })
   paymentMethod: PaymentMethod;
 
