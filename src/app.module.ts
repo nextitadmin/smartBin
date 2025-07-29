@@ -37,6 +37,7 @@ import { IntegrationsModule } from './integrations/integrations.module';
 import { WasteManagementModule } from './waste-management/waste-management.module';
 import { PickupModule } from './pickup/pickup.module';
 import { AuthGuard } from '@common/guards/actor.guard';
+import { SupportModule } from './support/support.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { AuthGuard } from '@common/guards/actor.guard';
     MediaModule,
     IntegrationsModule,
     PickupModule,
+    SupportModule,
     // WasteManagementModule,
   ],
   controllers: [AppController],

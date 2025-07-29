@@ -30,7 +30,7 @@ export class CorporateNotificationSettingsController {
         return new SuccessResponse('Notification settings retrieved', settings);
     }
 
-    @Put()
+    @Put('settings')
     async updateCorporateSettings(
         @AuthenticatedCorporate() corporate: CorporateUser,
         @Body() dto: UpdateNotificationSettingsDto

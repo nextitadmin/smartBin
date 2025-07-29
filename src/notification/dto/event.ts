@@ -11,6 +11,9 @@ export const MailNotificationEvents = Object.freeze({
     LowWalletBalance: 'notification.wallet.low',
     GeneralAppUpdate: 'notification.app.update',
   },
+  Support: {
+    NewRequest: 'support.new.request',
+  },
 });
 
 export enum Templates {
@@ -22,13 +25,15 @@ export enum Templates {
   SmartBinUpdate = 'smartbin-update',
   LowWalletBalance = 'low-balance',
   GeneralAppUpdate = 'app-update',
+  SupportRequest = 'support-request',
 }
 
 export interface SendEmailEventData {
-  from?: string;
   to: string;
+  from: string;
   subject: string;
-  context: Record<string, any>;
+  context: any;
+  replyTo?: string; // ✅ Add this line
 }
 
 export class SendEmailEvent {

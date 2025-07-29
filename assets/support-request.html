@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Support Message</title>
+    <style>
+        body {
+            font-family: "Inter", sans-serif;
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 40px auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+        }
+
+        .header {
+            background-color: #2e6eeb;
+            color: #fff;
+            padding: 20px 30px;
+            font-size: 1.2em;
+            font-weight: 600;
+        }
+
+        .message-body {
+            padding: 30px;
+            color: #333;
+        }
+
+        .message-box {
+            background-color: #f4f7ff;
+            border-left: 4px solid #2e6eeb;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 20px;
+            white-space: pre-line;
+        }
+
+        .info-row {
+            margin-bottom: 12px;
+            font-size: 0.95em;
+        }
+
+        .info-row strong {
+            display: inline-block;
+            min-width: 110px;
+            color: #555;
+        }
+
+        .footer {
+            padding: 20px 30px;
+            text-align: center;
+            font-size: 0.85em;
+            color: #aaa;
+            border-top: 1px solid #eee;
+        }
+
+        @media only screen and (max-width: 480px) {
+            .container {
+                margin: 20px 10px;
+            }
+
+            .message-body {
+                padding: 20px;
+            }
+
+            .header,
+            .footer {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            You've received a new support message
+        </div>
+
+        <div class="message-body">
+            <div class="info-row"><strong>From:</strong> {{ fullName }}</div>
+            <div class="info-row"><strong>Email:</strong> {{ email }}</div>
+            <div class="info-row"><strong>Phone:</strong> {{ phoneNumber }}</div>
+
+            <div class="info-row"><strong>Message:</strong></div>
+            <div class="message-box">{{ message }}</div>
+        </div>
+
+        <div class="footer">
+            This message was submitted via the LAWMA support form.
+        </div>
+    </div>
+</body>
+
+</html>

@@ -8,8 +8,6 @@ export class UpdateNotificationSettingsDto {
     @IsBoolean()
     sms?: boolean;
 
-
-
     @ApiProperty()
     @IsOptional()
     @IsBoolean()
@@ -25,12 +23,10 @@ export class UpdateNotificationSettingsDto {
     @IsBoolean()
     appUpdates?: boolean;
 
-
     @ApiProperty()
     @IsOptional()
     @IsBoolean()
     smartBinUpdates?: boolean;
-
 
     @ApiProperty()
     @IsOptional()

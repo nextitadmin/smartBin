@@ -70,6 +70,57 @@ export class NotificationService {
       subject,
     });
   }
+
+
+
+  @OnEvent(MailNotificationEvents.Application.GeneralAppUpdate)
+  async onAppUpdate(event: SendEmailEvent) {
+    const { from, context, to, subject } = event.data;
+    await this.mailerService.sendMail({
+      from,
+      template: Templates.GeneralAppUpdate,
+      to,
+      context,
+      subject,
+    });
+  }
+
+
+
+
+  @OnEvent(MailNotificationEvents.Application.LowWalletBalance)
+  async onLowBalance(event: SendEmailEvent) {
+    const { from, context, to, subject } = event.data;
+    await this.mailerService.sendMail({
+      from,
+      template: Templates.LowWalletBalance,
+      to,
+      context,
+      subject,
+    });
+  }
+
+  @OnEvent(MailNotificationEvents.Support.NewRequest)
+  async onSupportRequest(event: SendEmailEvent, file?: Express.Multer.File) {
+    await this.mailerService.sendMail({
+      to: event.data.to,
+      from: event.data.from,
+      subject: event.data.subject,
+      context: event.data.context,
+      template: Templates.SupportRequest,
+      attachments: file
+        ? [
+          {
+            filename: file.originalname,
+            content: file.buffer,
+            contentType: file.mimetype,
+          },
+        ]
+        : [],
+    });
+
+  }
+
   // @OnEvent(MailNotificationEvents.Account.VerificationOTP)
   // async onAccountOTPRequested(event: SendEmailEvent) {
   //   const { from, context, to, subject } = event.data;
