@@ -5,7 +5,7 @@ import { MailerService } from './mailer.service';
 
 @Injectable()
 export class NotificationService {
-  constructor(private readonly mailerService: MailerService) {}
+  constructor(private readonly mailerService: MailerService) { }
 
   @OnEvent(MailNotificationEvents.Account.PayerGenerated)
   async onAccountPayerGenerated(event: SendEmailEvent) {
@@ -55,6 +55,19 @@ export class NotificationService {
     });
   }
 
+
+
+  @OnEvent(MailNotificationEvents.Application.SmartBinUpdate)
+  async onSmartBinUpdate(event: SendEmailEvent) {
+    const { from, context, to, subject } = event.data;
+    await this.mailerService.sendMail({
+      from,
+      template: Templates.SmartBinUpdate,
+      to,
+      context,
+      subject,
+    });
+  }
   // @OnEvent(MailNotificationEvents.Account.VerificationOTP)
   // async onAccountOTPRequested(event: SendEmailEvent) {
   //   const { from, context, to, subject } = event.data;

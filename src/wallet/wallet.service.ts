@@ -28,7 +28,7 @@ export class WalletService {
     @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
     private readonly transactionService: TransactionService,
     private readonly configService: ConfigService<ConfigAttributes>,
-  ) {}
+  ) { }
 
   // Resident
   async getResidentWallet(
@@ -177,11 +177,25 @@ export class WalletService {
       throw new UnauthorizedException();
     }
 
-    await this.transactionService.mockTransactionPaid(reference);
+    const transaction = await this.transactionService.mockTransactionPaid(
+      reference,
+    );
+    if (transaction.data.walletId) {
+      await this.walletModel.findByIdAndUpdate(transaction.data.walletId, {
+        $inc: {
+          available_balance: transaction.data.amount,
+          ledger_balance: transaction.data.amount,
+        },
+      });
+    }
+
+    return {
+      message: 'Transaction verified and wallet credited',
+    };
   }
 
   getWalletCallback(reference: string) {
-    const payment_url = `${process.env.BASE_URL}/api/wallets/mock-verify?reference=${reference}`;
+    const payment_url = `/api/wallets/mock-verify?reference=${reference}`;
     return {
       paymentCallbackUrl: payment_url,
       method: 'GET',

@@ -6,6 +6,11 @@ export const MailNotificationEvents = Object.freeze({
     VerificationOTP: 'verificaton.otp.account',
     Welcome: 'welcome.account',
   },
+  Application: {
+    SmartBinUpdate: 'notification.smartbin.updated',
+    LowWalletBalance: 'notification.wallet.low',
+    GeneralAppUpdate: 'notification.app.update',
+  },
 });
 
 export enum Templates {
@@ -14,6 +19,9 @@ export enum Templates {
   PayerGenerated = 'payer-generated',
   VerifyOTP = 'verify-otp',
   Welcome = 'welcome',
+  SmartBinUpdate = 'smartbin-update',
+  LowWalletBalance = 'low-balance',
+  GeneralAppUpdate = 'app-update',
 }
 
 export interface SendEmailEventData {
@@ -24,5 +32,5 @@ export interface SendEmailEventData {
 }
 
 export class SendEmailEvent {
-  constructor(public data: SendEmailEventData) {}
+  constructor(public data: SendEmailEventData) { }
 }
