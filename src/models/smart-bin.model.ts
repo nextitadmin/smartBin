@@ -39,6 +39,7 @@ export interface SmartBinAttributes {
   phoneNumber?: string;
   amount?: number;
   branch?: string;
+  branchId: string;
   closestLandmark?: string;
   useYourAddress?: boolean;
   streetName?: string;
@@ -165,6 +166,9 @@ export class SmartBin extends Document {
 
   @Prop({ type: SchemaTypes.String, required: false })
   branch?: string;
+
+  @Prop({ type: SchemaTypes.String, required: false })
+  branchId?: string;
 
   @Prop({ type: SchemaTypes.String, required: false })
   closestLandmark?: string;

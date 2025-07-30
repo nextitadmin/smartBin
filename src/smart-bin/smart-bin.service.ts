@@ -213,6 +213,7 @@ export class SmartBinService {
       userId: String(accountId),
       customerType: accountType,
       transactionReference: generateTransactionRef,
+      branchId: applicationData.branchId,
       ...applicationData,
       applicationHistory: [
         {
@@ -236,7 +237,7 @@ export class SmartBinService {
         customerName: applicationData?.customerName,
         tenantName: applicationData?.tenantName,
         transactionId: newBinApplication._id,
-        receiptId: applicationData.receiptId
+        receiptId: applicationData.receiptId,
       },
     });
 
