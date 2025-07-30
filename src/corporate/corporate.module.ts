@@ -35,6 +35,7 @@ import { Branch, BranchSchema } from '@models/branch.model';
 import { CorporateNotificationSettingsController } from './notifications/notification.controller';
 import { NotificationModule } from '@src/notification/notification.module';
 import { NotificationSettingsService } from '@src/notification/notification-setting.service';
+import { BranchController } from './branch/branch.controller';
 
 @Module({
   imports: [
@@ -67,7 +68,8 @@ import { NotificationSettingsService } from '@src/notification/notification-sett
     SmartBinController,
     WasteManagementController,
     DashboardController,
-    CorporateNotificationSettingsController
+    CorporateNotificationSettingsController,
+    BranchController
   ],
   providers: [
     CorporateService,
