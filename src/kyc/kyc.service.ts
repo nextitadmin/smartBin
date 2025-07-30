@@ -187,14 +187,16 @@ export class KycService {
 
   // Get all signatories for a corporate user's KYC document
   async getAllSignatories(dto: { userId: string; accountType: UserRole }) {
-    const corporateTeam = await this.corporateTeamModel.findOne({
-      userId: new Types.ObjectId(dto.userId),
-      userType: dto.accountType,
-      deletedAt: null,
-    });
+    const corporateTeam = await this.corporateTeamModel
+      .find({
+        userId: new Types.ObjectId(dto.userId),
+        userType: dto.accountType,
+        deletedAt: null,
+      })
+      .lean();
     return {
       message: 'All team members fetched successfully',
-      data: corporateTeam ? corporateTeam : [],
+      data: corporateTeam
     };
   }
 
@@ -231,7 +233,7 @@ export class KycService {
         userType: dto.accountType,
       },
       {
-        ...dto.signatoryData,
+        $set: { ...dto.signatoryData },
       },
       { new: true },
     );
@@ -240,7 +242,6 @@ export class KycService {
       message: 'corporate team member updated successfully',
       data: updatedTeamMember,
     };
-
   }
 
   // Remove a single signatory by signatoryId
@@ -250,7 +251,11 @@ export class KycService {
     teamMemberId: string;
   }) {
     await this.corporateTeamModel.findOneAndUpdate(
-      { userId: new Types.ObjectId(dto.userId), userType: dto.accountType },
+      {
+        _id: new Types.ObjectId(dto.teamMemberId),
+        userId: new Types.ObjectId(dto.userId),
+        userType: dto.accountType,
+      },
       {
         deletedAt: new Date(),
       },

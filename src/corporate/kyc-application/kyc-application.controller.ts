@@ -119,7 +119,7 @@ export class KycApplicationController {
     );
   }
 
-  @Get('team-member/:teamMemberId')
+  @Get('team-members/:teamMemberId')
   async getTeamMember(
     @AuthenticatedCorporate() corporate: CorporateUser,
     @Param('teamMemberId') teamMemberId: string,
@@ -136,7 +136,7 @@ export class KycApplicationController {
     );
   }
 
-  @Put('team-member/:teamMemberId/update-team-member')
+  @Put('team-members/:teamMemberId')
   async updateSignatory(
     @AuthenticatedCorporate() corporate: CorporateUser,
     @Body() updateTeamMemberDetails: UpdateTeamMemberDto, 
@@ -146,7 +146,7 @@ export class KycApplicationController {
       userId: corporate.id,
       accountType: corporate.role,
       signatoryData: updateTeamMemberDetails,
-      teamMemberId
+      teamMemberId,
     });
 
     return new SuccessResponse(
@@ -155,7 +155,7 @@ export class KycApplicationController {
     );
   }
 
-  @Delete('team-member/:teamMemberId/delete-team-member')
+  @Delete('team-members/:teamMemberId')
   async deleteSignatory(
     @AuthenticatedCorporate() corporate: CorporateUser,
     @Param('teamMemberId') teamMemberId: string,

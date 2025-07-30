@@ -1,7 +1,7 @@
 import { Gender } from '@models/types';
 import { LawmaCustomerType } from '@models/users/resident.model';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsString } from 'class-validator';
 import { IsArray, ArrayNotEmpty, IsMongoId } from 'class-validator';
 
 export class PersonalInfoDto {
@@ -166,7 +166,7 @@ export class UpdateTeamMemberDto {
   nationality?: string;
 
   @ApiProperty({ required: false })
-  @IsString()
+  @IsEnum(Gender)
   gender?: Gender;
 
   @ApiProperty({ required: false })
