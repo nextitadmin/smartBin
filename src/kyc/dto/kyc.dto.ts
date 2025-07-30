@@ -1,7 +1,7 @@
 import { Gender } from '@models/types';
 import { LawmaCustomerType } from '@models/users/resident.model';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 import { IsArray, ArrayNotEmpty, IsMongoId } from 'class-validator';
 
 export class PersonalInfoDto {
@@ -90,4 +90,56 @@ export class SignatoriesDto {
   @ArrayNotEmpty()
   @IsMongoId({ each: true, message: "Signatory is not valid or doesn't exist" })
   signatories: string[];
+}
+
+export class TeamMemberDto{
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  firstName: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  lastName: string;
+
+  @ApiProperty()
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  phoneNumber: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  nationality: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  gender: Gender;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  jobTitle: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  address: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  idDocumentNo: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  idDocument: string;
 }

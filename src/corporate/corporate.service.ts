@@ -368,7 +368,7 @@ export class CorporateService {
     }
   }
 
-  async getDetailsByToken(token: string) {
+  async getCorporateDetailsByToken(token: string) {
     const tokenDetails = await this.jwtService.decode(token);
     if (!tokenDetails) {
       throw new UnauthorizedException('unable to unauthenticate');
