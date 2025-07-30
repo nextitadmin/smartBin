@@ -120,8 +120,6 @@ export class FacilityManagerService {
     const code = Math.floor(10000 + Math.random() * 90000).toString();
     const expires = 600000; // 10mins
 
-    console.log({ code });
-
     await this.cacheService.set(
       CacheKeys.FacilityManagerLoginCode(String(code)),
       String(manager._id),

@@ -104,6 +104,12 @@ export class UserKyc extends Document {
   })
   addressVerificationStatus: AddressVerificationStatus;
 
+  @Prop({ type: SchemaTypes.String, required: false })
+  businessRegistrationNumber: string;
+
+  @Prop({ type: SchemaTypes.String, required: false })
+  businessSector: string;
+
   @Prop({ type: Date })
   createdAt?: Date;
 

@@ -172,7 +172,6 @@ export class DashboardService {
 
   // get Corporate Dashboard
   async getCorporateDashboard(userId: string) {
-    console.log(userId);
     const [
       corporate,
       bills,

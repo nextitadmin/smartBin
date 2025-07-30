@@ -2,6 +2,7 @@ import { Gender } from '@models/types';
 import { LawmaCustomerType } from '@models/users/resident.model';
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, ArrayNotEmpty, IsMongoId } from 'class-validator';
 
 export class PersonalInfoDto {
   @ApiProperty()
@@ -23,6 +24,21 @@ export class PersonalInfoDto {
   @ApiProperty()
   @IsString()
   lawmaCustomerType?: LawmaCustomerType;
+}
+
+
+export class CompanyInfoDto {
+  @ApiProperty()
+  @IsString()
+  address?: string;
+
+  @ApiProperty()
+  @IsString()
+  businessRegistrationNumber?: string;
+
+  @ApiProperty()
+  @IsString()
+  businessSector?: string;
 }
 
 export class IdVerificationDto {
@@ -65,4 +81,13 @@ export class AddressVerificationDto {
   @ApiProperty()
   @IsString()
   closestLandmark?: string;
+}
+
+
+export class SignatoriesDto {
+  @ApiProperty({ type: [String], description: 'Array of valid MongoDB ObjectIds' })
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsMongoId({ each: true, message: "Signatory is not valid or doesn't exist" })
+  signatories: string[];
 }

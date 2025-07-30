@@ -167,7 +167,7 @@ export class AddCorporateBranchDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  lgaId: string;
+  localGovernmentArea: string;
 
   @ApiProperty()
   @IsString()
@@ -177,6 +177,6 @@ export class AddCorporateBranchDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
-  stateId: string;
+  state: string;
 }
 
