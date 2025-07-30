@@ -60,6 +60,11 @@ export class AuthGuard implements CanActivate {
     // Try authenticating against all user types
     const strategies = [
       {
+        role: UserRole.Corporate,
+        service: this.corporateService,
+        method: 'getCorporateDetailsByToken',
+      },
+      {
         role: UserRole.Resident,
         service: this.residentService,
         method: 'getResidentDetailsByToken',
@@ -67,12 +72,7 @@ export class AuthGuard implements CanActivate {
       {
         role: UserRole.Agent,
         service: this.agentService,
-        method: 'getAgentByToken',
-      },
-      {
-        role: UserRole.Corporate,
-        service: this.corporateService,
-        method: 'getCorporateByToken',
+        method: 'getAgentDetailsByToken',
       },
       {
         role: UserRole.Facility,
@@ -85,23 +85,23 @@ export class AuthGuard implements CanActivate {
     for (const strat of strategies) {
       // @ts-ignore — dynamic service method call
       const user = await strat.service[strat.method](token).catch(() => null);
-      if (!user) {
-        this.logger.warn('failed to auth: no matching user found');
-        throw new UnauthorizedException(this.AUTHENTICATION_ERROR_MESSAGE);
+      if (user) {
+        req.user = {
+          id: String(user._id),
+          email: user.email,
+          role: strat.role,
+          token,
+        } satisfies
+          | AuthUser
+          | CorporateUser
+          | AgentUser
+          | FacilityManagerUser
+          | ResidentUser;
+        return true;
       }
 
-      req.user = {
-        id: String(user._id),
-        email: user.email,
-        role: strat.role,
-        token,
-      } satisfies
-        | AuthUser
-        | CorporateUser
-        | AgentUser
-        | FacilityManagerUser
-        | ResidentUser;
-      return true;
+      this.logger.warn('failed to auth: no matching user found');
+      throw new UnauthorizedException(this.AUTHENTICATION_ERROR_MESSAGE);
     }
   }
 }

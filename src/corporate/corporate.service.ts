@@ -133,6 +133,8 @@ export class CorporateService {
     const loginCode = Math.floor(10000 + Math.random() * 90000).toString();
     const loginCodeExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
+    console.log(loginCode);
+
     business.loginCode = loginCode;
     business.loginCodeExpiry = loginCodeExpiry;
     await business.save();
@@ -366,7 +368,7 @@ export class CorporateService {
     }
   }
 
-  async getDetailsByToken(token: string) {
+  async getCorporateDetailsByToken(token: string) {
     const tokenDetails = await this.jwtService.decode(token);
     if (!tokenDetails) {
       throw new UnauthorizedException('unable to unauthenticate');

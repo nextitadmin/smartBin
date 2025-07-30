@@ -8,7 +8,7 @@ import { SuccessResponse } from '@common/http';
 import { CorporateUser, ResidentUser } from '@common/types';
 import { Body, Controller, Delete, Get, Patch, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { AddressVerificationDto, CompanyInfoDto, IdVerificationDto, PersonalInfoDto, SignatoriesDto } from '@src/kyc/dto/kyc.dto';
+import { AddressVerificationDto, CompanyInfoDto, IdVerificationDto, PersonalInfoDto, SignatoriesDto, TeamMemberDto } from '@src/kyc/dto/kyc.dto';
 import { KycService } from '@src/kyc/kyc.service';
 import { CorporateService } from '../corporate.service';
 
@@ -21,7 +21,7 @@ import { CorporateService } from '../corporate.service';
 export class KycApplicationController {
   constructor(private readonly kycService: KycService) {}
 
-  @Patch('company-info')
+  @Patch('add-company-info')
   async submitPersonalInformation(
     @AuthenticatedCorporate() corporate: CorporateUser,
     @Body() dto: CompanyInfoDto,
@@ -38,7 +38,7 @@ export class KycApplicationController {
     );
   }
 
-  @Patch('id-verification')
+  @Patch('add-id-verification')
   async idVerification(
     @AuthenticatedCorporate() corporate: CorporateUser,
     @Body() dto: IdVerificationDto,
@@ -50,7 +50,7 @@ export class KycApplicationController {
     });
 
     return new SuccessResponse(
-      'Identify Information submitted successfully',
+      'Identity Information submitted successfully',
       response,
     );
   }
@@ -67,7 +67,7 @@ export class KycApplicationController {
     });
 
     return new SuccessResponse(
-      'Address details submitted successfully',
+      'Signatories submitted successfully',
       response,
     );
   }
@@ -76,7 +76,7 @@ export class KycApplicationController {
   async getKycApplicationStatus(
     @AuthenticatedCorporate() corporate: CorporateUser,
   ) {
-    const response = await this.kycService.verifyKycStatus({
+    const response = await this.kycService.verifyCorporateKycStatus({
       userId: corporate.id,
       accountType: corporate.role,
     });
@@ -87,24 +87,24 @@ export class KycApplicationController {
     );
   }
 
-  @Post('add-corporate-signatory')
+  @Post('add-corporate-member')
   async addCorporateSignatory(
     @AuthenticatedCorporate() corporate: CorporateUser,
-    @Body() signatoryDto: any, // Replace 'any' with a proper DTO if available
+    @Body() body: TeamMemberDto,
   ) {
     const response = await this.kycService.addCorporateSignatory({
       userId: corporate.id,
       accountType: corporate.role,
-      signatoryData: signatoryDto,
+      signatoryData: body
     });
 
     return new SuccessResponse(
-      'Corporate signatory added successfully',
+      'Corporate team member added successfully',
       response,
     );
   }
 
-  @Get('get-all-signatories')
+  @Get('get-all-team')
   async getAllSignatories(
     @AuthenticatedCorporate() corporate: CorporateUser,
   ) {
@@ -114,12 +114,12 @@ export class KycApplicationController {
     });
 
     return new SuccessResponse(
-      'All corporate signatories retrieved successfully',
+      'All corporate team members retrieved successfully',
       response,
     );
   }
 
-  @Put('update-signatory')
+  @Put('update-team-member')
   async updateSignatory(
     @AuthenticatedCorporate() corporate: CorporateUser,
     @Body() updateSignatoryDto: any, 
@@ -131,12 +131,12 @@ export class KycApplicationController {
     });
 
     return new SuccessResponse(
-      'Corporate signatory updated successfully',
+      'Team member details updated successfully',
       response,
     );
   }
 
-  @Delete('delete-signatory')
+  @Delete('delete-team-member')
   async deleteSignatory(
     @AuthenticatedCorporate() corporate: CorporateUser,
     @Body('signatoryId') signatoryId: string,

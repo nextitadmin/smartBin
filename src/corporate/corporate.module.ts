@@ -35,7 +35,8 @@ import { Branch, BranchSchema } from '@models/branch.model';
 import { CorporateNotificationSettingsController } from './notifications/notification.controller';
 import { NotificationModule } from '@src/notification/notification.module'; 
 import { NotificationSettingsService } from '@src/notification/notification-setting.service';
-import { CorporateBranchController } from './branch/branch.controller';
+import { KycApplicationController } from './kyc-application/kyc-application.controller';
+import { KycModule } from '@src/kyc/kyc.module';
 
 @Module({
   imports: [
@@ -56,9 +57,8 @@ import { CorporateBranchController } from './branch/branch.controller';
     WalletModule,
     PickupModule,
     DashboardModule,
-    NotificationModule
-
-
+    NotificationModule,
+    KycModule
   ],
 
   controllers: [
@@ -69,7 +69,7 @@ import { CorporateBranchController } from './branch/branch.controller';
     WasteManagementController,
     DashboardController,
     CorporateNotificationSettingsController,
-    CorporateBranchController
+    KycApplicationController
   ],
   providers: [
     CorporateService,
