@@ -11,6 +11,7 @@ import { WalletModule } from '@src/wallet/wallet.module';
 import { TransactionService } from '@src/transaction/transaction.service';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { TransactionModule } from '@src/transaction/transaction.module';
+import { AgentPaymentController } from './payment/payment.controller';
 
 @Module({
   imports: [
@@ -37,6 +38,6 @@ import { TransactionModule } from '@src/transaction/transaction.module';
   ],
   providers: [AgentService, WalletService],
   exports: [AgentService],
-  controllers: [AgentController, AgentWalletController],
+  controllers: [AgentController, AgentWalletController, AgentPaymentController],
 })
 export class AgentModule {}

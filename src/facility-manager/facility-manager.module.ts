@@ -15,7 +15,8 @@ import { FacilityService } from './facility/facility.service';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { KycApplicationController } from './kyc-application/kyc-application.controller';
 import { KycModule } from '@src/kyc/kyc.module';
-
+import { FacilityManagerPaymentController } from './payment/payment.controller';
+import { TransactionModule } from '@src/transaction/transaction.module'; 
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -25,12 +26,14 @@ import { KycModule } from '@src/kyc/kyc.module';
     ]),
     SmartBinModule,
     KycModule,
+    TransactionModule, 
   ],
   controllers: [
     FacilityManagerController,
     SmartBinController,
     FacilityController,
     KycApplicationController,
+    FacilityManagerPaymentController,
   ],
   providers: [FacilityManagerService, FacilityService],
   exports: [FacilityManagerService, FacilityService],

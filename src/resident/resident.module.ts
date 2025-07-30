@@ -26,6 +26,8 @@ import { DashboardModule } from '@src/dashboard/dashboard.module';
 import { CorporateModule } from '@src/corporate/corporate.module';
 import { AgentModule } from '@src/agent/agent.module';
 import { FacilityManagerModule } from '@src/facility-manager/facility-manager.module';
+import { ResidentPaymentController } from './payment/payment.controller';
+import { TransactionService } from '@src/transaction/transaction.service';
 
 @Module({
   imports: [
@@ -77,8 +79,9 @@ import { FacilityManagerModule } from '@src/facility-manager/facility-manager.mo
     KycApplicationController,
     ResidentBillController,
     DashboardController,
+    ResidentPaymentController,
   ],
-  providers: [ResidentService, SmartBinService, BillService],
+  providers: [ResidentService, SmartBinService, BillService, TransactionService],
   exports: [ResidentService, SmartBinService, BillService],
 })
 export class ResidentModule {}
