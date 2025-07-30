@@ -50,7 +50,7 @@ export class KycApplicationController {
     });
 
     return new SuccessResponse(
-      'Identify Information submitted successfully',
+      'Identity Information submitted successfully',
       response,
     );
   }
@@ -67,7 +67,7 @@ export class KycApplicationController {
     });
 
     return new SuccessResponse(
-      'Address details submitted successfully',
+      'Signatories submitted successfully',
       response,
     );
   }

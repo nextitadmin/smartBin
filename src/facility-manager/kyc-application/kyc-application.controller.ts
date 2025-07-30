@@ -48,7 +48,7 @@ export class KycApplicationController {
     });
 
     return new SuccessResponse(
-      'Identify Information submitted successfully',
+      'Identity Information submitted successfully',
       response,
     );
   }
