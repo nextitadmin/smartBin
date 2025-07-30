@@ -48,7 +48,7 @@ export interface ConfigAttributes {
 
 const config = (): ConfigAttributes => ({
   port: +process.env.PORT,
-  nodeEnv: process.env.NODE_ENV,
+  nodeEnv: process.env.APPLICATION_ENV || 'development',
   logging: {
     level: process.env.LOG_LEVEL,
     disableRequestLogging: Boolean(+process.env.DISABLE_REQUEST_LOGGING),
