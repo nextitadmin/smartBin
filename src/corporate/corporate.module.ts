@@ -37,6 +37,8 @@ import { NotificationModule } from '@src/notification/notification.module';
 import { NotificationSettingsService } from '@src/notification/notification-setting.service';
 import { KycApplicationController } from './kyc-application/kyc-application.controller';
 import { KycModule } from '@src/kyc/kyc.module';
+import { CorporateBranchController} from './branch/branch.controller';
+import { CorporatePaymentController } from './payment/payment.controller';
 
 @Module({
   imports: [
@@ -69,7 +71,9 @@ import { KycModule } from '@src/kyc/kyc.module';
     WasteManagementController,
     DashboardController,
     CorporateNotificationSettingsController,
-    KycApplicationController
+    KycApplicationController,
+    CorporateBranchController,
+    CorporatePaymentController
   ],
   providers: [
     CorporateService,
