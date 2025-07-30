@@ -33,9 +33,9 @@ import { DashboardController } from './dashboard/dashboard.controller';
 import { DashboardModule } from '@src/dashboard/dashboard.module';
 import { Branch, BranchSchema } from '@models/branch.model';
 import { CorporateNotificationSettingsController } from './notifications/notification.controller';
-import { NotificationModule } from '@src/notification/notification.module';
+import { NotificationModule } from '@src/notification/notification.module'; 
 import { NotificationSettingsService } from '@src/notification/notification-setting.service';
-import { BranchController } from './branch/branch.controller';
+import { CorporateBranchController } from './branch/branch.controller';
 
 @Module({
   imports: [
@@ -69,7 +69,7 @@ import { BranchController } from './branch/branch.controller';
     WasteManagementController,
     DashboardController,
     CorporateNotificationSettingsController,
-    BranchController
+    CorporateBranchController
   ],
   providers: [
     CorporateService,

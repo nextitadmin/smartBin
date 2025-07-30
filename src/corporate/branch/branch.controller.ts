@@ -34,11 +34,5 @@ export class CorporateBranchController {
         return this.branchervice.addBranch(userId, body)   
     }
 
-
-
-
-    
-
-
 }
 
