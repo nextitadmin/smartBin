@@ -7,6 +7,7 @@ import { UserRole } from '@models/types';
 import {
   AddressVerificationStatus,
   IdVerificationStatus,
+  SignatoryVerificationStatus,
   UserKyc,
 } from '@models/user-kyc.model';
 import {
@@ -14,6 +15,7 @@ import {
   CompanyInfoDto,
   IdVerificationDto,
   PersonalInfoDto,
+  SignatoriesDto,
 } from './dto/kyc.dto';
 
 @Injectable()
@@ -106,6 +108,20 @@ export class KycService {
     };
   }
 
+// for corporate
+    async verifyCorporateKycStatus(dto: { userId: string; accountType: UserRole }) {
+    const userKyc = await this.userKycModel.findOne({
+      userId: new Types.ObjectId(dto.userId),
+      userType: dto.accountType,
+    });
+
+    return {
+      identityVerificationStatus: userKyc.identityVerificationStatus,
+      signatoryVerificationStatus: userKyc.signatoryVerificationStatus,
+      hasSubmittedSignatories: userKyc.hasSubmittedSignatories,
+      hasSubmittedIdentity: userKyc.hasSubmittedIdentity
+    };
+  }
   // For Resident and Facilty Manager
   async verifyKycStatus(dto: { userId: string; accountType: UserRole }) {
     const userKyc = await this.userKycModel.findOne({
@@ -121,8 +137,26 @@ export class KycService {
     };
   }
 
-  async addSignatories(dto){
-    return {}
+  async addSignatories(dto: {
+    userId: string;
+    accountType: UserRole;
+    applicationData: SignatoriesDto;
+  }){
+    const userKyc = await this.userKycModel.findOneAndUpdate(
+      { userId: new Types.ObjectId(dto.userId), userType: dto.accountType },
+      {
+        $set: {
+          ...dto.applicationData,
+          hasSubmittedSignatories: true,
+          signatoryVerificationStatus: SignatoryVerificationStatus.SUBMITTED,
+        },
+      },
+      { upsert: true, new: true },
+    );
+
+    return {
+      hasSubmittedSignatories: userKyc.hasSubmittedSignatories,
+    };
   }
 
   async addCorporateSignatory(dto){
