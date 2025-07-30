@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { WalletService } from './wallet.service';
-import { FacilityWalletController } from './facilityM.wallet.controller';
+// import { FacilityWalletController } from './facilityM.wallet.controller';
 import { AgentController } from '@src/agent/agent.controller';
 import { Wallet, WalletSchema } from '../models/wallet.model';
 import { Transaction, TransactionSchema } from '@models/transaction.model';
@@ -40,7 +40,7 @@ import { WalletController } from './wallet.controller';
       { name: SmartBin.name, schema: SmartBinSchema },
       { name: Bill.name, schema: BillSchema },
       { name: UserKyc.name, schema: UserKycSchema },
-      { name: Branch.name, schema: BranchSchema }
+      { name: Branch.name, schema: BranchSchema },
     ]),
     // SmartBinModule,
     TransactionModule,
@@ -54,8 +54,7 @@ import { WalletController } from './wallet.controller';
     AgentService,
     SmartBinService,
   ],
-  controllers: [WalletController, FacilityWalletController, AgentController],
-
+  controllers: [WalletController],
   exports: [WalletService],
 })
 export class WalletModule {}

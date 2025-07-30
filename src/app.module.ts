@@ -38,6 +38,7 @@ import { PickupModule } from './pickup/pickup.module';
 import { UtilityModule } from './utility/utility.module';
 import { AuthGuard } from '@common/guards/actor.guard';
 import { SupportModule } from './support/support.module';
+import { WalletController } from './wallet/wallet.controller';
 
 @Module({
   imports: [
@@ -51,7 +52,7 @@ import { SupportModule } from './support/support.module';
     HttpModule,
     // AuthenticationModule,
     NotificationModule,
-    WalletModule,
+
     PaymentModule,
     // WebhookModule,
     TransactionModule,
@@ -70,7 +71,7 @@ import { SupportModule } from './support/support.module';
     IntegrationsModule,
     PickupModule,
     SupportModule,
-    // WasteManagementModule,
+    WalletModule,
   ],
   controllers: [AppController],
   providers: [

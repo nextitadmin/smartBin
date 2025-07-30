@@ -41,12 +41,15 @@ export class CorporateAuthGuard implements CanActivate {
     const request = ctx.switchToHttp().getRequest();
     const [, token] = request.headers?.authorization?.split(' ') ?? [];
 
+    console.log('token', token);
     const isBlacklisted = await this.cacheService.get(`blacklist:${token}`);
     if (isBlacklisted) {
       throw new UnauthorizedException('not authenticated!');
     }
 
-    const corporate = await this.corporateService.getDetailsByToken(token);
+    const corporate = await this.corporateService.getCorporateDetailsByToken(
+      token,
+    );
     if (!corporate) {
       this.logger.warn('failed to auth: no user object in request');
       throw new UnauthorizedException('not authenticated!');
@@ -56,7 +59,7 @@ export class CorporateAuthGuard implements CanActivate {
       id: String(corporate._id),
       email: corporate.email,
       role: UserRole.Corporate,
-      token: token
+      token: token,
     };
 
     return true;

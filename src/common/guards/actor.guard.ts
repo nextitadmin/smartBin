@@ -23,6 +23,7 @@ import { ResidentService } from '@src/resident/resident.service';
 import { AgentService } from '@src/agent/agent.service';
 import { CorporateService } from '@src/corporate/corporate.service';
 import { FacilityManagerService } from '@src/facility-manager/facility-manager.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -36,6 +37,7 @@ export class AuthGuard implements CanActivate {
     private readonly agentService: AgentService,
     private readonly corporateService: CorporateService,
     private readonly facilityManagerService: FacilityManagerService,
+    private readonly jwtService: JwtService,
   ) {}
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
@@ -50,6 +52,15 @@ export class AuthGuard implements CanActivate {
 
     const request = ctx.switchToHttp().getRequest();
     const [_, token] = request.headers?.authorization?.split(' ') ?? [];
+
+    const isValidToken = this.jwtService.verify(token, {
+      secret: process.env.JWT_SECRET,
+    });
+    if (!isValidToken) {
+      this.logger.warn('Invalid token provided');
+      throw new UnauthorizedException(this.AUTHENTICATION_ERROR_MESSAGE);
+    }
+
     if (!token)
       throw new UnauthorizedException(this.AUTHENTICATION_ERROR_MESSAGE);
 
@@ -57,22 +68,21 @@ export class AuthGuard implements CanActivate {
     if (isBlacklisted)
       throw new UnauthorizedException(this.AUTHENTICATION_ERROR_MESSAGE);
 
-    // Try authenticating against all user types
     const strategies = [
+      {
+        role: UserRole.Corporate,
+        service: this.corporateService,
+        method: this.corporateService.getCorporateDetailsByToken.name,
+      },
       {
         role: UserRole.Resident,
         service: this.residentService,
-        method: 'getResidentDetailsByToken',
+        method: this.residentService.getResidentDetailsByToken.name,
       },
       {
         role: UserRole.Agent,
         service: this.agentService,
-        method: 'getAgentByToken',
-      },
-      {
-        role: UserRole.Corporate,
-        service: this.corporateService,
-        method: 'getCorporateByToken',
+        method: this.agentService.getAgentDetailsByToken.name,
       },
       {
         role: UserRole.Facility,
@@ -82,26 +92,37 @@ export class AuthGuard implements CanActivate {
       },
     ];
 
-    for (const strat of strategies) {
-      // @ts-ignore — dynamic service method call
-      const user = await strat.service[strat.method](token).catch(() => null);
-      if (!user) {
-        this.logger.warn('failed to auth: no matching user found');
-        throw new UnauthorizedException(this.AUTHENTICATION_ERROR_MESSAGE);
-      }
-
-      req.user = {
-        id: String(user._id),
-        email: user.email,
-        role: strat.role,
-        token,
-      } satisfies
-        | AuthUser
-        | CorporateUser
-        | AgentUser
-        | FacilityManagerUser
-        | ResidentUser;
-      return true;
+    const strategy = strategies.find(
+      (strat) => strat.role === isValidToken.role,
+    );
+    if (!strategy) {
+      this.logger.warn(
+        `No strategy found for role ${isValidToken.role} in request`,
+      );
+      throw new UnauthorizedException(this.AUTHENTICATION_ERROR_MESSAGE);
     }
+
+    const user = await strategy.service[strategy.method](token).catch(
+      () => null,
+    );
+    if (!user) {
+      this.logger.warn(
+        `failed to auth: no user found for role ${isValidToken.role}`,
+      );
+      throw new UnauthorizedException(this.AUTHENTICATION_ERROR_MESSAGE);
+    }
+
+    req.user = {
+      id: String(user._id),
+      email: user.email,
+      role: strategy.role,
+      token,
+    } satisfies
+      | AuthUser
+      | CorporateUser
+      | AgentUser
+      | FacilityManagerUser
+      | ResidentUser;
+    return true;
   }
 }

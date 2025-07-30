@@ -14,6 +14,12 @@ export enum AddressVerificationStatus {
   REJECTED = 'rejected',
 }
 
+export enum SignatoryVerificationStatus {
+  PENDING = 'pending',
+  SUBMITTED = 'submitted',
+  REJECTED = 'rejected',
+}
+
 export interface UserKycAttributes {
   userId: Types.ObjectId;
   userType: UserRole;
@@ -26,11 +32,16 @@ export interface UserKycAttributes {
   address?: string;
   localGovernment?: string;
   closestLandmark?: string;
+  signatories?: Types.ObjectId[];
   hasSubmittedPersonalInformation?: boolean;
   hasSubmittedIdentity?: boolean;
   hasSubmittedAddress?: boolean;
+  hasSubmittedSignatories?: boolean;
   identityVerificationStatus?: IdVerificationStatus;
   addressVerificationStatus?: AddressVerificationStatus;
+  signatoryVerificationStatus?: SignatoryVerificationStatus;
+  businessRegistrationNumber?: string;
+  businessSector?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -81,6 +92,9 @@ export class UserKyc extends Document {
   @Prop({ type: SchemaTypes.String, required: false })
   closestLandmark: string;
 
+  @Prop({ type: [{ type: SchemaTypes.ObjectId }], required: false })
+  signatories: Types.ObjectId[];
+
   @Prop({ type: SchemaTypes.Boolean, default: false })
   hasSubmittedPersonalInformation: boolean;
 
@@ -89,6 +103,9 @@ export class UserKyc extends Document {
 
   @Prop({ type: SchemaTypes.Boolean, default: false })
   hasSubmittedAddress: boolean;
+
+  @Prop({ type: SchemaTypes.Boolean, default: false })
+  hasSubmittedSignatories: boolean;
 
   @Prop({
     type: SchemaTypes.String,
@@ -103,6 +120,13 @@ export class UserKyc extends Document {
     default: AddressVerificationStatus.PENDING,
   })
   addressVerificationStatus: AddressVerificationStatus;
+
+  @Prop({
+    type: SchemaTypes.String,
+    enum: Object.values(SignatoryVerificationStatus),
+    default: SignatoryVerificationStatus.PENDING,
+  })
+  signatoryVerificationStatus: SignatoryVerificationStatus;
 
   @Prop({ type: SchemaTypes.String, required: false })
   businessRegistrationNumber: string;
