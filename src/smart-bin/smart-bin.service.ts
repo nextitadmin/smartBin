@@ -233,6 +233,10 @@ export class SmartBinService {
       service: ServiceType.SmartBinPurchase,
       meta: {
         branch: applicationData?.branch,
+        customerName: applicationData?.customerName,
+        tenantName: applicationData?.tenantName,
+        transactionId: newBinApplication._id,
+        receiptId: applicationData.receiptId
       },
     });
 
