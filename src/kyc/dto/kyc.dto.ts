@@ -1,7 +1,7 @@
 import { Gender } from '@models/types';
 import { LawmaCustomerType } from '@models/users/resident.model';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsEnum, IsNotEmpty, IsString } from 'class-validator';
 import { IsArray, ArrayNotEmpty, IsMongoId } from 'class-validator';
 
 export class PersonalInfoDto {
@@ -92,7 +92,7 @@ export class SignatoriesDto {
   signatories: string[];
 }
 
-export class TeamMemberDto{
+export class TeamMemberDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
@@ -142,4 +142,46 @@ export class TeamMemberDto{
   @IsString()
   @IsNotEmpty()
   idDocument: string;
+}
+
+export class UpdateTeamMemberDto {
+  @ApiProperty({ required: false })
+  @IsString()
+  firstName?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  lastName?: string;
+
+  @ApiProperty({ required: false })
+  @IsEmail()
+  email?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  phoneNumber?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  nationality?: string;
+
+  @ApiProperty({ required: false })
+  @IsEnum(Gender)
+  gender?: Gender;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  jobTitle?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  address?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  idDocumentNo?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  idDocument?: string;
 }

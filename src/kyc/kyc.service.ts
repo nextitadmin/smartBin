@@ -17,7 +17,9 @@ import {
   PersonalInfoDto,
   SignatoriesDto,
   TeamMemberDto,
+  UpdateTeamMemberDto,
 } from './dto/kyc.dto';
+import { CorporateTeam } from '@models/corporate-team.model';
 
 @Injectable()
 export class KycService {
@@ -26,6 +28,8 @@ export class KycService {
     @InjectModel(FacilityManager.name)
     private readonly facilityModel: Model<FacilityManager>,
     @InjectModel(UserKyc.name) private readonly userKycModel: Model<UserKyc>,
+    @InjectModel(CorporateTeam.name)
+    private readonly corporateTeamModel: Model<CorporateTeam>,
   ) {}
 
   // For Resident and Facilty Manager
@@ -38,7 +42,7 @@ export class KycService {
       await this.residentModel.findByIdAndUpdate(
         new Types.ObjectId(dto.userId),
         { $set: { ...dto.applicationData } },
-        { new: true }
+        { new: true },
       );
     }
 
@@ -46,7 +50,7 @@ export class KycService {
       await this.facilityModel.findByIdAndUpdate(
         new Types.ObjectId(dto.userId),
         { $set: { ...dto.applicationData } },
-        { new: true }
+        { new: true },
       );
     }
 
@@ -109,8 +113,11 @@ export class KycService {
     };
   }
 
-// for corporate
-    async verifyCorporateKycStatus(dto: { userId: string; accountType: UserRole }) {
+  // for corporate
+  async verifyCorporateKycStatus(dto: {
+    userId: string;
+    accountType: UserRole;
+  }) {
     const userKyc = await this.userKycModel.findOne({
       userId: new Types.ObjectId(dto.userId),
       userType: dto.accountType,
@@ -121,7 +128,7 @@ export class KycService {
       identityVerificationStatus: userKyc.identityVerificationStatus,
       signatoryVerificationStatus: userKyc.signatoryVerificationStatus,
       hasSubmittedSignatories: userKyc.hasSubmittedSignatories,
-      hasSubmittedIdentity: userKyc.hasSubmittedIdentity
+      hasSubmittedIdentity: userKyc.hasSubmittedIdentity,
     };
   }
   // For Resident and Facilty Manager
@@ -135,7 +142,7 @@ export class KycService {
       identityVerificationStatus: userKyc.identityVerificationStatus,
       addressVerificationStatus: userKyc.addressVerificationStatus,
       hasSubmittedAddress: userKyc.hasSubmittedAddress,
-      hasSubmittedIdentity: userKyc.hasSubmittedIdentity
+      hasSubmittedIdentity: userKyc.hasSubmittedIdentity,
     };
   }
 
@@ -143,7 +150,7 @@ export class KycService {
     userId: string;
     accountType: UserRole;
     applicationData: SignatoriesDto;
-  }){
+  }) {
     const userKyc = await this.userKycModel.findOneAndUpdate(
       { userId: new Types.ObjectId(dto.userId), userType: dto.accountType },
       {
@@ -161,81 +168,101 @@ export class KycService {
     };
   }
 
-  // Add a single signatory to the corporate user's KYC document
   async addCorporateSignatory(dto: {
     userId: string;
     accountType: UserRole;
     signatoryData: TeamMemberDto;
   }) {
-    // const userKyc = await this.userKycModel.findOneAndUpdate(
-    //   { userId: new Types.ObjectId(dto.userId), userType: dto.accountType },
-    //   {
-    //     $push: { signatories: dto.signatoryData },
-    //     $set: { hasSubmittedSignatories: true, signatoryVerificationStatus: SignatoryVerificationStatus.SUBMITTED },
-    //   },
-    //   { upsert: true, new: true },
-    // );
-    return {  };
+    await this.corporateTeamModel.create({
+      ...dto.signatoryData,
+      userId: dto.userId,
+      userType: dto.accountType,
+    });
+
+    return {
+      message: 'Team member added successfully',
+      data: null,
+    };
   }
 
   // Get all signatories for a corporate user's KYC document
   async getAllSignatories(dto: { userId: string; accountType: UserRole }) {
-    const userKyc = await this.userKycModel.findOne({
-      userId: new Types.ObjectId(dto.userId),
-      userType: dto.accountType,
-    });
-    return { signatories: userKyc?.signatories || [] };
+    const corporateTeam = await this.corporateTeamModel
+      .find({
+        userId: new Types.ObjectId(dto.userId),
+        userType: dto.accountType,
+        deletedAt: null,
+      })
+      .lean();
+    return {
+      message: 'All team members fetched successfully',
+      data: corporateTeam
+    };
   }
 
   // Get a single signatory by signatoryId
-  async getSingleSignatory(dto: { userId: string; accountType: UserRole; signatoryId: string }) {
-    const userKyc = await this.userKycModel.findOne({
+  async getSingleSignatory(dto: {
+    userId: string;
+    accountType: UserRole;
+    teamMemberId: string;
+  }) {
+    const teamMember = await this.corporateTeamModel.findOne({
+      _id: new Types.ObjectId(dto.teamMemberId),
       userId: new Types.ObjectId(dto.userId),
       userType: dto.accountType,
+      deletedAt: null,
     });
-    const signatory = userKyc?.signatories?.find(
-      (s: any) => s._id?.toString() === dto.signatoryId,
-    );
-    return { signatory };
+
+    return {
+      message: 'Team member fetched successfully',
+      data: teamMember,
+    };
   }
 
   // Update a single signatory by signatoryId
   async updateSignatory(dto: {
     userId: string;
     accountType: UserRole;
-    signatoryData: string;
+    signatoryData: UpdateTeamMemberDto;
+    teamMemberId: string;
   }) {
-    // const userKyc = await this.userKycModel.findOneAndUpdate(
-    //   {
-    //     userId: new Types.ObjectId(dto.userId),
-    //     userType: dto.accountType,
-    //     'signatories._id': new Types.ObjectId(dto.signatoryId),
-    //   },
-    //   {
-    //     $set: {
-    //       'signatories.$': { ...dto.update, _id: new Types.ObjectId(dto.signatoryId) },
-    //     },
-    //   },
-    //   { new: true },
-    // );
-    // const signatory = userKyc?.signatories?.find(
-    //   (s: any) => s._id?.toString() === dto.signatoryId,
-    // );
-    return { };
-  }
-
-  // Remove a single signatory by signatoryId
-  async removeSignatory(dto: { userId: string; accountType: UserRole; signatoryId: string }) {
-    const userKyc = await this.userKycModel.findOneAndUpdate(
+    const updatedTeamMember = await this.corporateTeamModel.findOneAndUpdate(
       {
+        _id: new Types.ObjectId(dto.teamMemberId),
         userId: new Types.ObjectId(dto.userId),
         userType: dto.accountType,
       },
       {
-        $pull: { signatories: { _id: new Types.ObjectId(dto.signatoryId) } },
+        $set: { ...dto.signatoryData },
       },
       { new: true },
     );
-    return { signatories: userKyc?.signatories || [] };
+
+    return {
+      message: 'corporate team member updated successfully',
+      data: updatedTeamMember,
+    };
+  }
+
+  // Remove a single signatory by signatoryId
+  async removeSignatory(dto: {
+    userId: string;
+    accountType: UserRole;
+    teamMemberId: string;
+  }) {
+    await this.corporateTeamModel.findOneAndUpdate(
+      {
+        _id: new Types.ObjectId(dto.teamMemberId),
+        userId: new Types.ObjectId(dto.userId),
+        userType: dto.accountType,
+      },
+      {
+        deletedAt: new Date(),
+      },
+    );
+    return {
+      message: 'corporate team member removed successfully',
+      data: null,
+    };
   }
 }
