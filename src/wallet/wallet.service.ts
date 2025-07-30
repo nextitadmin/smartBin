@@ -3,6 +3,7 @@ import {
   NotFoundException,
   UnauthorizedException,
   BadRequestException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -28,7 +29,7 @@ export class WalletService {
     @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
     private readonly transactionService: TransactionService,
     private readonly configService: ConfigService<ConfigAttributes>,
-  ) { }
+  ) {}
 
   // Resident
   async getResidentWallet(
@@ -174,7 +175,7 @@ export class WalletService {
 
   async mockWalletCallback(reference: string) {
     if (this.configService.get('nodeEnv') === 'production') {
-      throw new UnauthorizedException();
+      throw new UnprocessableEntityException('Where you from come?');
     }
 
     const transaction = await this.transactionService.mockTransactionPaid(

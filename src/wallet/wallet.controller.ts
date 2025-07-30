@@ -6,7 +6,11 @@ import {
   GetWalletResponseDto,
   WalletMockVerifyDto,
 } from './dtos/wallet.dto';
-import { ResidentAuth } from 'src/common/decorators/auth.decorator';
+import {
+  Auth,
+  CorporateAuth,
+  ResidentAuth,
+} from 'src/common/decorators/auth.decorator';
 import { SuccessResponse } from '@common/http';
 import { Public } from '@common/guards/public.guard';
 
@@ -15,16 +19,16 @@ import { Public } from '@common/guards/public.guard';
   path: 'wallets',
   version: '1',
 })
+@Auth()
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 
-  @Public()
   @Get('mock-verify')
   async mockVerify(@Query() query: WalletMockVerifyDto) {
     const response = await this.walletService.mockWalletCallback(
       query.reference,
     );
-    return new SuccessResponse('Wallet callback URL retrieved', response);
+    return new SuccessResponse('Wallet callback URL received', null);
   }
 
   // @Post('topup')

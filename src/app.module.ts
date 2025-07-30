@@ -37,6 +37,7 @@ import { IntegrationsModule } from './integrations/integrations.module';
 import { PickupModule } from './pickup/pickup.module';
 import { UtilityModule } from './utility/utility.module';
 import { AuthGuard } from '@common/guards/actor.guard';
+import { WalletController } from './wallet/wallet.controller';
 
 @Module({
   imports: [
@@ -50,7 +51,7 @@ import { AuthGuard } from '@common/guards/actor.guard';
     HttpModule,
     // AuthenticationModule,
     NotificationModule,
-    WalletModule,
+
     PaymentModule,
     // WebhookModule,
     TransactionModule,
@@ -68,7 +69,7 @@ import { AuthGuard } from '@common/guards/actor.guard';
     UtilityModule,
     IntegrationsModule,
     PickupModule,
-    // WasteManagementModule,
+    WalletModule,
   ],
   controllers: [AppController],
   providers: [
