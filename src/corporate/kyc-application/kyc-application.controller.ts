@@ -21,7 +21,7 @@ import { CorporateService } from '../corporate.service';
 export class KycApplicationController {
   constructor(private readonly kycService: KycService) {}
 
-  @Patch('company-info')
+  @Patch('add-company-info')
   async submitPersonalInformation(
     @AuthenticatedCorporate() corporate: CorporateUser,
     @Body() dto: CompanyInfoDto,
@@ -38,7 +38,7 @@ export class KycApplicationController {
     );
   }
 
-  @Patch('id-verification')
+  @Patch('add-id-verification')
   async idVerification(
     @AuthenticatedCorporate() corporate: CorporateUser,
     @Body() dto: IdVerificationDto,
@@ -76,7 +76,7 @@ export class KycApplicationController {
   async getKycApplicationStatus(
     @AuthenticatedCorporate() corporate: CorporateUser,
   ) {
-    const response = await this.kycService.verifyKycStatus({
+    const response = await this.kycService.verifyCorporateKycStatus({
       userId: corporate.id,
       accountType: corporate.role,
     });
