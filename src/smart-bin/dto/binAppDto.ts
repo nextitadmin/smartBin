@@ -14,6 +14,7 @@ export class BinAppDto {
   buildingName?: string;
   address?: string;
   businessType?: string;
+  branchId?: string;
   email?: string;
   phoneNumber?: string;
   branch?: string;
@@ -139,6 +140,10 @@ export class CreateBusinessApplicationDto {
   @IsString()
   @IsNotEmpty()
   payerId: string;
+
+  @ApiProperty()
+  @IsString()
+  branchId?: string;
 
   @ApiProperty()
   @IsString()
