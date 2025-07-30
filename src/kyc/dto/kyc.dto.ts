@@ -92,7 +92,7 @@ export class SignatoriesDto {
   signatories: string[];
 }
 
-export class TeamMemberDto{
+export class TeamMemberDto {
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
@@ -142,4 +142,46 @@ export class TeamMemberDto{
   @IsString()
   @IsNotEmpty()
   idDocument: string;
+}
+
+export class UpdateTeamMemberDto {
+  @ApiProperty({ required: false })
+  @IsString()
+  firstName?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  lastName?: string;
+
+  @ApiProperty({ required: false })
+  @IsEmail()
+  email?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  phoneNumber?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  nationality?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  gender?: Gender;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  jobTitle?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  address?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  idDocumentNo?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  idDocument?: string;
 }

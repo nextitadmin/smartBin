@@ -6,9 +6,9 @@ import {
 } from '@common/decorators/auth.decorator';
 import { SuccessResponse } from '@common/http';
 import { CorporateUser, ResidentUser } from '@common/types';
-import { Body, Controller, Delete, Get, Patch, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { AddressVerificationDto, CompanyInfoDto, IdVerificationDto, PersonalInfoDto, SignatoriesDto, TeamMemberDto } from '@src/kyc/dto/kyc.dto';
+import { AddressVerificationDto, CompanyInfoDto, IdVerificationDto, PersonalInfoDto, SignatoriesDto, TeamMemberDto, UpdateTeamMemberDto } from '@src/kyc/dto/kyc.dto';
 import { KycService } from '@src/kyc/kyc.service';
 import { CorporateService } from '../corporate.service';
 
@@ -100,7 +100,7 @@ export class KycApplicationController {
 
     return new SuccessResponse(
       'Corporate team member added successfully',
-      response,
+      response.data,
     );
   }
 
@@ -115,19 +115,38 @@ export class KycApplicationController {
 
     return new SuccessResponse(
       'All corporate team members retrieved successfully',
-      response,
+      response.data,
     );
   }
 
-  @Put('update-team-member')
+  @Get('team-member/:teamMemberId')
+  async getTeamMember(
+    @AuthenticatedCorporate() corporate: CorporateUser,
+    @Param('teamMemberId') teamMemberId: string,
+  ) {
+    const response = await this.kycService.getSingleSignatory({
+      userId: corporate.id,
+      accountType: corporate.role,
+      teamMemberId,
+    });
+
+    return new SuccessResponse(
+      'Team member retrieved successfully',
+      response.data,
+    );
+  }
+
+  @Put('team-member/:teamMemberId/update-team-member')
   async updateSignatory(
     @AuthenticatedCorporate() corporate: CorporateUser,
-    @Body() updateSignatoryDto: any, 
+    @Body() updateTeamMemberDetails: UpdateTeamMemberDto, 
+    @Param('teamMemberId') teamMemberId: string,
   ) {
     const response = await this.kycService.updateSignatory({
       userId: corporate.id,
       accountType: corporate.role,
-      signatoryData: updateSignatoryDto,
+      signatoryData: updateTeamMemberDetails,
+      teamMemberId
     });
 
     return new SuccessResponse(
@@ -136,20 +155,20 @@ export class KycApplicationController {
     );
   }
 
-  @Delete('delete-team-member')
+  @Delete('team-member/:teamMemberId/delete-team-member')
   async deleteSignatory(
     @AuthenticatedCorporate() corporate: CorporateUser,
-    @Body('signatoryId') signatoryId: string,
+    @Param('teamMemberId') teamMemberId: string,
   ) {
     const response = await this.kycService.removeSignatory({
       userId: corporate.id,
       accountType: corporate.role,
-      signatoryId,
+      teamMemberId,
     });
 
     return new SuccessResponse(
-      'Corporate signatory deleted successfully',
-      response,
+      response.message,
+      response.data,
     );
   }
 }
