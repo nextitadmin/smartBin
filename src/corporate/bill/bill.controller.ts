@@ -10,7 +10,7 @@ import { SuccessResponse } from '@common/http';
 import { CorporateBillResponseDto, PayBillDto } from '@src/bill/dtos/bill.dto';
 import { ApiTags } from '@nestjs/swagger';
 
-@ApiTags('Corporate-Bills')
+@ApiTags('Corporate - Bills')
 @Controller({
   path: 'corporate/bill',
   version: '1',

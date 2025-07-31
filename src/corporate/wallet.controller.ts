@@ -13,7 +13,7 @@ import {
 import { CorporateUser, FacilityManagerUser } from '@common/types';
 import { SuccessResponse } from '@common/http';
 
-@ApiTags('Corporate-Wallet')
+@ApiTags('Corporate - Wallet')
 @Controller({
   path: 'corporate/wallets',
   version: '1',
