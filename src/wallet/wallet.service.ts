@@ -95,26 +95,40 @@ export class WalletService {
     };
   }
 
-  // async verifyTopUp(reference: string) {
-  //   const transaction = await verifyAlatTransaction(reference);
-  //   if (!transaction) throw new NotFoundException('Transaction not found');
+  async chargeWallet({ user, amount }: { user: AuthUser; amount: number }) {
+    const wallet = await this.walletModel.findOne({
+      userId: new Types.ObjectId(user.id),
+      userType: user.role,
+    });
 
-  //   const wallet = await this.walletModel.findOne({ userId: transaction.userId.toString() });
-  //   if (!wallet) throw new NotFoundException('Wallet not found');
+    if (!wallet) {
+      throw new NotFoundException('No wallet found for this user');
+    }
 
-  //   wallet.available_balance += transaction.amount;
-  //   wallet.ledger_balance += transaction.amount;
+    if (wallet.available_balance < amount) {
+      throw new BadRequestException(
+        'Insufficient wallet balance to complete operation',
+      );
+    }
 
-  //   await wallet.save();
+    wallet.available_balance -= amount;
+    wallet.ledger_balance -= amount;
+    await wallet.save();
+    const transaction = await this.transactionService.initiateTransaction({
+      userId: user.id,
+      userType: user.role,
+      amount,
+      service: ServiceType.WalletCharge,
+      metadata: {
+        description: 'Wallet charge operation',
+      },
+    });
+    if (!transaction.success) {
+      throw new BadRequestException(transaction.message);
+    }
 
-  //   return {
-  //     message: 'Transaction verified and wallet credited',
-  //     walletBalance: wallet.available_balance,
-  //     transaction,
-  //   };
-  // }
-
-  // to-do :Facility Managers-corporate
+    return transaction.data.reference;
+  }
 
   async getWallet(user: AuthUser) {
     let wallet = await this.walletModel
@@ -194,7 +208,6 @@ export class WalletService {
       message: 'Transaction verified and wallet credited',
     };
   }
-
 
   getWalletCallback(reference: string) {
     const payment_url = `/api/wallets/mock-verify?reference=${reference}`;

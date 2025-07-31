@@ -32,16 +32,19 @@ export class TransactionService {
     reference?: string;
     metadata?: Record<string, any>;
   }) {
+    if (!reference) {
+      reference = `TX-${Date.now()}-${generateRandomChars(
+        8,
+        'alphanum',
+      ).toUpperCase()}`;
+    }
+
     const referenceExists = await this.transactions.exists({ reference });
     if (referenceExists) {
       return {
         success: false,
         message: 'Transaction reference already exists',
       };
-    }
-
-    if (!reference) {
-      reference = `TX-${Date.now()}-${generateRandomChars(8, 'alphanum')}`;
     }
 
     await this.transactions.create({
@@ -51,7 +54,10 @@ export class TransactionService {
       amount,
       transactionReference: reference,
       service,
-      status: TransactionStatus.Abandoned,
+      status:
+        service === ServiceType.WalletCharge
+          ? TransactionStatus.Successful
+          : TransactionStatus.Abandoned,
       meta: metadata || {},
     });
 

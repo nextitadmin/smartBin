@@ -27,6 +27,7 @@ export enum ServiceType {
   Subscription = 'Subscription',
   SmartBinPurchase = 'Smart Bin Purchase',
   WalletTopUp = 'Wallet Top-Up',
+  WalletCharge = 'Wallet Charge',
 }
 
 export interface TransactionAttributes {
@@ -68,7 +69,7 @@ export class Transaction implements TransactionAttributes {
   @Prop({ required: true })
   amount: number;
 
-  @Prop({ required: true, unique: true })
+  @Prop({ required: true })
   transactionReference: string;
 
   @Prop({
@@ -114,7 +115,13 @@ export class Transaction implements TransactionAttributes {
 
 export type TransactionDocument = Transaction & Document;
 export const TransactionSchema = SchemaFactory.createForClass(Transaction);
-TransactionSchema.index({
-  userId: 1,
-  transactionReference: 1,
-});
+TransactionSchema.index(
+  {
+    userId: 1,
+    transactionReference: 1,
+    service: 1,
+  },
+  {
+    unique: true,
+  },
+);

@@ -36,5 +36,16 @@ export class CorporateWalletController {
     const response = await this.walletService.initiateTopUp(corporate, dto);
     return new SuccessResponse('Wallet topped up successfully', response);
   }
-  //   }
+
+  @Post('charge')
+  async chargeCorporateWallet(
+    @AuthenticatedCorporate() corporate: CorporateUser,
+    @Body() dto: TopUpWalletDto,
+  ) {
+    const response = await this.walletService.chargeWallet({
+      user: corporate,
+      amount: dto.amount,
+    });
+    return new SuccessResponse('Wallet charged successfully', response);
+  }
 }
