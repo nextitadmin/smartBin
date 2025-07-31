@@ -1,4 +1,4 @@
-import { IsOptional, IsEnum, IsObject, IsDateString } from 'class-validator';
+import { IsOptional, IsEnum, IsString, IsObject, IsDateString } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { ReportType } from '@models/report.model';
 import { Type } from 'class-transformer';
@@ -7,6 +7,12 @@ import { ApiProperty } from '@nestjs/swagger';
 
 
 export class CreateReportDto {
+
+    @ApiProperty()
+    @IsString()
+    reportName: string;
+
+
     @ApiProperty({ enum: ReportType, enumName: 'ReportType', description: 'Type of report to generate' })
     type: ReportType;
 
@@ -16,12 +22,12 @@ export class CreateReportDto {
         description: 'Optional filters like startDate, endDate, branch, etc.',
     })
 
-    @ApiPropertyOptional({ type: String, format: 'date-time' })
+    @ApiProperty({ type: String, format: 'date-time' })
     @IsOptional()
     @IsDateString()
     startDate?: string;
 
-    @ApiPropertyOptional({ type: String, format: 'date-time' })
+    @ApiProperty({ type: String, format: 'date-time' })
     @IsOptional()
     @IsDateString()
     endDate?: string;

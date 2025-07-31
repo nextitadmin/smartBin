@@ -38,6 +38,7 @@ export class ReportService {
         }
 
         const report = await this.reportModel.create({
+            reportName: dto.reportName,
             type,
             filters: dto.filters,
             data,
@@ -49,6 +50,7 @@ export class ReportService {
             message: 'Report generated successfully',
             data: {
                 id: report._id,
+                reportName: report.reportName,
                 type: report.type,
                 generatedBy: user.email || user.id,
                 generatedAt: report.createdAt,
