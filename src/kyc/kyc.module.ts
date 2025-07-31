@@ -3,15 +3,20 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Resident, ResidentSchema } from '@models/users/resident.model';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { KycService } from './kyc.service';
-import { FacilityManager, FacilityManagerSchema } from '@models/users/facility-manager.model';
+import {
+  FacilityManager,
+  FacilityManagerSchema,
+} from '@models/users/facility-manager.model';
+import { CorporateTeam, CorporateTeamSchema } from '@models/corporate-team.model';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: UserKyc.name, schema: UserKycSchema },
       { name: Resident.name, schema: ResidentSchema },
-      { name: FacilityManager.name, schema: FacilityManagerSchema}
-    ])
+      { name: FacilityManager.name, schema: FacilityManagerSchema },
+      { name: CorporateTeam.name, schema: CorporateTeamSchema },
+    ]),
   ],
   controllers: [],
   providers: [KycService],
