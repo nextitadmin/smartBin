@@ -9,8 +9,8 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { SupportService } from './support.service';
 import { CreateSupportRequestDto } from './dtos/support-request.dto';
-import { ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
-import path from 'path';
+import { ApiBody, ApiConsumes, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { SuccessResponse } from '@common/http';
 
 
 @ApiTags('Support')
@@ -40,11 +40,13 @@ export class SupportController {
         },
     })
     @ApiOperation({ summary: 'Send support mail' })
+    @ApiResponse({ status: 200, description: 'Support mail sent successfully.' })
     @HttpCode(200)
     async sendSupportMail(
         @Body() dto: CreateSupportRequestDto,
         @UploadedFile() file?: Express.Multer.File,
     ) {
-        return this.supportService.sendMailToSupport(dto, file);
+        const response = await this.supportService.sendMailToSupport(dto, file);
+        return new SuccessResponse(response.message, null);
     }
 }

@@ -37,6 +37,8 @@ import { NotificationModule } from '@src/notification/notification.module';
 import { NotificationSettingsService } from '@src/notification/notification-setting.service';
 import { KycApplicationController } from './kyc-application/kyc-application.controller';
 import { KycModule } from '@src/kyc/kyc.module';
+import { ReportService } from '@src/report/report.service';
+import { Report, ReportSchema } from '@models/report.model';
 
 @Module({
   imports: [
@@ -52,7 +54,8 @@ import { KycModule } from '@src/kyc/kyc.module';
       { name: Resident.name, schema: ResidentSchema },
       { name: UserKyc.name, schema: UserKycSchema },
       { name: Pickup.name, schema: PickupSchema },
-      { name: Branch.name, schema: BranchSchema }
+      { name: Branch.name, schema: BranchSchema },
+      { name: Report.name, schema: ReportSchema }
     ]),
     WalletModule,
     PickupModule,
@@ -76,7 +79,8 @@ import { KycModule } from '@src/kyc/kyc.module';
     TransactionService,
     SmartBinService,
     BillService,
-    WasteManagementService
+    WasteManagementService,
+    ReportService
   ],
   exports: [CorporateService],
 })

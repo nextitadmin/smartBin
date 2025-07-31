@@ -39,6 +39,7 @@ import { UtilityModule } from './utility/utility.module';
 import { AuthGuard } from '@common/guards/actor.guard';
 import { SupportModule } from './support/support.module';
 import { WalletController } from './wallet/wallet.controller';
+import { ReportModule } from './report/report.module';
 
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import { WalletController } from './wallet/wallet.controller';
     PickupModule,
     SupportModule,
     WalletModule,
+    ReportModule
   ],
   controllers: [AppController],
   providers: [

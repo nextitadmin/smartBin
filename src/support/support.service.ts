@@ -16,8 +16,8 @@ export class SupportService {
         const { fullName, phoneNumber, email, message } = dto;
 
         const eventPayload = new SendEmailEvent({
-            to: 'harbike88@gmail.com',
-            from: '"LAWMA Support" <no-reply@lawma.gov.ng>',
+            to: process.env.SUPPORT_TO,
+            from: process.env.SUPPORT_FROM,
             subject: `New Support Request from ${fullName}`,
             context: { fullName, phoneNumber, email, message },
             replyTo: email,

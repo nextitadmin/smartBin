@@ -33,7 +33,7 @@ export interface SendEmailEventData {
   from: string;
   subject: string;
   context: any;
-  replyTo?: string; // ✅ Add this line
+  replyTo?: string;
 }
 
 export class SendEmailEvent {
