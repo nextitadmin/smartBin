@@ -1,4 +1,3 @@
-// schemas/notification-settings.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { UserRole } from './types';
@@ -11,22 +10,22 @@ export class NotificationSettings extends Document {
     @Prop({ required: true, enum: UserRole })
     userType: UserRole;
 
-    @Prop()
+    @Prop({ default: true })
     sms: boolean;
 
-    @Prop()
+    @Prop({ default: true })
     email: boolean;
 
-    @Prop()
+    @Prop({ default: true })
     inApp: boolean;
 
-    @Prop()
+    @Prop({ default: true })
     appUpdates: boolean;
 
-    @Prop()
+    @Prop({ default: true })
     smartBinUpdates: boolean;
 
-    @Prop()
+    @Prop({ default: true })
     lowWalletBalance: boolean;
 }
 
