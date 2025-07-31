@@ -195,6 +195,7 @@ export class WalletService {
     };
   }
 
+
   getWalletCallback(reference: string) {
     const payment_url = `/api/wallets/mock-verify?reference=${reference}`;
     return {

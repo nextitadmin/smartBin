@@ -14,7 +14,7 @@ import { SuccessResponse } from "@common/http";
 @Injectable()
 @Controller({
     path: 'facility-manager/payment',
-    version: '1.0.0'
+    version: '1'
 })
 export class FacilityManagerPaymentController {
   constructor(private readonly paymentService: TransactionService) {}

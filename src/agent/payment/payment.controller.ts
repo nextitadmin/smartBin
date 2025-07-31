@@ -14,7 +14,7 @@ import { SuccessResponse } from "@common/http";
 @Injectable()
 @Controller({
     path: 'agents/payment',
-    version: '1.0.0'
+    version: '1'
 })
 export class AgentPaymentController {
   constructor(private readonly paymentService: TransactionService) {}

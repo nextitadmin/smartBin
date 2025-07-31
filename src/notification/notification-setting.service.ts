@@ -18,8 +18,26 @@ export class NotificationSettingsService {
         private settingModel: Model<NotificationSettings>
     ) { }
 
+    //    async getSettings(userId: string, userType: UserRole) {
+    //   const settings = await this.settingModel.findOne({ userId, userType }).lean();
+    //   return  new SuccessResponse('Notification settings retrieved', settings ?? null);
+    // }
+
     async getSettings(userId: string, userType: UserRole) {
-        return await this.settingModel.findOne({ userId, userType }).lean();
+        const settings = await this.settingModel.findOne({ userId, userType }).lean();
+
+        const defaultSettings = {
+            userId,
+            userType,
+            sms: true,
+            email: true,
+            inApp: true,
+            appUpdates: true,
+            smartBinUpdates: true,
+            lowWalletBalance: true,
+        };
+
+        return new SuccessResponse('Notification settings retrieved', settings ?? defaultSettings);
     }
 
     async updateSettings(
