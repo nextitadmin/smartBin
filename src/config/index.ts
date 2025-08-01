@@ -1,6 +1,7 @@
 import * as Joi from 'joi';
 
 import { ConfigModuleOptions } from '@nestjs/config';
+import { ApplicationEnvironment } from '@common/constants';
 
 export interface ConfigAttributes {
   port: number;
@@ -90,7 +91,7 @@ const config = (): ConfigAttributes => ({
 
 const schema = Joi.object<Record<string, string>>({
   PORT: Joi.string().default('4001'),
-  NODE_ENV: Joi.string().default('development'),
+  APPLICATION_ENV: Joi.string().default(ApplicationEnvironment.Development),
   LOG_LEVEL: Joi.string().default('info'),
   DISABLE_REQUEST_LOGGING: Joi.string().allow('0', '1').default('0'),
 

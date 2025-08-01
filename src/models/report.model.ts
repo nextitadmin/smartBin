@@ -10,12 +10,14 @@ export enum ReportType {
 
 export interface ReportAttributes {
     type: ReportType;
+    reportName: string;
     filters: Record<string, any>;
     data: Record<string, any>;
     userId: Types.ObjectId;
     createdAt?: Date;
     updatedAt?: Date;
 }
+
 
 @Schema({ timestamps: true })
 export class Report implements ReportAttributes {
@@ -25,14 +27,15 @@ export class Report implements ReportAttributes {
     })
     userId: Types.ObjectId;
 
+    @Prop()
+    reportName: string;
+
     @Prop({
         type: String,
         enum: Object.values(ReportType),
         required: true,
     })
     type: ReportType;
-
-
 
     @Prop({ type: Object })
     filters: Record<string, any>;

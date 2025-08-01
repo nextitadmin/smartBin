@@ -53,6 +53,11 @@ export class AuthGuard implements CanActivate {
     const request = ctx.switchToHttp().getRequest();
     const [_, token] = request.headers?.authorization?.split(' ') ?? [];
 
+    if (!token) {
+      this.logger.warn('No token provided in request');
+      throw new UnauthorizedException(this.AUTHENTICATION_ERROR_MESSAGE);
+    }
+
     const isValidToken = this.jwtService.verify(token, {
       secret: process.env.JWT_SECRET,
     });

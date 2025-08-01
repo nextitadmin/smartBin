@@ -6,14 +6,23 @@ import {
 
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { BinType, SmartBin } from '@models/smart-bin.model';
+import {
+  BinType,
+  DEFAULT_SMART_BIN_AMOUNT,
+  SmartBin,
+  SmartbinStatus,
+} from '@models/smart-bin.model';
 import { Resident } from '@models/users/resident.model';
 import { Agent } from '@models/users/agent.model';
 import { Corporate } from '@models/users/corporate.model';
 import { FacilityManager } from '@models/users/facility-manager.model';
 import { Bill } from '@models/bill.model';
 import { Wallet } from '@models/wallet.model';
-import { ServiceType, Transaction } from '@models/transaction.model';
+import {
+  ServiceType,
+  Transaction,
+  TransactionStatus,
+} from '@models/transaction.model';
 import {
   BinAppDto,
   CreateApplicationDto,
@@ -36,7 +45,7 @@ export class SmartBinService {
     @InjectModel(Wallet.name) private readonly walletModel: Model<Wallet>,
     @InjectModel(Transaction.name)
     private readonly transactionModel: Model<Transaction>,
-  ) { }
+  ) {}
 
   // For Resident
   // async getResidentBinApplication(residentId: string) {
@@ -208,38 +217,55 @@ export class SmartBinService {
     accountType: UserRole;
     applicationData: CreateBusinessApplicationDto;
   }) {
+    if (applicationData.transactionReference) {
+      const successfulCharge = await this.transactionModel.exists({
+        transactionReference: applicationData.transactionReference,
+        userId: accountId,
+        userType: accountType,
+        status: TransactionStatus.Successful,
+      });
+
+      if (!successfulCharge) {
+        throw new BadRequestException(
+          'Invalid transaction reference. Please ensure the transaction was successful.',
+        );
+      }
+    }
+
     const generateTransactionRef = generateRandomChars(10, 'alphanum');
-    const newBinApplication = new this.smartbinModel({
-      userId: String(accountId),
-      customerType: accountType,
-      transactionReference: generateTransactionRef,
-      branchId: applicationData.branchId,
-      ...applicationData,
-      applicationHistory: [
-        {
-          timestamp: new Date(),
-          status: SmartBinApplicationStatus.Pending,
-          description: 'Application successful awaiting approval',
+    const newBinApplication = await Promise.all([
+      this.smartbinModel.create({
+        userId: String(accountId),
+        customerType: accountType,
+        transactionReference:
+          applicationData.transactionReference || generateTransactionRef,
+        branchId: applicationData.branchId,
+        ...applicationData,
+        applicationHistory: [
+          {
+            timestamp: new Date(),
+            status: SmartBinApplicationStatus.Pending,
+            description: 'Application successful awaiting approval',
+          },
+        ],
+      }),
+      this.transactionModel.create({
+        userId: String(accountId),
+        transactionReference: generateTransactionRef,
+        userType: accountType,
+        amount: DEFAULT_SMART_BIN_AMOUNT,
+        service: ServiceType.SmartBinPurchase,
+        status: applicationData.transactionReference
+          ? TransactionStatus.Successful
+          : TransactionStatus.Pending,
+        meta: {
+          branch: applicationData?.branch,
+          customerName: applicationData?.customerName,
+          tenantName: applicationData?.tenantName,
+          receiptId: applicationData.receiptId,
         },
-      ],
-    });
-
-    await newBinApplication.save();
-
-    await this.transactionModel.create({
-      userId: String(accountId),
-      transactionReference: generateTransactionRef,
-      userType: accountType,
-      amount: newBinApplication.amount,
-      service: ServiceType.SmartBinPurchase,
-      meta: {
-        branch: applicationData?.branch,
-        customerName: applicationData?.customerName,
-        tenantName: applicationData?.tenantName,
-        transactionId: newBinApplication._id,
-        receiptId: applicationData.receiptId,
-      },
-    });
+      }),
+    ]);
 
     return {
       application: newBinApplication,

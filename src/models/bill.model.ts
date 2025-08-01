@@ -67,6 +67,10 @@ export class Bill implements BillAttributes {
 export type BillDocument = Bill & Document;
 export const BillSchema = SchemaFactory.createForClass(Bill);
 
-BillSchema.pre<BillDocument>('find', function () {
-  this.userId = new Types.ObjectId(this.userId);
+BillSchema.pre<BillDocument>('find', function (next) {
+  const obj = this as any;
+  if (obj.userId) {
+    obj.userId = new Types.ObjectId(obj.userId);
+  }
+  next();
 });

@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { IncomingMessage, ServerResponse } from 'http';
 import { LoggerModuleAsyncParams, Params } from 'nestjs-pino';
 import { SerializedRequest, SerializedResponse } from 'pino';
+import { ApplicationEnvironment } from '@common/constants';
 
 const getReqLogMsg = (
   req: IncomingMessage,
@@ -41,14 +42,19 @@ export const getPinoConfig = (
       serializers: {
         req: (req: SerializedRequest & { query: Record<string, string> }) => {
           const headers = req.headers || {};
+          const appEnvironment = config.get('nodeEnv');
+          const isProduction =
+            appEnvironment === ApplicationEnvironment.Production;
           return {
             method: req.method,
             url: req.url,
             headers: {
               host: headers.host,
               userAgent: headers['user-agent'],
-              'auth-type': headers['authorization']?.split(' ')[0],
-              token: headers['authorization']?.split(' ')[1],
+              ...(!isProduction && {
+                'auth-type': headers['authorization']?.split(' ')[0],
+                token: headers['authorization']?.split(' ')[1],
+              }),
             },
 
             query: req.query,

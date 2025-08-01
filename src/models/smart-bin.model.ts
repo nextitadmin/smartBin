@@ -23,6 +23,7 @@ export enum PaymentMethod {
   Wallet = 'wallet',
 }
 
+export const DEFAULT_SMART_BIN_AMOUNT = 100000;
 export interface SmartBinAttributes {
   _id?: string;
   userId: Types.ObjectId;
@@ -161,7 +162,11 @@ export class SmartBin extends Document {
   @Prop({ type: SchemaTypes.String, required: false })
   phoneNumber?: string;
 
-  @Prop({ type: SchemaTypes.Number, required: false, default: 100000})
+  @Prop({
+    type: SchemaTypes.Number,
+    required: false,
+    default: DEFAULT_SMART_BIN_AMOUNT,
+  })
   amount?: number;
 
   @Prop({ type: SchemaTypes.String, required: false })

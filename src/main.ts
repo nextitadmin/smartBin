@@ -21,7 +21,11 @@ async function bootstrap() {
   app.enableCors({
     origin: '*',
   });
-  app.use(helmet());
+  app.use(
+    helmet({
+      xPoweredBy: false,
+    }),
+  );
 
   app.use(
     session({
@@ -53,7 +57,15 @@ async function bootstrap() {
     .build();
   const documentFactory = () =>
     SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api', app, documentFactory);
+  SwaggerModule.setup('api', app, documentFactory, {
+    swaggerOptions: {
+      tagSorting: 'alpha',
+      docExpansion: 'list',
+      operationsSorter: 'alpha',
+      persistAuthorization: true,
+      displayRequestDuration: true,
+    },
+  });
 
   const port = config.get('port', { infer: true });
   await app.listen(port);

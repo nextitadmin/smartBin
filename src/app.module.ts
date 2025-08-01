@@ -40,6 +40,7 @@ import { AuthGuard } from '@common/guards/actor.guard';
 import { SupportModule } from './support/support.module';
 import { WalletController } from './wallet/wallet.controller';
 import { ReportModule } from './report/report.module';
+import { SubscriptionModule } from './subscription/subscription.module';
 
 @Module({
   imports: [
@@ -51,19 +52,13 @@ import { ReportModule } from './report/report.module';
     ScheduleModule.forRoot(),
     EventEmitterModule.forRoot(),
     HttpModule,
-    // AuthenticationModule,
     NotificationModule,
-
     PaymentModule,
-    // WebhookModule,
     TransactionModule,
-    // VerificationModule,
     PayerModule,
     AgentModule,
-    // CorporateModule,
     ResidentModule,
     FacilityManagerModule,
-
     BillModule,
     DashboardModule,
     SmartBinModule,
@@ -73,7 +68,8 @@ import { ReportModule } from './report/report.module';
     PickupModule,
     SupportModule,
     WalletModule,
-    ReportModule
+    ReportModule,
+    SubscriptionModule,
   ],
   controllers: [AppController],
   providers: [
