@@ -3,7 +3,7 @@ import { AuthenticatedFacilityManager, FacilityManagerAuth
 import { PaginationQueryDto } from "@common/dto";
 import { FacilityManagerUser } from "@common/types";
 import { TransactionService } from "@src/transaction/transaction.service";
-import { Injectable } from "@nestjs/common";
+import { Injectable, Param } from "@nestjs/common";
 import { Controller, Get, Query} from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import { SuccessResponse } from "@common/http";
@@ -35,4 +35,14 @@ export class FacilityManagerPaymentController {
     
     return new SuccessResponse('payment successful',payments);
   }
+
+  @Get('receipt/:transactionId')
+    @FacilityManagerAuth() 
+    async getReceipt(
+      @Param('transactionId') transactionId: string,
+      @AuthenticatedFacilityManager() user: FacilityManagerUser,
+    ) {
+      const receipt = await this.paymentService.getReceipt({ transactionId, user });
+      return new SuccessResponse('Receipt fetched', receipt);
+    }
 }
