@@ -39,8 +39,9 @@ export class CreateReportDto {
 }
 
 export class GetReportsDto {
-    @ApiProperty()
+    @ApiPropertyOptional({ enum: ReportType })
     @IsOptional()
+    @IsEnum(ReportType, { message: 'Invalid report type' })
     type?: ReportType;
 
     @ApiProperty()
