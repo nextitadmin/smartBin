@@ -20,6 +20,9 @@ export type AuthUser = {
   email: string;
   role: UserRole;
   token?: string;
+  firstName?: string;
+  lastName?: string;
+  phoneNumber?: string;
 };
 
 export type CorporateUser = AuthUser;

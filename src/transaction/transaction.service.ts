@@ -5,18 +5,24 @@ import {
   TransactionStatus,
 } from '@models/transaction.model';
 import { UserRole } from '@models/types';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Types } from 'mongoose';
 import { AuthUser } from '@common/types';
 import { Paging } from '@common/http';
+import { toWords } from 'number-to-words'; // make sure you installed this
+
 
 @Injectable()
 export class TransactionService {
   constructor(
     @InjectModel(Transaction.name) private transactions: Model<Transaction>,
   ) {}
+
+  private convertToWords(amount: number): string {
+    return toWords(amount).replace(/^\w/, (c) => c.toUpperCase());
+  }
 
   async initiateTransaction({
     userId,
@@ -125,5 +131,38 @@ export class TransactionService {
       transactions,
       paging: pagingData,
     };
+  }
+
+async getReceipt({
+  transactionId,
+  user,
+}: {
+  transactionId: string;
+  user: AuthUser;
+}) {
+  const transaction = await this.transactions.findOne({
+    _id: new Types.ObjectId(transactionId),
+    userId: new Types.ObjectId(user.id),
+    userType: user.role,
+  }).lean();
+
+    if (!transaction) {
+      throw new NotFoundException('Transaction not found or access denied');
+    }
+
+    const amount = transaction.amount;
+    const receipt = {
+      receiptFor: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim(),
+      phoneNumber: user.phoneNumber ?? '-',
+      paymentId: transaction.transactionReference ?? '-',
+      transactionId: transaction._id,
+      transactionRef: transaction.transactionReference ?? '-',
+      transactionDate: transaction.createdAt,
+      description: transaction.description || 'Waste Bin Disposal',
+      amount,
+      amountInWords: `${this.convertToWords(amount)} Naira Only`,
+    };
+
+    return receipt;
   }
 }

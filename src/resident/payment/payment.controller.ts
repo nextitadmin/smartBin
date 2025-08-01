@@ -6,7 +6,7 @@ import {
 import { PaginationQueryDto } from '@common/dto';
 import { SuccessResponse } from '@common/http';
 import { ResidentUser} from '@common/types';
-import { Controller, Get, Injectable, Query } from '@nestjs/common';
+import { Controller, Get, Injectable, Param, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { PaymentService } from '@src/payment/payment.service';
 import { TransactionService } from '@src/transaction/transaction.service';
@@ -35,5 +35,15 @@ export class ResidentPaymentController {
     });
     return new SuccessResponse('Payments fetched successfully', payments);
   }
+
+  @Get('receipt/:transactionId')
+      @ResidentAuth() 
+      async getReceipt(
+        @Param('transactionId') transactionId: string,
+        @AuthenticatedResident() user: ResidentUser,
+      ) {
+        const receipt = await this.paymentService.getReceipt({ transactionId, user });
+        return new SuccessResponse('Receipt fetched', receipt);
+      }
 }
 
