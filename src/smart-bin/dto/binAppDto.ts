@@ -15,11 +15,13 @@ export class BinAppDto {
   binType: string;
   status: string;
   customerType: string;
+  customerName?: string;
   lawmaCustomerType?: string;
   paymentMethod?: string;
   buildingName?: string;
   address?: string;
   businessType?: string;
+  branchId?: string;
   email?: string;
   phoneNumber?: string;
   branch?: string;
@@ -130,12 +132,24 @@ export class CreateBusinessApplicationDto {
 
   @ApiProperty()
   @IsString()
+  customerName?: string;
+
+  @ApiProperty()
+  @IsString()
+  tenantName?: string;
+
+  @ApiProperty()
+  @IsString()
   phoneNumber?: string;
 
   @ApiProperty()
   @IsString()
   @IsNotEmpty()
   payerId: string;
+
+  @ApiProperty()
+  @IsString()
+  branchId?: string;
 
   @ApiProperty()
   @IsString()
@@ -152,6 +166,15 @@ export class CreateBusinessApplicationDto {
   @ApiProperty()
   @IsString()
   branch?: string;
+
+  @ApiProperty()
+  @IsString()
+  receiptId?: string;
+
+  @ApiProperty()
+  @IsString()
+  transactionId?: string;
+
 
   @ApiProperty({ enum: LAWMACustomerType, required: false })
   @IsOptional()

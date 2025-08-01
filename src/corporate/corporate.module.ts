@@ -33,10 +33,11 @@ import { DashboardController } from './dashboard/dashboard.controller';
 import { DashboardModule } from '@src/dashboard/dashboard.module';
 import { Branch, BranchSchema } from '@models/branch.model';
 import { CorporateNotificationSettingsController } from './notifications/notification.controller';
-import { NotificationModule } from '@src/notification/notification.module';
+import { NotificationModule } from '@src/notification/notification.module'; 
 import { NotificationSettingsService } from '@src/notification/notification-setting.service';
 import { KycApplicationController } from './kyc-application/kyc-application.controller';
 import { KycModule } from '@src/kyc/kyc.module';
+import { CorporatePaymentController } from './payment/payment.controller';
 import { ReportService } from '@src/report/report.service';
 import { Report, ReportSchema } from '@models/report.model';
 
@@ -72,7 +73,8 @@ import { Report, ReportSchema } from '@models/report.model';
     WasteManagementController,
     DashboardController,
     CorporateNotificationSettingsController,
-    KycApplicationController
+    KycApplicationController,
+    CorporatePaymentController
   ],
   providers: [
     CorporateService,

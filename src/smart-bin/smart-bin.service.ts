@@ -239,6 +239,7 @@ export class SmartBinService {
         customerType: accountType,
         transactionReference:
           applicationData.transactionReference || generateTransactionRef,
+        branchId: applicationData.branchId,
         ...applicationData,
         applicationHistory: [
           {
@@ -259,6 +260,9 @@ export class SmartBinService {
           : TransactionStatus.Pending,
         meta: {
           branch: applicationData?.branch,
+          customerName: applicationData?.customerName,
+          tenantName: applicationData?.tenantName,
+          receiptId: applicationData.receiptId,
         },
       }),
     ]);
