@@ -12,7 +12,6 @@ import { Types } from 'mongoose';
 import { AuthUser } from '@common/types';
 import { Paging } from '@common/http';
 
-
 @Injectable()
 export class TransactionService {
   constructor(
@@ -94,7 +93,13 @@ export class TransactionService {
     };
   }
 
-  async getTransactions({ user, paging }: { user: AuthUser; paging: Partial<Paging> }) {
+  async getTransactions({
+    user,
+    paging,
+  }: {
+    user: AuthUser;
+    paging: Partial<Paging>;
+  }) {
     const query = {
       userId: new Types.ObjectId(user.id),
       userType: user.role,
@@ -104,6 +109,7 @@ export class TransactionService {
     const totalDocuments = await this.transactions.countDocuments(query);
     const transactions = await this.transactions
       .find(query)
+      .select('-__v -updatedAt')
       .skip((page - 1) * limit)
       .limit(limit)
       .sort({ createdAt: -1 })

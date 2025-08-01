@@ -1,4 +1,3 @@
-
 import {
   AuthenticatedCorporate,
   CorporateAuth,
@@ -14,11 +13,11 @@ import { TransactionService } from '@src/transaction/transaction.service';
 @ApiTags('Corporate/Payment')
 @Injectable()
 @Controller({
-  path: 'corporates/payment',
+  path: 'corporate/payments',
   version: '1',
 })
 export class CorporatePaymentController {
-  constructor(private readonly paymentService: TransactionService) {}
+  constructor(private readonly transactionService: TransactionService) {}
 
   @Get()
   @CorporateAuth()
@@ -26,7 +25,7 @@ export class CorporatePaymentController {
     @Query() query: PaginationQueryDto,
     @AuthenticatedCorporate() user: CorporateUser,
   ) {
-    const payments = await this.paymentService.getTransactions({
+    const payments = await this.transactionService.getTransactions({
       user,
       paging: {
         size: query.limit ? parseInt(query.limit, 10) : 10,
@@ -36,4 +35,3 @@ export class CorporatePaymentController {
     return new SuccessResponse('Payments fetched successfully', payments);
   }
 }
-
