@@ -125,3 +125,19 @@ TransactionSchema.index(
     unique: true,
   },
 );
+
+TransactionSchema.pre<TransactionDocument>('find', function (next) {
+  const obj = this as any;
+  if (obj.userId) {
+    obj.userId = new Types.ObjectId(obj.userId);
+  }
+  next();
+});
+
+TransactionSchema.pre<TransactionDocument>('findOne', function (next) {
+  const obj = this as any;
+  if (obj.userId) {
+    obj.userId = new Types.ObjectId(obj.userId);
+  }
+  next();
+});

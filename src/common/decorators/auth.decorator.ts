@@ -64,3 +64,10 @@ export const AuthenticatedResident = createParamDecorator(
     return req.resident;
   },
 );
+
+export const AuthenticatedUser = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext) => {
+    const req: Request & { user: AuthUser } = ctx.switchToHttp().getRequest();
+    return req.user;
+  },
+);
