@@ -76,7 +76,7 @@ class AuthorizedSignatoryDto {
 
   @ApiProperty()
   @IsString()
-  idDocumentNo: string;
+  ninNumber: string;
 
   @ApiProperty()
   @IsString()
