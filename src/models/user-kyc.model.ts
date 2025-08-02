@@ -24,7 +24,7 @@ export interface UserKycAttributes {
   userId: Types.ObjectId;
   userType: UserRole;
   lawmaCustomerType?: string;
-  ninNumber?: string;
+  idDocumentNo?: string;
   idDocument?: string;
   buildingType?: string;
   houseNumber?: string;
@@ -69,7 +69,7 @@ export class UserKyc extends Document {
   lawmaCustomerType: string;
 
   @Prop({ type: SchemaTypes.String, required: false })
-  ninNumber: string;
+  idDocumentNo: string;
 
   @Prop({ type: SchemaTypes.String, required: false })
   idDocument: string;

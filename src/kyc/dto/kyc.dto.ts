@@ -34,7 +34,7 @@ class CompanyInformationDto {
 class BusinessRegistrationCertificateDto {
   @ApiProperty()
   @IsString()
-  nin: string;
+  idDocumentNo: string;
 
   @ApiProperty()
   @IsString()
@@ -76,7 +76,7 @@ class AuthorizedSignatoryDto {
 
   @ApiProperty()
   @IsString()
-  ninNumber: string;
+  idDocumentNo: string;
 
   @ApiProperty()
   @IsString()
