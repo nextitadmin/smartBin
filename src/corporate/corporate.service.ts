@@ -236,6 +236,15 @@ export class CorporateService {
       accountNumber: null,
       localGovermentArea: userKyc?.localGovernment || null,
       buildingType: userKyc?.buildingType || null,
+      hasSubmittedIdentity: userKyc?.hasSubmittedIdentity || false,
+      hasSubmittedCorporateInformation: userKyc?.hasSubmittedPersonalInformation || false,
+      hasSubmittedSignatories: userKyc?.hasSubmittedSignatories || false,
+      identityVerificationStatus: userKyc?.identityVerificationStatus || null,
+      signatoryVerificationStatus: userKyc?.signatoryVerificationStatus || null,
+      businessRegistrationNumber: userKyc?.businessRegistrationNumber || null,
+      businessSector: userKyc?.businessSector || null,
+      idDocument: userKyc?.idDocument || null,
+      idDocumentNo: userKyc?.idDocumentNo || null,
     };
     return {
       message: 'Corporate profile retrieved successfully',

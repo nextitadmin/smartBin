@@ -41,6 +41,7 @@ export class CorporateReportController {
         @Body() dto: CreateReportDto,
         @AuthenticatedCorporate() corporate: CorporateUser,
     ) {
+        console.log(dto);
         const response = await this.reportService.generateReport(dto, corporate);
         return new SuccessResponse('Report generated successfully', response.data);
     }

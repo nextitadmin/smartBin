@@ -13,6 +13,7 @@ import {
 import {
   AddressVerificationDto,
   CompanyInfoDto,
+  CreateKycDto,
   IdVerificationDto,
   PersonalInfoDto,
   SignatoriesDto,
@@ -31,6 +32,46 @@ export class KycService {
     @InjectModel(CorporateTeam.name)
     private readonly corporateTeamModel: Model<CorporateTeam>,
   ) {}
+
+  async createCorporateKyc(dto: {
+    userId: string;
+    accountType: UserRole;
+    applicationData: CreateKycDto;
+  }) {
+    const signatoryDocs = await this.corporateTeamModel.insertMany(
+      dto.applicationData.authorizedSignatories.map((signatory) => ({
+        ...signatory,
+        userId: dto.userId,
+        userType: dto.accountType,
+      })),
+    );
+    const signatoryIds = signatoryDocs.map((s) => s._id);
+
+    const userKyc = await this.userKycModel.findOneAndUpdate(
+      { userId: new Types.ObjectId(dto.userId), userType: dto.accountType },
+      {
+        $set: {
+          ...dto.applicationData.companyInformation,
+          ...dto.applicationData.businessRegistrationCertificate,
+          signatories: signatoryIds,
+          hasSubmittedPersonalInformation: true,
+          hasSubmittedIdentity: true,
+          hasSubmittedSignatories: true,
+          identityVerificationStatus: IdVerificationStatus.SUBMITTED,
+          signatoryVerificationStatus: SignatoryVerificationStatus.SUBMITTED,
+        },
+      },
+      { upsert: true, new: true },
+    );
+
+    return {
+      hasSubmittedCorporateInformation: userKyc.hasSubmittedPersonalInformation,
+      hasSubmittedidentity: userKyc.hasSubmittedIdentity,
+      hasSubmittedSignatories: userKyc.hasSubmittedSignatories,
+      identityVerificationStatus: userKyc.identityVerificationStatus,
+      signatoryVerificationStatus: userKyc.signatoryVerificationStatus,
+    };
+  }
 
   // For Resident and Facilty Manager
   async submitPersonalInformation(dto: {
@@ -124,7 +165,7 @@ export class KycService {
     });
 
     return {
-      hasSubmittedCompanyInformation: userKyc.hasSubmittedPersonalInformation,
+      hasSubmittedCorporateInformation: userKyc.hasSubmittedPersonalInformation,
       identityVerificationStatus: userKyc.identityVerificationStatus,
       signatoryVerificationStatus: userKyc.signatoryVerificationStatus,
       hasSubmittedSignatories: userKyc.hasSubmittedSignatories,
@@ -196,7 +237,7 @@ export class KycService {
       .lean();
     return {
       message: 'All team members fetched successfully',
-      data: corporateTeam
+      data: corporateTeam,
     };
   }
 
