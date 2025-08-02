@@ -26,12 +26,15 @@ export interface PickupAttributes {
   phoneNumber?: string;
   customerName?: string;
   branch?: string;
+  pickupDate?: string;
+  pickupTime?: string;
   nextPickupDate?: Date;
   residentLocation?: string;
   agentNote?: string;
   status?: Status;
   paymentMethod?: PaymentMethod;
   time?: string;
+  weight?: number;
   notification?: string;
   issuedOn?: Date;
   paymentDue?: Date;
@@ -77,6 +80,15 @@ export class Pickup {
   branch?: string;
 
   @Prop()
+  phoneNumber?: string;
+
+  @Prop()
+  pickupDate?: string;
+
+  @Prop()
+  pickupTime?: string;
+
+  @Prop()
   nextPickupDate?: Date;
 
   @Prop()
@@ -105,6 +117,9 @@ export class Pickup {
 
   @Prop()
   time?: string;
+
+  @Prop({ default: 20 })
+  weight?: number;
 
   @Prop()
   notification?: string;

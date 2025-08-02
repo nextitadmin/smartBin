@@ -25,7 +25,7 @@ export class PickupService {
   constructor(
     @InjectModel(Pickup.name)
     private readonly pickupModel: Model<PickupDocument>,
-  ) {}
+  ) { }
 
   //  findAll pickups
   async getAllPickups(accountId: Types.ObjectId) {
@@ -161,6 +161,7 @@ export class PickupService {
     });
 
     return {
+      message: 'Pickup requested successfully',
       wasteId,
       amount: 100000,
     };
