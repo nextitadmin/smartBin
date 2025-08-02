@@ -16,7 +16,8 @@ import {
     ServiceType,
 } from '@models/transaction.model';
 import { SmartBin } from '@models/smart-bin.model';
-import { Pickup } from '@models/pickup';
+import { Pickup, PickupDocument } from '@models/pickup';
+import moment from 'moment';
 
 @Injectable()
 export class ReportService {
@@ -24,7 +25,7 @@ export class ReportService {
         @InjectModel(Report.name) private readonly reportModel: Model<Report>,
         @InjectModel(Transaction.name) private readonly transactionModel: Model<Transaction>,
         @InjectModel(SmartBin.name) private readonly smartBinModel: Model<SmartBin>,
-        @InjectModel(Pickup.name) private readonly pickupModel: Model<Pickup>,
+        @InjectModel(Pickup.name) private readonly pickupModel: Model<PickupDocument>,
     ) { }
 
     // generte report
@@ -48,6 +49,10 @@ export class ReportService {
             type,
             filters: dto.filters,
             data,
+            period: {
+                from: moment(dto.startDate).format('DD/MM'),
+                to: moment(dto.endDate).format('DD/MM'),
+            },
             userId: new Types.ObjectId(user.id),
         });
 
@@ -60,6 +65,10 @@ export class ReportService {
                 type: report.type,
                 generatedBy: user.email || user.id,
                 generatedAt: report.createdAt,
+                period: {
+                    from: moment(dto.startDate).format('DD/MM'),
+                    to: moment(dto.endDate).format('DD/MM'),
+                },
                 totalRecords: data.length,
             },
         };
@@ -111,16 +120,24 @@ export class ReportService {
     private async generateWastePickup(user: AuthUser, dto: CreateReportDto): Promise<any[]> {
         const { startDate, endDate, filters } = dto;
 
-        const query: any = { ...filters };
+        const query: any = {
+            accountId: new Types.ObjectId(user.id),
+        };
 
-        if (startDate && endDate) {
-            query.nextPickupDate = {
-                $gte: new Date(startDate),
-                $lte: new Date(endDate),
-            };
+        if (filters?.branch) {
+            query.branch = filters.branch;
         }
+        // if (startDate && endDate) {
+        //     query.nextPickupDate = {
+        //         $gte: new Date(startDate),
+        //         $lte: new Date(endDate),
+        //     };
+        // }
 
-        const records = await this.pickupModel.find(query).lean();
+        const records = await this.pickupModel
+            .find(query)
+            .sort({ createdAt: -1 })
+            .lean();
 
         return records.map((item, index) => ({
             sn: index + 1,
@@ -199,10 +216,10 @@ export class ReportService {
 
 
 
-
-    // getreports 
     async getReportsByUser(user: AuthUser, filters: GetReportsDto) {
-        const query: any = { userId: new Types.ObjectId(user.id) };
+        const query: any = {
+            userId: new Types.ObjectId(user.id),
+        };
 
         if (filters.type) {
             query.type = filters.type;
@@ -215,11 +232,28 @@ export class ReportService {
             };
         }
 
-        const reports = await this.reportModel.find(query).sort({ createdAt: -1 }).lean();
-        return reports;
+        if (filters.search) {
+            query.reportName = { $regex: filters.search, $options: 'i' };
+        }
+
+        const reports = await this.reportModel
+            .find(query)
+            .sort({ createdAt: -1 })
+            .lean();
+
+        return reports.map((report, index) => ({
+            sn: index + 1,
+            title: report.reportName,
+            reportType: report.type,
+            generationDate: report.createdAt,
+            period: {
+                from: moment(filters.startDate).format('DD/MM'),
+                to: moment(filters.endDate).format('DD/MM'),
+            },
+
+            ...report,
+        }));
     }
-
-
 
 
 

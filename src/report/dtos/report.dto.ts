@@ -39,20 +39,28 @@ export class CreateReportDto {
 }
 
 export class GetReportsDto {
+
+
+
     @ApiPropertyOptional({ enum: ReportType })
     @IsOptional()
     @IsEnum(ReportType, { message: 'Invalid report type' })
     type?: ReportType;
 
-    @ApiProperty()
+    @ApiPropertyOptional()
     @IsOptional()
-    @Type(() => Date)
-    startDate?: Date;
+    search?: string;
+
 
     @ApiProperty()
     @IsOptional()
-    @Type(() => Date)
-    endDate?: Date;
+    @IsDateString()
+    startDate?: string;
+
+    @ApiProperty()
+    @IsOptional()
+    @IsDateString()
+    endDate?: string;
 }
 
 export class ReportResponseDto {
