@@ -156,11 +156,11 @@ async getReceipt({
 
     const amount = transaction.amount;
     const receipt = {
-      receiptFor: `${payer.firstName ?? ''} ${payer.lastName ?? ''}`.trim(),
-      phoneNumber: payer.phoneNumber ?? '-',
-      paymentId: transaction.transactionReference ?? '-',
+      receiptFor: `${payer.firstName} ${payer.lastName}`.trim(),
+      phoneNumber: payer.phoneNumber,
+      paymentId: transaction.transactionReference,
       transactionId: transaction._id,
-      transactionRef: transaction.transactionReference ?? '-',
+      transactionRef: transaction.transactionReference,
       transactionDate: transaction.createdAt,
       description: transaction.description || 'Waste Bin Disposal',
       amount,
