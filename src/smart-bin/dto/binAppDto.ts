@@ -132,10 +132,12 @@ export class CreateBusinessApplicationDto {
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   customerName?: string;
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   tenantName?: string;
 
   @ApiProperty()
@@ -149,6 +151,7 @@ export class CreateBusinessApplicationDto {
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   branchId?: string;
 
   @ApiProperty()
@@ -169,10 +172,12 @@ export class CreateBusinessApplicationDto {
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   receiptId?: string;
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   transactionId?: string;
 
 
