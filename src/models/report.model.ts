@@ -48,8 +48,6 @@ export class Report implements ReportAttributes {
         to: string;
     };
 
-
-
     @Prop({ type: Object })
     filters: Record<string, any>;
 

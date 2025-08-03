@@ -127,12 +127,12 @@ export class ReportService {
         if (filters?.branch) {
             query.branch = filters.branch;
         }
-        // if (startDate && endDate) {
-        //     query.nextPickupDate = {
-        //         $gte: new Date(startDate),
-        //         $lte: new Date(endDate),
-        //     };
-        // }
+        if (startDate && endDate) {
+            query.createdAt = {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate),
+            };
+        }
 
         const records = await this.pickupModel
             .find(query)
@@ -141,12 +141,16 @@ export class ReportService {
 
         return records.map((item, index) => ({
             sn: index + 1,
-            pickupDate: item.nextPickupDate,
+            pickupDate: item.pickupDate,
+            pickupTime: item.pickupTime,
+            customerName: item?.customerName,
+            phoneNumber: item?.phoneNumber,
             address: item.address,
             status: item.status,
             amount: item.amount,
+            weight: item.weight,
             orderId: item.wasteId,
-            branch: item.branch || 'N/A',
+            branch: item?.branch || 'N/A',
         }));
     }
 
@@ -207,6 +211,8 @@ export class ReportService {
         return {
             id: report._id,
             type: report.type,
+            reportName: report.reportName,
+            period: report.period,
             generatedAt: report.createdAt,
             filters: report.filters,
             data: report.data,
