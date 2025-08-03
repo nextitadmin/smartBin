@@ -156,8 +156,8 @@ async getReceipt({
 
     const amount = transaction.amount;
     const receipt = {
-      receiptFor: `${payer.firstName} ${payer.lastName}`.trim(),
-      phoneNumber: payer.phoneNumber,
+      receiptFor: `${payer.firstName ?? ''} ${payer.lastName ?? ''}`.trim(),
+      phoneNumber: payer.phoneNumber ?? '-',
       paymentId: transaction.transactionReference ?? '-',
       transactionId: transaction._id,
       transactionRef: transaction.transactionReference ?? '-',
