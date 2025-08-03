@@ -5,19 +5,21 @@ import {
   TransactionStatus,
 } from '@models/transaction.model';
 import { UserRole } from '@models/types';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, forwardRef, Inject } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Types } from 'mongoose';
 import { AuthUser } from '@common/types';
 import { Paging } from '@common/http';
 import { toWords } from 'number-to-words'; // make sure you installed this
+import { PayerService } from '@src/payer/payer.service';
 
 
 @Injectable()
 export class TransactionService {
   constructor(
     @InjectModel(Transaction.name) private transactions: Model<Transaction>,
+    @Inject(forwardRef(() => PayerService)) private readonly payerService: PayerService,
   ) {}
 
   private convertToWords(amount: number): string {
@@ -150,10 +152,12 @@ async getReceipt({
       throw new NotFoundException('Transaction not found or access denied');
     }
 
+  const payer = await this.payerService.getPayerByPayerId(transaction.meta?.payerId);
+
     const amount = transaction.amount;
     const receipt = {
-      receiptFor: `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim(),
-      phoneNumber: user.phoneNumber ?? '-',
+      receiptFor: `${payer.firstName ?? ''} ${payer.lastName ?? ''}`.trim(),
+      phoneNumber: payer.phoneNumber ?? '-',
       paymentId: transaction.transactionReference ?? '-',
       transactionId: transaction._id,
       transactionRef: transaction.transactionReference ?? '-',

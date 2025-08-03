@@ -15,5 +15,6 @@ import { Payer, PayerSchema } from '@models/users/payer.model';
   ],
   controllers: [PayerController],
   providers: [PayerService],
+  exports: [PayerService],
 })
 export class PayerModule {}
