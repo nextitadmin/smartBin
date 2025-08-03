@@ -40,6 +40,7 @@ import { KycModule } from '@src/kyc/kyc.module';
 import { CorporatePaymentController } from './payment/payment.controller';
 import { ReportService } from '@src/report/report.service';
 import { Report, ReportSchema } from '@models/report.model';
+import { PayerService } from '@src/payer/payer.service';
 
 @Module({
   imports: [
@@ -82,7 +83,8 @@ import { Report, ReportSchema } from '@models/report.model';
     SmartBinService,
     BillService,
     WasteManagementService,
-    ReportService
+    ReportService,
+    PayerService
   ],
   exports: [CorporateService],
 })

@@ -28,6 +28,7 @@ import { AgentModule } from '@src/agent/agent.module';
 import { FacilityManagerModule } from '@src/facility-manager/facility-manager.module';
 import { ResidentPaymentController } from './payment/payment.controller';
 import { TransactionService } from '@src/transaction/transaction.service';
+import { PayerService } from '@src/payer/payer.service';
 
 @Module({
   imports: [
@@ -81,7 +82,7 @@ import { TransactionService } from '@src/transaction/transaction.service';
     DashboardController,
     ResidentPaymentController,
   ],
-  providers: [ResidentService, SmartBinService, BillService, TransactionService],
+  providers: [ResidentService, SmartBinService, BillService, TransactionService, PayerService],
   exports: [ResidentService, SmartBinService, BillService],
 })
 export class ResidentModule {}
