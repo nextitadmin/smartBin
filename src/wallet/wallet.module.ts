@@ -26,6 +26,7 @@ import { TransactionModule } from '@src/transaction/transaction.module';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { Branch, BranchSchema } from '@models/branch.model';
 import { WalletController } from './wallet.controller';
+import { PayerService } from '@src/payer/payer.service';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { WalletController } from './wallet.controller';
     FacilityManagerService,
     AgentService,
     SmartBinService,
+    PayerService
   ],
   controllers: [WalletController],
   exports: [WalletService],
