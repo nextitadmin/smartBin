@@ -135,6 +135,42 @@ export class TransactionService {
     };
   }
 
+// async getReceipt({
+//   transactionId,
+//   user,
+// }: {
+//   transactionId: string;
+//   user: AuthUser;
+// }) {
+//   const transaction = await this.transactions.findOne({
+//     _id: new Types.ObjectId(transactionId),
+//     userId: new Types.ObjectId(user.id),
+//     userType: user.role,
+//   }).lean();
+
+//     if (!transaction) {
+//       throw new NotFoundException('Transaction not found or access denied');
+//     }
+
+//   const payer = await this.payerService.getPayerByPayerId(transaction.meta?.payerId);
+
+//     const amount = transaction.amount;
+//     const receipt = {
+//       receiptFor: `${payer.firstName} ${payer.lastName}`.trim(),
+//       phoneNumber: payer.phoneNumber,
+//       paymentId: transaction.transactionReference,
+//       transactionId: transaction._id,
+//       transactionRef: transaction.transactionReference,
+//       transactionDate: transaction.createdAt,
+//       description: transaction.description || 'Waste Bin Disposal',
+//       amount,
+//       amountInWords: `${this.convertToWords(amount)} Naira Only`,
+//     };
+
+//     return receipt;
+//   }
+// }
+
 async getReceipt({
   transactionId,
   user,
@@ -152,12 +188,10 @@ async getReceipt({
       throw new NotFoundException('Transaction not found or access denied');
     }
 
-  const payer = await this.payerService.getPayerByPayerId(transaction.meta?.payerId);
-
     const amount = transaction.amount;
     const receipt = {
-      receiptFor: `${payer?.firstName ?? ''} ${payer?.lastName ?? ''}`.trim(),
-      phoneNumber: payer?.phoneNumber ?? '-',
+      receiptFor: `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim(),
+      phoneNumber: user?.phoneNumber ?? '-',
       paymentId: transaction.transactionReference ?? '-',
       transactionId: transaction._id,
       transactionRef: transaction.transactionReference ?? '-',
