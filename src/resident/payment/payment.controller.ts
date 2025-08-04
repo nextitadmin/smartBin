@@ -5,7 +5,7 @@ import {
 } from '@common/decorators/auth.decorator';
 import { PaginationQueryDto } from '@common/dto';
 import { SuccessResponse } from '@common/http';
-import { ResidentUser} from '@common/types';
+import { ResidentUser } from '@common/types';
 import { Controller, Get, Injectable, Param, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { PaymentService } from '@src/payment/payment.service';
@@ -18,7 +18,7 @@ import { TransactionService } from '@src/transaction/transaction.service';
   version: '1',
 })
 export class ResidentPaymentController {
-  constructor(private readonly paymentService: TransactionService) {}
+  constructor(private readonly paymentService: TransactionService) { }
 
   @Get()
   @ResidentAuth()
@@ -37,13 +37,13 @@ export class ResidentPaymentController {
   }
 
   @Get('receipt/:transactionId')
-      @ResidentAuth() 
-      async getReceipt(
-        @Param('transactionId') transactionId: string,
-        @AuthenticatedResident() user: ResidentUser,
-      ) {
-        const receipt = await this.paymentService.getReceipt({ transactionId, user });
-        return new SuccessResponse('Receipt fetched', receipt);
-      }
+  @ResidentAuth()
+  async getReceipt(
+    @Param('transactionId') transactionId: string,
+    @AuthenticatedResident() user: ResidentUser,
+  ) {
+    const receipt = await this.paymentService.getReceipt(transactionId, user);
+    return new SuccessResponse('Receipt fetched', receipt);
+  }
 }
 
