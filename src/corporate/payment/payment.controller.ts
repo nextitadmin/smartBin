@@ -17,7 +17,7 @@ import { TransactionService } from '@src/transaction/transaction.service';
   version: '1',
 })
 export class CorporatePaymentController {
-  constructor(private readonly transactionService: TransactionService) {}
+  constructor(private readonly transactionService: TransactionService) { }
 
   @Get()
   @CorporateAuth()
@@ -41,7 +41,7 @@ export class CorporatePaymentController {
     @Param('transactionId') transactionId: string,
     @AuthenticatedCorporate() user: CorporateUser,
   ) {
-    const receipt = await this.transactionService.getReceipt({ transactionId, user });
+    const receipt = await this.transactionService.getReceipt(transactionId, user);
     return new SuccessResponse('Receipt fetched', receipt);
   }
 

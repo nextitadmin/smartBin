@@ -13,6 +13,10 @@ import { AuthUser } from '@common/types';
 import { Paging } from '@common/http';
 import { toWords } from 'number-to-words'; // make sure you installed this
 import { PayerService } from '@src/payer/payer.service';
+import { Resident } from '@models/users/resident.model';
+import { Agent } from '@models/users/agent.model';
+import { Corporate } from '@models/users/corporate.model';
+import { FacilityManager } from '@models/users/facility-manager.model';
 
 
 @Injectable()
@@ -20,7 +24,11 @@ export class TransactionService {
   constructor(
     @InjectModel(Transaction.name) private transactions: Model<Transaction>,
     @Inject(forwardRef(() => PayerService)) private readonly payerService: PayerService,
-  ) {}
+    @InjectModel('Resident') private readonly residentModel: Model<Resident>,
+    @InjectModel('Agent') private readonly agentModel: Model<Agent>,
+    @InjectModel('Corporate') private readonly corporateModel: Model<Corporate>,
+    @InjectModel('FacilityManager') private readonly facilityManagerModel: Model<FacilityManager>,
+  ) { }
 
   private convertToWords(amount: number): string {
     return toWords(amount).replace(/^\w/, (c) => c.toUpperCase());
@@ -135,63 +143,20 @@ export class TransactionService {
     };
   }
 
-// async getReceipt({
-//   transactionId,
-//   user,
-// }: {
-//   transactionId: string;
-//   user: AuthUser;
-// }) {
-//   const transaction = await this.transactions.findOne({
-//     _id: new Types.ObjectId(transactionId),
-//     userId: new Types.ObjectId(user.id),
-//     userType: user.role,
-//   }).lean();
-
-//     if (!transaction) {
-//       throw new NotFoundException('Transaction not found or access denied');
-//     }
-
-//   const payer = await this.payerService.getPayerByPayerId(transaction.meta?.payerId);
-
-//     const amount = transaction.amount;
-//     const receipt = {
-//       receiptFor: `${payer.firstName} ${payer.lastName}`.trim(),
-//       phoneNumber: payer.phoneNumber,
-//       paymentId: transaction.transactionReference,
-//       transactionId: transaction._id,
-//       transactionRef: transaction.transactionReference,
-//       transactionDate: transaction.createdAt,
-//       description: transaction.description || 'Waste Bin Disposal',
-//       amount,
-//       amountInWords: `${this.convertToWords(amount)} Naira Only`,
-//     };
-
-//     return receipt;
-//   }
-// }
-
-async getReceipt({
-  transactionId,
-  user,
-}: {
-  transactionId: string;
-  user: AuthUser;
-}) {
-  const transaction = await this.transactions.findOne({
-    _id: new Types.ObjectId(transactionId),
-    userId: new Types.ObjectId(user.id),
-    userType: user.role,
-  }).lean();
+  async getReceipt(transactionId: string, user: AuthUser) {
+    const transaction = await this.transactions.findOne({
+      _id: new Types.ObjectId(transactionId),
+      userId: new Types.ObjectId(user.id),
+    }).lean();
 
     if (!transaction) {
       throw new NotFoundException('Transaction not found or access denied');
     }
-
+    const userInfo = await this.getUserInfo(user);
     const amount = transaction.amount;
     const receipt = {
-      receiptFor: `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim(),
-      phoneNumber: user?.phoneNumber ?? '-',
+      receiptFor: `${userInfo?.firstName ?? ''} ${userInfo.lastName ?? ''}`.trim(),
+      phoneNumber: userInfo.phoneNumber ?? '-',
       paymentId: transaction.transactionReference ?? '-',
       transactionId: transaction._id,
       transactionRef: transaction.transactionReference ?? '-',
@@ -203,4 +168,38 @@ async getReceipt({
 
     return receipt;
   }
+
+
+
+  private async getUserInfo(user: AuthUser): Promise<{
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string;
+    surname?: string;
+  }> {
+    if (user.role === 'Resident') {
+      return await this.residentModel
+        .findById(user.id)
+        .select('firstName lastName phoneNumber')
+        .lean();
+    } else if (user.role === 'Agent') {
+      return await this.agentModel
+        .findById(user.id)
+        .select('firstName lastName phoneNumber')
+        .lean();
+    } else if (user.role === 'Corporate') {
+      return await this.corporateModel
+        .findById(user.id)
+        .select('firstName lastName phoneNumber')
+        .lean();
+    } else if (user.role === 'Facility') {
+      return await this.facilityManagerModel
+        .findById(user.id)
+        .select('firstName lastName phoneNumber')
+        .lean();
+    } else {
+      return {};
+    }
+  }
+
 }

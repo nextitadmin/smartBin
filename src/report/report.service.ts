@@ -1,18 +1,15 @@
 import {
     Injectable,
     NotFoundException,
-    BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types, PipelineStage } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Report, ReportType } from '@models/report.model';
 import { CreateReportDto, GetReportsDto } from './dtos/report.dto';
 import { SuccessResponse } from '@common/http';
 import { AuthUser } from '@common/types';
-import { Bill } from '@models/bill.model';
 import {
     Transaction,
-    TransactionStatus,
     ServiceType,
 } from '@models/transaction.model';
 import { SmartBin } from '@models/smart-bin.model';
@@ -35,7 +32,7 @@ export class ReportService {
     ): Promise<SuccessResponse> {
         const { type } = dto;
 
-        let data: any[] = [];
+        let data: any;
         if (type === ReportType.PaymentHistory) {
             data = await this.generatePaymentHistory(user, dto);
         } else if (type === ReportType.WastePickup) {
@@ -76,9 +73,17 @@ export class ReportService {
 
 
 
-
-    // payment report
-    private async generatePaymentHistory(user: AuthUser, dto: CreateReportDto): Promise<any[]> {
+    private async generatePaymentHistory(user: AuthUser, dto: CreateReportDto):
+        Promise<{
+            records: any[];
+            chartSummary: {
+                totalPayment: number;
+                breakdown: {
+                    [service: string]:
+                    { totalAmount: number; percentage: number; };
+                };
+            };
+        }> {
         const { filters, startDate, endDate } = dto;
 
         const query: any = {
@@ -105,19 +110,62 @@ export class ReportService {
         }
 
         const transactions = await this.transactionModel.find(query).lean();
-        return transactions.map((txn) => ({
-            transactionId: txn.transactionReference,
-            receiptId: txn._id,
-            service: txn.service,
-            branch: txn.meta?.branch || 'N/A',
-            amount: txn.amount,
-            paymentMethod: txn.paymentMethod,
-            paidAt: txn.completedAt,
-        }));
+
+        const summaryMap: Record<string, { totalAmount: number }> = {
+            [ServiceType.SmartBinPurchase]: { totalAmount: 0 },
+            [ServiceType.WasteDisposal]: { totalAmount: 0 },
+            [ServiceType.Subscription]: { totalAmount: 0 },
+            [ServiceType.WalletTopUp]: { totalAmount: 0 },
+        };
+
+        let totalPayment = 0;
+
+        const records = transactions.map((txn) => {
+            const { service, amount } = txn;
+            if (summaryMap[service]) {
+                summaryMap[service].totalAmount += amount;
+            }
+            totalPayment += amount;
+
+            return {
+                transactionId: txn.transactionReference,
+                receiptId: txn._id,
+                service,
+                branch: txn.meta?.branch || 'N/A',
+                amount,
+                paymentMethod: txn.paymentMethod,
+                paidAt: txn.completedAt,
+            };
+        });
+
+        const chartSummary = {
+            totalPayment,
+            breakdown: {} as Record<
+                string,
+                { totalAmount: number; percentage: number }
+            >,
+        };
+
+        for (const service in summaryMap) {
+            const serviceTotal = summaryMap[service].totalAmount;
+            chartSummary.breakdown[service] = {
+                totalAmount: serviceTotal,
+                percentage: totalPayment > 0 ? Math.round((serviceTotal / totalPayment) * 100) : 0,
+            };
+        }
+
+        return {
+            records,
+            chartSummary,
+        };
     }
 
+
     // waste pickup report
-    private async generateWastePickup(user: AuthUser, dto: CreateReportDto): Promise<any[]> {
+    private async generateWastePickup(
+        user: AuthUser,
+        dto: CreateReportDto,
+    ): Promise<{ pickups: any[]; summary: { totalPickups: number; totalWeight: number; }; }> {
         const { startDate, endDate, filters } = dto;
 
         const query: any = {
@@ -127,6 +175,7 @@ export class ReportService {
         if (filters?.branch) {
             query.branch = filters.branch;
         }
+
         if (startDate && endDate) {
             query.createdAt = {
                 $gte: new Date(startDate),
@@ -138,25 +187,39 @@ export class ReportService {
             .find(query)
             .sort({ createdAt: -1 })
             .lean();
+        let totalWeight = 0;
 
-        return records.map((item, index) => ({
-            sn: index + 1,
-            pickupDate: item.pickupDate,
-            pickupTime: item.pickupTime,
-            customerName: item?.customerName,
-            phoneNumber: item?.phoneNumber,
-            address: item.address,
-            status: item.status,
-            amount: item.amount,
-            weight: item.weight,
-            orderId: item.wasteId,
-            branch: item?.branch || 'N/A',
-        }));
+        const pickups = records.map((item, index) => {
+            const weight = item.weight || 0;
+
+            totalWeight += weight;
+
+            return {
+                sn: index + 1,
+                pickupDate: item.pickupDate,
+                pickupTime: item.pickupTime,
+                customerName: item?.customerName,
+                phoneNumber: item?.phoneNumber,
+                address: item.address,
+                status: item.status,
+                weight,
+                orderId: item.wasteId,
+                branch: item?.branch || 'N/A',
+            };
+        });
+
+        return {
+            pickups,
+            summary: {
+                totalPickups: records.length,
+                totalWeight,
+            },
+        };
     }
 
 
-
-    private async generateSmartBinReport(user: AuthUser, dto: CreateReportDto): Promise<any[]> {
+    private async generateSmartBinReport(user: AuthUser, dto: CreateReportDto):
+        Promise<{ records: any[]; totalApplications: number; }> {
         const { filters, startDate, endDate } = dto;
 
         const query: any = {
@@ -180,17 +243,23 @@ export class ReportService {
 
         const applications = await this.smartBinModel.find(query).lean();
 
-        return applications.map((app) => {
+        const records = applications.map((app) => {
             const firstHistory = app.applicationHistory?.[0];
             return {
                 orderId: app.transactionReference,
                 dateRequested: firstHistory?.timestamp,
                 address: app.address,
-                branch: app.customerType === 'Corporate' ? app.branch : undefined,
+                branch: app?.branch || 'N/A',
                 status: app.status,
             };
         });
+
+        return {
+            records,
+            totalApplications: applications.length,
+        };
     }
+
 
 
     // report dowmload
