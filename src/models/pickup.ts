@@ -68,8 +68,8 @@ export class Pickup {
   @Prop()
   representative?: string;
 
-  @Prop({ default: 'Pending' })
-  status: string;
+  @Prop({ enum: Object.values(Status), default: Status.Pending })
+  status: Status;
 
   // Facility Manager field
   @Prop()
@@ -92,7 +92,7 @@ export class Pickup {
   nextPickupDate?: Date;
 
   @Prop()
-  agentNote?: string; // Add agent-specific info here if needed
+  agentNote?: string;
 
   @Prop({ required: true })
   wasteId: string;
@@ -129,6 +129,12 @@ export class Pickup {
 
   @Prop()
   paymentDue?: Date;
+
+  @Prop()
+  createdAt?: Date;
+
+  @Prop()
+  updatedAt?: Date;
 }
 
 export const PickupSchema = SchemaFactory.createForClass(Pickup);

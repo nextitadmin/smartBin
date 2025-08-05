@@ -12,6 +12,15 @@ import { TransactionService } from '@src/transaction/transaction.service';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { TransactionModule } from '@src/transaction/transaction.module';
 import { AgentPaymentController } from './payment/payment.controller';
+import { DashboardController } from './dashboard/dashboard.controller';
+import { DashboardService } from '@src/dashboard/dashboard.service';
+import { Transaction, TransactionSchema } from '@models/transaction.model';
+import { SmartBin, SmartBinSchema } from '@models/smart-bin.model';
+import { Bill, BillSchema } from '@models/bill.model';
+import { Corporate, CorporateSchema } from '@models/users/corporate.model';
+import { FacilityManager, FacilityManagerSchema } from '@models/users/facility-manager.model';
+import { Resident, ResidentSchema } from '@models/users/resident.model';
+import { Pickup, PickupSchema } from '@models/pickup';
 
 @Module({
   imports: [
@@ -20,6 +29,24 @@ import { AgentPaymentController } from './payment/payment.controller';
         name: Agent.name,
         schema: AgentSchema,
       },
+      {
+        name: Corporate.name,
+        schema: CorporateSchema,
+      },
+      {
+        name: Resident.name,
+        schema: ResidentSchema,
+      },
+      {
+        name: FacilityManager.name,
+        schema: FacilityManagerSchema,
+      },
+      { name: Transaction.name, schema: TransactionSchema },
+      { name: SmartBin.name, schema: SmartBinSchema },
+      { name: Wallet.name, schema: WalletSchema },
+      { name: Bill.name, schema: BillSchema },
+      { name: Pickup.name, schema: PickupSchema },
+
       {
         name: Payer.name,
         schema: PayerSchema,
@@ -36,8 +63,8 @@ import { AgentPaymentController } from './payment/payment.controller';
     forwardRef(() => WalletModule),
     forwardRef(() => TransactionModule),
   ],
-  providers: [AgentService, WalletService],
+  providers: [AgentService, WalletService, DashboardService],
   exports: [AgentService],
-  controllers: [AgentController, AgentWalletController, AgentPaymentController],
+  controllers: [AgentController, DashboardController, AgentWalletController, AgentPaymentController],
 })
-export class AgentModule {}
+export class AgentModule { }

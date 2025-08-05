@@ -16,26 +16,51 @@ import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { KycApplicationController } from './kyc-application/kyc-application.controller';
 import { KycModule } from '@src/kyc/kyc.module';
 import { FacilityManagerPaymentController } from './payment/payment.controller';
-import { TransactionModule } from '@src/transaction/transaction.module'; 
+import { TransactionModule } from '@src/transaction/transaction.module';
+import { Transaction, TransactionSchema } from '@models/transaction.model';
+import { SmartBin, SmartBinSchema } from '@models/smart-bin.model';
+import { Resident, ResidentSchema } from '@models/users/resident.model';
+import { Corporate, CorporateSchema } from '@models/users/corporate.model';
+import { Agent, AgentSchema } from '@models/users/agent.model';
+import { Wallet, WalletSchema } from '@models/wallet.model';
+import { Bill, BillSchema } from '@models/bill.model';
+import { DashboardController } from './dashboard/dashboard.controller';
+import { DashboardService } from '@src/dashboard/dashboard.service';
+import { WalletService } from '@src/wallet/wallet.service';
+import { FacilityManagerWalletController } from './wallet.controller';
+import { Pickup, PickupSchema } from '@models/pickup';
+
+
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Payer.name, schema: PayerSchema },
       { name: FacilityManager.name, schema: FacilityManagerSchema },
+      { name: Agent.name, schema: AgentSchema },
+      { name: Corporate.name, schema: CorporateSchema },
+      { name: Resident.name, schema: ResidentSchema },
       { name: UserKyc.name, schema: UserKycSchema },
+      { name: Transaction.name, schema: TransactionSchema },
+      { name: SmartBin.name, schema: SmartBinSchema },
+      { name: Wallet.name, schema: WalletSchema },
+      { name: Bill.name, schema: BillSchema },
+      { name: Pickup.name, schema: PickupSchema },
+
     ]),
     SmartBinModule,
     KycModule,
-    TransactionModule, 
+    TransactionModule,
   ],
   controllers: [
     FacilityManagerController,
+    DashboardController,
+    FacilityManagerWalletController,
     SmartBinController,
     FacilityController,
     KycApplicationController,
     FacilityManagerPaymentController,
   ],
-  providers: [FacilityManagerService, FacilityService],
+  providers: [FacilityManagerService, FacilityService, DashboardService, WalletService],
   exports: [FacilityManagerService, FacilityService],
 })
-export class FacilityManagerModule {}
+export class FacilityManagerModule { }
