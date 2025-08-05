@@ -20,7 +20,7 @@ import { AuthUser } from '@common/types';
   version: '1',
 })
 export class AgentWalletController {
-  constructor(private readonly walletService: WalletService) {}
+  constructor(private readonly walletService: WalletService) { }
 
   @Get()
   @AgentAuth()
