@@ -245,6 +245,7 @@ export class CorporateService {
       businessSector: userKyc?.businessSector || null,
       idDocument: userKyc?.idDocument || null,
       idDocumentNo: userKyc?.idDocumentNo || null,
+      hasCompletedKyc: userKyc?.hasCompletedKyc || false,
     };
     return {
       message: 'Corporate profile retrieved successfully',

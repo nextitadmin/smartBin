@@ -57,6 +57,7 @@ export class KycService {
           hasSubmittedPersonalInformation: true,
           hasSubmittedIdentity: true,
           hasSubmittedSignatories: true,
+          hasCompletedKyc:true,
           identityVerificationStatus: IdVerificationStatus.SUBMITTED,
           signatoryVerificationStatus: SignatoryVerificationStatus.SUBMITTED,
         },

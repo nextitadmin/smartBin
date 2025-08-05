@@ -42,6 +42,7 @@ export interface UserKycAttributes {
   signatoryVerificationStatus?: SignatoryVerificationStatus;
   businessRegistrationNumber?: string;
   businessSector?: string;
+  hasCompletedKyc?:boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -133,6 +134,9 @@ export class UserKyc extends Document {
 
   @Prop({ type: SchemaTypes.String, required: false })
   businessSector: string;
+
+  @Prop({ type: SchemaTypes.Boolean, default: false })
+  hasCompletedKyc: boolean;
 
   @Prop({ type: Date })
   createdAt?: Date;
