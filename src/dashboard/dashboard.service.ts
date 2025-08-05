@@ -14,6 +14,7 @@ import { Bill } from '@models/bill.model';
 import { Wallet } from '@models/wallet.model';
 import { SmartBin } from '@models/smart-bin.model';
 import { Transaction } from '@models/transaction.model';
+import { Pickup, Status } from '@models/pickup';
 
 @Injectable()
 export class DashboardService {
@@ -27,20 +28,18 @@ export class DashboardService {
     @InjectModel(Bill.name) private readonly billModel: Model<Bill>,
     @InjectModel(Wallet.name) private readonly walletModel: Model<Wallet>,
     @InjectModel(SmartBin.name) private readonly smartbinModel: Model<SmartBin>,
-    // @InjectModel(Pickup.name) private readonly pickupModel: Model<Pickup>,
-    // @InjectModel(Disposal.name) private readonly disposalModel: Model<Disposal>,
+    @InjectModel(Pickup.name) private readonly pickupModel: Model<Pickup>,
     @InjectModel(Transaction.name)
     private readonly transactionModel: Model<Transaction>,
   ) { }
 
-  async getResidentDashboard(userId: string) {
+  async getResidentDashboard(userId: string, year: number) {
     const [
       resident,
       bills,
       wallet,
       smartbin,
-      // pickups,
-      // disposals,
+      disposals,
     ] = await Promise.all([
       this.residentModel.findById(userId).lean(),
       this.billModel.find({ userId, userType: 'Resident' }).lean(),
@@ -49,9 +48,13 @@ export class DashboardService {
         .find({ userId, userType: 'Resident' })
         .sort({ createdAt: -1 })
         .lean(),
-      // this.pickupModel.find({ userId, userType: 'resident' }).sort({ scheduledDate: 1 }).lean(),
-      // this.disposalModel.find({ userId, userType: 'resident' }).lean(),
+      this.pickupModel.find({ accountId: userId, accountType: 'Resident', status: Status.Completed }).lean(),
+
     ]);
+    const filteredDisposals = disposals.filter(
+      (d) => new Date(d.pickupDate).getFullYear() === year,
+    );
+    const binDisposalAnalytics = this.groupDisposalsByMonth(filteredDisposals);
 
     const outstandingBills = bills.filter((b) => b.status !== 'completed');
     const totalOutstanding = outstandingBills.reduce(
@@ -61,15 +64,18 @@ export class DashboardService {
     const annualEstimate = this.estimateAnnualSubscription(bills);
 
     return {
+      id: resident?._id,
+      fullName: `${resident?.firstName || ''}`,
       walletBalance: wallet?.ledger_balance || 0,
       totalOutstandingBill: totalOutstanding,
       smartbinApplicationsCount: smartbin.length,
       latestSmartbinStatus: smartbin[0]?.status || 'none',
       estimatedAnnualSubscription: annualEstimate,
-      // binDisposalAnalytics: {
-      //   totalDisposals: disposals.length,
-      //   disposalBreakdown: this.groupDisposalsByMonth(disposals),
-      // },
+      binDisposalAnalytics: {
+        year,
+        totalDisposals: filteredDisposals.length,
+        monthlyBreakdown: binDisposalAnalytics,
+      },
     };
   }
 
@@ -83,17 +89,29 @@ export class DashboardService {
     return Math.round(averageMonthly * 12);
   }
 
-  // private groupDisposalsByMonth(disposals: any[]) {
-  //   return disposals.reduce((acc, d) => {
-  //     const month = new Date(d.createdAt).toLocaleString('default', { month: 'long' });
-  //     acc[month] = (acc[month] || 0) + 1;
-  //     return acc;
-  //   }, {});
-  // }
+  // helper for monthly disposals
+  private groupDisposalsByMonth(disposals: any[]) {
+    const months = Array.from({ length: 12 }, (_, i) => ({
+      month: new Date(0, i).toLocaleString('default', { month: 'short' }),
+      count: 0,
+      totalWeight: 0,
+    }));
+
+    for (const disposal of disposals) {
+      const date = new Date(disposal.createdAt);
+      const monthIndex = date.getMonth();
+
+      months[monthIndex].count += 1;
+      months[monthIndex].totalWeight += disposal.weight || 0;
+    }
+
+    return months;
+  }
+
 
   // get facility manager dashboard
-  async getFacilityManagerDashboard(facilityManagerId: string) {
-    const [facilityManager, residents, wallet, bills, smartbin] =
+  async getFacilityManagerDashboard(facilityManagerId: string, year: number) {
+    const [facilityManager, residents, wallet, bills, smartbin, disposals] =
       await Promise.all([
         this.facilityModel.findById(facilityManagerId),
         this.residentModel.find({
@@ -108,7 +126,13 @@ export class DashboardService {
         this.smartbinModel
           .find({ userId: facilityManagerId, userType: 'Facility' })
           .sort({ createdAt: -1 }),
+        this.pickupModel.find({ accountId: facilityManagerId, accountType: 'Facility', status: Status.Completed }).lean(),
       ]);
+
+    const filteredDisposals = disposals.filter(
+      (d) => new Date(d.pickupDate).getFullYear() === year,
+    );
+    const binDisposalAnalytics = this.groupDisposalsByMonth(filteredDisposals);
 
     const outstandingBills = bills.filter((b) => b.status !== 'completed');
     const totalOutstanding = outstandingBills.reduce(
@@ -119,20 +143,24 @@ export class DashboardService {
 
     return {
       id: facilityManager?._id,
-      fullName: `${facilityManager?.firstName || ''} ${facilityManager?.lastName || ''
-        }`,
+      fullName: `${facilityManager?.firstName || ''}`,
       walletBalance: wallet?.ledger_balance || 0,
       totalOutstandingBill: totalOutstanding,
       smartbinApplicationsCount: smartbin.length,
       latestSmartbinStatus: smartbin[0]?.status || 'none',
       estimatedAnnualSubscription: annualEstimate,
       totalResidentsRegistered: residents.length,
+      binDisposalAnalytics: {
+        year,
+        totalDisposals: filteredDisposals.length,
+        monthlyBreakdown: binDisposalAnalytics,
+      },
     };
   }
 
   // get agent dashboard
-  async getAgentDashboard(agentId: string) {
-    const [agent, residents, corporates, wallet, bills, smartbin] =
+  async getAgentDashboard(agentId: string, year: number) {
+    const [agent, residents, corporates, wallet, bills, smartbin, disposals] =
       await Promise.all([
         this.agentModel.findById(agentId),
         this.residentModel.find({
@@ -148,7 +176,13 @@ export class DashboardService {
         this.smartbinModel
           .find({ userId: agentId, userType: 'agent' })
           .sort({ createdAt: -1 }),
+        this.pickupModel.find({ accountId: agentId, accountType: 'Agent', status: Status.Completed }).lean(),
       ]);
+
+    const filteredDisposals = disposals.filter(
+      (d) => new Date(d.pickupDate).getFullYear() === year,
+    );
+    const binDisposalAnalytics = this.groupDisposalsByMonth(filteredDisposals);
 
     const outstandingBills = bills.filter((b) => b.status !== 'completed');
     const totalOutstanding = outstandingBills.reduce(
@@ -159,7 +193,7 @@ export class DashboardService {
 
     return {
       id: agent?._id,
-      fullName: `${agent?.firstName || ''} ${agent?.lastName || ''}`,
+      fullName: `${agent?.firstName || ''}`,
       walletBalance: wallet?.ledger_balance || 0,
       totalOutstandingBill: totalOutstanding,
       smartbinApplicationsCount: smartbin.length,
@@ -167,16 +201,25 @@ export class DashboardService {
       estimatedAnnualSubscription: annualEstimate,
       totalResidentsRegistered: residents.length,
       totalCorporatesRegistered: corporates.length,
+      binDisposalAnalytics: {
+        year,
+        totalDisposals: filteredDisposals.length,
+        monthlyBreakdown: binDisposalAnalytics,
+      },
+
     };
   }
 
+
+
   // get Corporate Dashboard
-  async getCorporateDashboard(userId: string) {
+  async getCorporateDashboard(userId: string, year: number) {
     const [
       corporate,
       bills,
       wallet,
       smartbin,
+      disposals,
     ] = await Promise.all([
       this.corporateModel.findById(userId).lean(),
       this.billModel.find({ userId, userType: 'Corporate' }).lean(),
@@ -184,8 +227,14 @@ export class DashboardService {
       this.smartbinModel
         .find({ userId, userType: 'Corporate' })
         .sort({ createdAt: -1 })
-        .lean()
+        .lean(),
+      this.pickupModel.find({ accountId: userId, accountType: 'Corporate', status: Status.Completed }).lean(),
     ]);
+
+    const filteredDisposals = disposals.filter(
+      (d) => new Date(d.pickupDate).getFullYear() === year,
+    );
+    const binDisposalAnalytics = this.groupDisposalsByMonth(filteredDisposals);
 
     const outstandingBills = bills.filter((b) => b.status !== 'completed');
     const totalOutstanding = outstandingBills.reduce(
@@ -195,11 +244,18 @@ export class DashboardService {
     const annualEstimate = this.estimateAnnualSubscription(bills);
 
     return {
+      id: corporate?._id,
+      fullName: `${corporate?.firstName || ''}`,
       walletBalance: wallet?.ledger_balance || 0,
       totalOutstandingBill: totalOutstanding,
       smartbinApplicationsCount: smartbin.length,
       latestSmartbinStatus: smartbin[0]?.status || 'none',
       estimatedAnnualSubscription: annualEstimate,
+      binDisposalAnalytics: {
+        year,
+        totalDisposals: filteredDisposals.length,
+        monthlyBreakdown: binDisposalAnalytics,
+      },
     };
   }
 }

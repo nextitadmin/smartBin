@@ -18,6 +18,7 @@ import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
 import { CorporateModule } from '@src/corporate/corporate.module';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { CorporateService } from '@src/corporate/corporate.service';
+import { Pickup, PickupSchema } from '@models/pickup';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { CorporateService } from '@src/corporate/corporate.service';
       { name: FacilityManager.name, schema: FacilityManagerSchema },
       { name: Wallet.name, schema: WalletSchema },
       { name: Bill.name, schema: BillSchema },
+      { name: Pickup.name, schema: PickupSchema },
       { name: Transaction.name, schema: TransactionSchema },
       { name: SmartBin.name, schema: SmartBinSchema },
       { name: Payer.name, schema: PayerSchema },
@@ -39,4 +41,4 @@ import { CorporateService } from '@src/corporate/corporate.service';
   providers: [DashboardService],
   exports: [DashboardService]
 })
-export class DashboardModule {}
+export class DashboardModule { }
