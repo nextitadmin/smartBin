@@ -197,15 +197,57 @@ export class ResidentService {
     };
   }
 
+
+  // const business = await this.corporateModel
+  //       .findById(userId)
+  //       .select('-password -loginCode -loginCodeExpires')
+  //       .lean();
+  //     if (!business) {
+  //       throw new NotFoundException('Corporate business not found');
+  //     }
+  
+  //     const userKyc = await this.userKycModel
+  //       .findOne({ userId: new Types.ObjectId(userId) })
+  //       .lean();
+  //     const defaultAvatar =
+  //       'https://res.cloudinary.com/demo/image/upload/avatar.png';
+  
+      // const data = {
+      //   businessName: business.businessName || null,
+      //   payerId: business.payerId || null,
+      //   fullName: `${business.firstName} ${business.lastName}` || null,
+      //   email: business.email || null,
+      //   address: userKyc?.address || null,
+      //   landmark: userKyc?.closestLandmark || null,
+      //   nextPickupDate: null,
+      //   accountNumber: null,
+      //   localGovermentArea: userKyc?.localGovernment || null,
+      //   buildingType: userKyc?.buildingType || null,
+      //   hasSubmittedIdentity: userKyc?.hasSubmittedIdentity || false,
+      //   hasSubmittedCorporateInformation:
+      //     userKyc?.hasSubmittedPersonalInformation || false,
+      //   hasSubmittedSignatories: userKyc?.hasSubmittedSignatories || false,
+      //   identityVerificationStatus: userKyc?.identityVerificationStatus || null,
+      //  
+      // };
+      // return {
+      //   message: 'Corporate profile retrieved successfully',
+      //   ...business,
+      //   ...data,
+      //   phoneNumber: business.phoneNumber || null,
+      //   profilePicture: business.profilePicture || defaultAvatar,
+      // };
+
   async getProfile(residentId: string) {
     const resident = await this.residentModel
       .findById(residentId)
       .select(
-        'firstName lastName email profilePicture payerId landmark nextPickupDate accountNo localGovermentArea buildingType profilePicture phoneNumber nationality gender lawmaCustomerType address role',
+        '-password -loginCode -loginCodeExpires -__v -createdAt -updatedAt',
       )
       .lean();
 
     const userKyc = await this.userKycModel.findOne({ userId: new Types.ObjectId(residentId) }).lean();
+    
 
     if (!resident) {
       throw new NotFoundException('Resident not found');
@@ -215,14 +257,17 @@ export class ResidentService {
       'https://res.cloudinary.com/demo/image/upload/avatar.png';
 
     const data = {
-      address: userKyc.address || null,
-      landmark: userKyc.closestLandmark || null,
+      address: userKyc?.address || null,
+      landmark: userKyc?.closestLandmark || null,
       nextPickupDate: resident.nextPickupDate || null,
-      accountNumber: resident.accountNo || null,
-      localGovermentArea: userKyc.localGovernment || null,
-      buildingType: userKyc.buildingType || null,
+      localGovermentArea: userKyc?.localGovernment || null,
+      buildingType: userKyc?.buildingType || null,
+      idDocument: userKyc?.idDocument || null,
+      idDocumentNo: userKyc?.idDocumentNo || null,
+      hasCompletedKyc: userKyc?.hasCompletedKyc || false,
     };
     return {
+      message: 'Resident profile retrieved successfully',
       ...resident,
       ...data,
       phoneNumber: resident.phoneNumber || null,
