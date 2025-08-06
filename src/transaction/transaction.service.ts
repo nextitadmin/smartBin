@@ -5,7 +5,13 @@ import {
   TransactionStatus,
 } from '@models/transaction.model';
 import { UserRole } from '@models/types';
-import { BadRequestException, Injectable, NotFoundException, forwardRef, Inject } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  forwardRef,
+  Inject,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Types } from 'mongoose';
@@ -18,17 +24,18 @@ import { Agent } from '@models/users/agent.model';
 import { Corporate } from '@models/users/corporate.model';
 import { FacilityManager } from '@models/users/facility-manager.model';
 
-
 @Injectable()
 export class TransactionService {
   constructor(
     @InjectModel(Transaction.name) private transactions: Model<Transaction>,
-    @Inject(forwardRef(() => PayerService)) private readonly payerService: PayerService,
+    @Inject(forwardRef(() => PayerService))
+    private readonly payerService: PayerService,
     @InjectModel('Resident') private readonly residentModel: Model<Resident>,
     @InjectModel('Agent') private readonly agentModel: Model<Agent>,
     @InjectModel('Corporate') private readonly corporateModel: Model<Corporate>,
-    @InjectModel('FacilityManager') private readonly facilityManagerModel: Model<FacilityManager>,
-  ) { }
+    @InjectModel('FacilityManager')
+    private readonly facilityManagerModel: Model<FacilityManager>,
+  ) {}
 
   private convertToWords(amount: number): string {
     return toWords(amount).replace(/^\w/, (c) => c.toUpperCase());
@@ -144,10 +151,12 @@ export class TransactionService {
   }
 
   async getReceipt(transactionId: string, user: AuthUser) {
-    const transaction = await this.transactions.findOne({
-      _id: new Types.ObjectId(transactionId),
-      userId: new Types.ObjectId(user.id),
-    }).lean();
+    const transaction = await this.transactions
+      .findOne({
+        _id: new Types.ObjectId(transactionId),
+        userId: new Types.ObjectId(user.id),
+      })
+      .lean();
 
     if (!transaction) {
       throw new NotFoundException('Transaction not found or access denied');
@@ -155,7 +164,9 @@ export class TransactionService {
     const userInfo = await this.getUserInfo(user);
     const amount = transaction.amount;
     const receipt = {
-      receiptFor: `${userInfo?.firstName ?? ''} ${userInfo.lastName ?? ''}`.trim(),
+      receiptFor: `${userInfo?.firstName ?? ''} ${
+        userInfo.lastName ?? ''
+      }`.trim(),
       phoneNumber: userInfo.phoneNumber ?? '-',
       paymentId: transaction.transactionReference ?? '-',
       transactionId: transaction._id,
@@ -168,8 +179,6 @@ export class TransactionService {
 
     return receipt;
   }
-
-
 
   private async getUserInfo(user: AuthUser): Promise<{
     firstName?: string;
@@ -202,4 +211,34 @@ export class TransactionService {
     }
   }
 
+  async getTransactionByReference(reference: string) {
+    const transaction = await this.transactions
+      .findOne({
+        transactionReference: reference,
+      })
+      .lean();
+    if (!transaction) {
+      throw new NotFoundException('Transaction not found');
+    }
+
+    return transaction;
+  }
+
+  async updateTransaction(param: {
+    reference: string;
+    walletId?: Types.ObjectId;
+    status?: TransactionStatus;
+  }) {
+    return this.transactions.findOneAndUpdate(
+      {
+        transactionReference: param.reference,
+      },
+      {
+        $set: {
+          walletId: param.walletId,
+          status: param.status,
+        },
+      },
+    );
+  }
 }

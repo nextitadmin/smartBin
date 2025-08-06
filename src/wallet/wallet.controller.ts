@@ -8,11 +8,13 @@ import {
 } from './dtos/wallet.dto';
 import {
   Auth,
+  AuthenticatedUser,
   CorporateAuth,
   ResidentAuth,
 } from 'src/common/decorators/auth.decorator';
 import { SuccessResponse } from '@common/http';
 import { Public } from '@common/guards/public.guard';
+import { AuthUser } from '@common/types';
 
 @ApiTags('Wallet')
 @Controller({
@@ -31,10 +33,25 @@ export class WalletController {
     return new SuccessResponse('Wallet callback URL received', null);
   }
 
-  // @Post('topup')
-  // async topUp(@Req() req, @Body() dto: TopUpWalletDto) {
-  //   const userId = req.user.id;
-  //   const response = this.walletService.initiateResidentTopUp(userId, dto);
-  //   return new SuccessResponse(' Wallet topped up initiated', response);
-  // }
+  @Post('topup')
+  async topUp(
+    @AuthenticatedUser() user: AuthUser,
+    @Body() dto: TopUpWalletDto,
+  ) {
+    const response = await this.walletService.initiateTopUp(user, dto);
+    return new SuccessResponse('Wallet topped up successfully', response);
+  }
+
+  @Post('charge')
+  async chargeCorporateWallet(
+    @AuthenticatedUser() user: AuthUser,
+    @Body() dto: TopUpWalletDto,
+  ) {
+    const response = await this.walletService.chargeWallet({
+      user,
+      amount: dto.amount,
+      reference: dto.reference,
+    });
+    return new SuccessResponse('Wallet charged successfully', response);
+  }
 }

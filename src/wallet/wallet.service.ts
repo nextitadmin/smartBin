@@ -14,7 +14,11 @@ import {
   GetWalletResponseDto,
 } from './dtos/wallet.dto';
 import * as crypto from 'crypto';
-import { ServiceType, Transaction } from '@models/transaction.model';
+import {
+  ServiceType,
+  Transaction,
+  TransactionStatus,
+} from '@models/transaction.model';
 import { TransactionService } from '../transaction/transaction.service';
 import { SuccessResponse } from '@common/http';
 import { UserRole } from '@models/types';
@@ -95,7 +99,15 @@ export class WalletService {
     };
   }
 
-  async chargeWallet({ user, amount }: { user: AuthUser; amount: number }) {
+  async chargeWallet({
+    user,
+    amount,
+    reference,
+  }: {
+    user: AuthUser;
+    amount: number;
+    reference?: string;
+  }) {
     const wallet = await this.walletModel.findOne({
       userId: new Types.ObjectId(user.id),
       userType: user.role,
@@ -103,6 +115,15 @@ export class WalletService {
 
     if (!wallet) {
       throw new NotFoundException('No wallet found for this user');
+    }
+
+    if (reference) {
+      const existingTransaction =
+        await this.transactionService.getTransactionByReference(reference);
+      if (existingTransaction.status === TransactionStatus.Successful) {
+        throw new BadRequestException('Transaction already completed');
+      }
+      amount = existingTransaction.amount;
     }
 
     if (wallet.available_balance < amount) {
@@ -114,20 +135,37 @@ export class WalletService {
     wallet.available_balance -= amount;
     wallet.ledger_balance -= amount;
     await wallet.save();
-    const transaction = await this.transactionService.initiateTransaction({
-      userId: user.id,
-      userType: user.role,
-      amount,
-      service: ServiceType.WalletCharge,
-      metadata: {
-        description: 'Wallet charge operation',
-      },
+
+    await this.transactionService.updateTransaction({
+      reference,
+      walletId: wallet._id,
+      status: TransactionStatus.Successful,
     });
-    if (!transaction.success) {
-      throw new BadRequestException(transaction.message);
+
+    if (!reference) {
+      const transaction = await this.transactionService.initiateTransaction({
+        userId: user.id,
+        userType: user.role,
+        amount,
+        service: ServiceType.WalletCharge,
+        metadata: {
+          description: 'Wallet charge operation',
+        },
+      });
+      if (!transaction.success) {
+        throw new BadRequestException(transaction.message);
+      }
+
+      return transaction.data.reference;
+    } else {
+      await this.transactionService.updateTransaction({
+        reference,
+        walletId: wallet._id,
+        status: TransactionStatus.Successful,
+      });
     }
 
-    return transaction.data.reference;
+    return reference;
   }
 
   async getWallet(user: AuthUser) {

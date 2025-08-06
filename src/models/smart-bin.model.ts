@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaTypes, Types } from 'mongoose';
 import { UserRole } from './types';
+import { Transaction } from './transaction.model';
 
 export enum SmartbinStatus {
   Pending = 'pending',
@@ -86,6 +87,7 @@ const ApplicationHistoryItemSchema = SchemaFactory.createForClass(
   collection: 'smart_bins',
   timestamps: true,
   versionKey: false,
+  virtuals: true,
 })
 export class SmartBin extends Document {
   @Prop({
@@ -204,3 +206,11 @@ export class SmartBin extends Document {
 }
 
 export const SmartBinSchema = SchemaFactory.createForClass(SmartBin);
+
+SmartBinSchema.virtual('payment', {
+  ref: Transaction.name,
+  localField: 'transactionReference',
+  foreignField: 'transactionReference',
+  justOne: true,
+  options: { select: 'status amount paymentMethod -_id' },
+});

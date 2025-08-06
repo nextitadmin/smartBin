@@ -237,7 +237,8 @@ export class CorporateService {
       localGovermentArea: userKyc?.localGovernment || null,
       buildingType: userKyc?.buildingType || null,
       hasSubmittedIdentity: userKyc?.hasSubmittedIdentity || false,
-      hasSubmittedCorporateInformation: userKyc?.hasSubmittedPersonalInformation || false,
+      hasSubmittedCorporateInformation:
+        userKyc?.hasSubmittedPersonalInformation || false,
       hasSubmittedSignatories: userKyc?.hasSubmittedSignatories || false,
       identityVerificationStatus: userKyc?.identityVerificationStatus || null,
       signatoryVerificationStatus: userKyc?.signatoryVerificationStatus || null,
@@ -360,22 +361,20 @@ export class CorporateService {
   }
 
   async addBranch(userId: string, body: AddCorporateBranchDto) {
-
-    const data = await this.branchModel.create({...body, userId: userId})
+    const data = await this.branchModel.create({ ...body, userId: userId });
 
     return {
       message: 'Branch added to corporation successfully',
-      data
-    }
+      data,
+    };
   }
 
-  async fetchBranches(userId: string)
-  {
-    const data = await this.branchModel.find({userId: userId})
+  async fetchBranches(userId: string) {
+    const data = await this.branchModel.find({ userId: userId });
     return {
-      message: "Corporation branches fetched successfully",
-      data
-    }
+      message: 'Corporation branches fetched successfully',
+      data,
+    };
   }
 
   async getCorporateDetailsByToken(token: string) {
