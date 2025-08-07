@@ -144,7 +144,6 @@ export class SmartBinService {
           userId: new Types.ObjectId(corporateId),
           customerType: UserRole.Corporate,
         })
-        .populate('payment')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -174,7 +173,6 @@ export class SmartBinService {
   async getAllBinApplications() {
     const smartbins = await this.smartbinModel
       .find()
-      .populate('payment')
       .sort({ createdAt: -1 })
       .lean();
     if (!smartbins || smartbins.length === 0) {
@@ -184,10 +182,7 @@ export class SmartBinService {
   }
   // Get bin application by ID
   async getBinApplicationById(id: string) {
-    const smartbin = await this.smartbinModel
-      .findById(id)
-      .populate('payment')
-      .lean();
+    const smartbin = await this.smartbinModel.findById(id).lean();
     if (!smartbin) {
       throw new NotFoundException('Bin application not found');
     }
@@ -281,7 +276,6 @@ export class SmartBinService {
   async getBinApplicationsByUserId(userId: string, userType: string) {
     const smartbins = await this.smartbinModel
       .find({ userId: userId, customerType: userType })
-      .populate('payment')
       .sort({ createdAt: -1 })
       .lean();
     if (!smartbins || smartbins.length === 0) {
@@ -291,10 +285,7 @@ export class SmartBinService {
   }
 
   async getBinApplicationDetails(applicationId: string) {
-    const smartBin = await this.smartbinModel
-      .findById(applicationId)
-      .populate('payment')
-      .lean();
+    const smartBin = await this.smartbinModel.findById(applicationId).lean();
 
     let userDetails = null;
 

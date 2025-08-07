@@ -26,7 +26,7 @@ import { AgentModule } from '@src/agent/agent.module';
       // { name: FacilityManager.name, schema: FacilityManagerSchema },
       // { name: Bill.name, schema: BillSchema },
       // { name: Wallet.name, schema: WalletSchema },
-      // { name: Transaction.name, schema: TransactionSchema },
+      { name: Transaction.name, schema: TransactionSchema },
     ]),
     // AgentModule,
   ],

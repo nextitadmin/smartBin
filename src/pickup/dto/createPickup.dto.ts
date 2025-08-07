@@ -3,6 +3,11 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsDateString, IsString } from 'class-validator';
 
 export class CreatePickupDto {
+  userId: string;
+  userType: string;
+  location:string;
+  description:string;
+ 
   @ApiProperty()
   @IsString()
   branch: string;
