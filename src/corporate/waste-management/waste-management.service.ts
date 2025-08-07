@@ -1,3 +1,4 @@
+import { AuthUser } from '@common/types';
 import { Injectable } from '@nestjs/common';
 import { CreatePickupDto } from '@src/pickup/dto/createPickup.dto';
 import { PickupService } from '@src/pickup/pickup.service';
@@ -12,7 +13,11 @@ export class WasteManagementService {
     return this.pickupService.getCorporatePickups(accountId);
   }
 
-  async createPickup(data: CreatePickupDto) {
-    return this.pickupService.createPickup(data);
+  async createPickup(param: CreatePickupDto & Partial<AuthUser>) {
+    return this.pickupService.createPickup({
+      accountId: param.accountId,
+      accountType: param.accountType,
+      applicationData: { ...param },
+    });
   }
 }
