@@ -11,6 +11,7 @@ import { AuthUser } from '@common/types';
 import {
     Transaction,
     ServiceType,
+    TransactionStatus,
 } from '@models/transaction.model';
 import { SmartBin } from '@models/smart-bin.model';
 import { Pickup, PickupDocument } from '@models/pickup';
@@ -96,10 +97,11 @@ export class ReportService {
                     ServiceType.WalletTopUp,
                 ],
             },
+            status: TransactionStatus.Successful,
         };
 
         if (startDate && endDate) {
-            query.completedAt = {
+            query.createdAt = {
                 $gte: new Date(startDate),
                 $lte: new Date(endDate),
             };
@@ -131,10 +133,12 @@ export class ReportService {
                 transactionId: txn.transactionReference,
                 receiptId: txn._id,
                 service,
-                branch: txn.meta?.branch || 'N/A',
+                branch: txn.meta?.branch,
+                tenantName: txn.meta?.tenantName,
+                businessName: txn.meta?.businessName,
                 amount,
                 paymentMethod: txn.paymentMethod,
-                paidAt: txn.completedAt,
+                paidAt: txn.createdAt,
             };
         });
 
@@ -204,7 +208,11 @@ export class ReportService {
                 status: item.status,
                 weight,
                 orderId: item.wasteId,
-                branch: item?.branch || 'N/A',
+                branch: item?.branch,
+                tenantName: item?.customerName,
+                businessName: item?.representative
+
+
             };
         });
 
@@ -249,7 +257,9 @@ export class ReportService {
                 orderId: app.transactionReference,
                 dateRequested: firstHistory?.timestamp,
                 address: app.address,
-                branch: app?.branch || 'N/A',
+                branch: app?.branch,
+                tenantName: app?.name,
+                businessName: app?.businessName,
                 status: app.status,
             };
         });
