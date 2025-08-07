@@ -14,6 +14,7 @@ import { FacilityManagerService } from '@src/facility-manager/facility-manager.s
 import { FacilityManager, FacilityManagerSchema } from '@models/users/facility-manager.model';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { ResidentModule } from '@src/resident/resident.module';
+import { Pickup, PickupSchema } from '@models/pickup';
 
 @Module({
   imports: [
@@ -24,7 +25,8 @@ import { ResidentModule } from '@src/resident/resident.module';
       { name: Payer.name, schema: PayerSchema },
       { name: SmartBin.name, schema: SmartBinSchema },
       { name: FacilityManager.name, schema: FacilityManagerSchema },
-      { name: UserKyc.name, schema: UserKycSchema }
+      { name: UserKyc.name, schema: UserKycSchema },
+      { name: Pickup.name, schema: PickupSchema}
     ]),
     SmartBinModule,
     CorporateModule,

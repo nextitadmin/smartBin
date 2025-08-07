@@ -41,14 +41,14 @@ export class Wallet implements WalletAttributes {
 
   @Prop({
     required: false,
-    type: SchemaTypes.Number,
+    type: SchemaTypes.Double,
     default: 0,
   })
   available_balance: number;
 
   @Prop({
     required: false,
-    type: SchemaTypes.Number,
+    type: SchemaTypes.Double,
     default: 0,
   })
   ledger_balance: number;
