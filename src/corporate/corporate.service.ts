@@ -10,7 +10,12 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import * as jwt from 'jsonwebtoken';
 import { Corporate, CorporateDocument } from '@models/users/corporate.model';
-import { comparePassword, generateOtpCode } from '@common/utils';
+import {
+  comparePassword,
+  formatCustomDate,
+  formatTimestamp,
+  generateOtpCode,
+} from '@common/utils';
 import {
   MailNotificationEvents,
   SendEmailEvent,
@@ -42,6 +47,8 @@ import { ConfigAttributes } from '@src/config';
 import { Branch } from '@models/branch.model';
 import { Bill } from '@models/bill.model';
 import { Wallet } from '@models/wallet.model';
+import { SmartBin } from '@models/smart-bin.model';
+import { Pickup } from '@models/pickup';
 
 @Injectable()
 export class CorporateService {
@@ -54,6 +61,8 @@ export class CorporateService {
     @InjectModel(Branch.name) private branchModel: Model<Branch>,
     @InjectModel(Bill.name) private billModel: Model<Bill>,
     @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
+    @InjectModel(SmartBin.name) private smartBinModel: Model<SmartBin>,
+    @InjectModel(Pickup.name) private pickupModel: Model<Pickup>,
     private ee: EventEmitter2,
     private jwtService: JwtService,
     private readonly configService: ConfigService<ConfigAttributes>,
@@ -339,53 +348,127 @@ export class CorporateService {
       .select('payerId firstName lastName address role')
       .lean();
 
-    const smartBinCount = await this.corporateModel.countDocuments({
-      userId: business._id,
-      customerType: UserRole.Corporate,
-    });
+    if (!business) {
+      throw new NotFoundException('Business not found');
+    }
 
-    const totalOutstanding = await this.billModel.aggregate([
-      {
-        $match: {
+    const [
+      smartBinCount,
+      totalOutstanding,
+      walletDetails,
+      lastPickUpDetails,
+      smartBinApplication,
+      userKyc
+    ] = await Promise.all([
+      this.smartBinModel.countDocuments({
+        userId: business._id,
+        customerType: UserRole.Corporate,
+      }),
+
+      this.billModel.aggregate([
+        {
+          $match: {
+            userId: business._id,
+            status: 'pending',
+          },
+        },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: '$totalOutstandingBill' },
+          },
+        },
+      ]),
+
+      this.walletModel
+        .findOne(
+          {
+            userId: business._id,
+            userType: UserRole.Corporate,
+          },
+          {
+            available_balance: 1,
+            _id: 0,
+          },
+        )
+        .lean(),
+      this.pickupModel
+        .findOne(
+          {
+            accountId: business._id,
+            accountType: UserRole.Corporate,
+            status: 'Pending',
+          },
+          {
+            pickupDate: 1,
+            pickupTime: 1,
+            _id: 0,
+          },
+        )
+        .sort({ createdAt: -1 })
+        .lean(),
+      this.smartBinModel
+        .findOne(
+          {
+            userId: business._id,
+            customerType: UserRole.Corporate,
+          },
+          {
+            applicationHistory: 1,
+            _id: 0,
+          },
+        )
+        .sort({ createdAt: -1 })
+        .lean(),
+      this.userKycModel
+        .findOne({
           userId: business._id,
-          status: 'pending',
-        },
-      },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: '$totalOutstandingBill' },
-        },
-      },
+          userType: UserRole.Corporate,
+        })
+        .lean(),
     ]);
 
-    const totalOutstandingBill = totalOutstanding[0]?.total || 0;
+    const latestSmartBinHistory =
+      smartBinApplication?.applicationHistory?.[
+        smartBinApplication.applicationHistory.length - 1
+      ] ?? null;
 
-    const walletDetails = await this.walletModel.findOne({
-      userId: business._id,
-      userType: UserRole.Corporate,
-    });
+    const totalOutstandingBill = totalOutstanding[0]?.total || 0;
+    const availableBalance = walletDetails?.available_balance ?? 0;
 
     const data = {
       name: `${business.firstName} ${business.lastName}`,
       role: business.role,
-      address: business[0]?.address || 'N/A',
+      address: userKyc.address || 'N/A',
       payerId: business.payerId,
       userId: business._id,
-      totalOutstandingBill: totalOutstandingBill,
-      avaliableBalance: walletDetails.available_balance ?? 0.0,
-      smartBinApplicationCount: smartBinCount || 0,
-      smartBinApplicationDetails: {
-        status: '',
-        statusDescription: '',
-        lastUpdatedDate: '',
-      },
+      totalOutstandingBill,
+      avaliableBalance: availableBalance,
+      smartBinApplicationCount: smartBinCount,
+      smartBinApplicationDetails: latestSmartBinHistory
+        ? {
+            status: latestSmartBinHistory.status,
+            statusDescription: latestSmartBinHistory.description,
+            lastUpdatedDate: latestSmartBinHistory.timestamp,
+            formattedlastUpdatedDate: formatTimestamp(
+              latestSmartBinHistory.timestamp,
+            ),
+          }
+        : {
+            status: 'N/A',
+            statusDescription: 'No application found',
+            lastUpdatedDate: 'N/A',
+          },
       estimatedAnnualSubscriptionFee: 0,
-      nextPickUpDate: 'N/A',
+      nextPickUpDate: lastPickUpDetails
+        ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${
+            lastPickUpDetails.pickupTime
+          }`
+        : 'N/A',
     };
 
     return {
-      message: 'Business Dashboard details retrived successfully',
+      message: 'Business Dashboard details retrieved successfully',
       data,
     };
   }
