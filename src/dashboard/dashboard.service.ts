@@ -54,7 +54,7 @@ export class DashboardService {
         .lean(),
       this.pickupModel.find({ accountId: userId, accountType: 'Resident', status: PickupStatus.Completed }).lean(),
       this.pickupModel.findOne({ accountId:userId, accountType: UserRole.Resident, status: PickupStatus.Pending },{pickupDate: 1, pickupTime: 1,_id: 0 }).sort({ createdAt: -1 }).lean(),
-      this.smartbinModel.findOne({userId: userId, customerType: UserRole.Resident },{ applicationHistory: 1, _id: 0,},)
+      this.smartbinModel.findOne({userId: userId, customerType: UserRole.Resident },{ applicationHistory: 1, _id: 1},)
       .sort({ createdAt: -1 }).lean(),
     ]);
     const filteredDisposals = disposals.filter(
@@ -80,11 +80,13 @@ export class DashboardService {
       estimatedAnnualSubscription: annualEstimate,
       nextPickupDate: lastPickUpDetails ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${lastPickUpDetails.pickupTime}`: 'N/A',
       smartBinDetails: latestSmartBinHistory ? {
+        smartbinId: smartBinApplication?._id,
         status: latestSmartBinHistory.status,
         statusDescription: latestSmartBinHistory.description,
         lastUpdatedDate: latestSmartBinHistory.timestamp,
         formattedlastUpdatedDate: formatTimestamp(latestSmartBinHistory.timestamp),
       }: {
+        smartbinId: null,
         status: 'N/A',
         statusDescription: 'No application found',
         lastUpdatedDate: 'N/A',
@@ -250,7 +252,7 @@ export class DashboardService {
         .lean(),
       this.pickupModel.find({ accountId: userId, accountType: 'Corporate', status: PickupStatus.Completed }).lean(),
       this.pickupModel.findOne({ accountId: userId, accountType: UserRole.Corporate, status: PickupStatus.Pending },{pickupDate: 1, pickupTime: 1,_id: 0 },).sort({ createdAt: -1 }).lean(),
-      this.smartbinModel.findOne({userId: userId, customerType: UserRole.Corporate },{ applicationHistory: 1, _id: 0,},)
+      this.smartbinModel.findOne({userId: userId, customerType: UserRole.Corporate },{ applicationHistory: 1, _id: 1},)
       .sort({ createdAt: -1 }).lean(),
     ]);
 
@@ -277,11 +279,13 @@ export class DashboardService {
       estimatedAnnualSubscription: annualEstimate,
       nextPickupDate: lastPickUpDetails ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${lastPickUpDetails.pickupTime}`: 'N/A',
       smartBinDetails: latestSmartBinHistory ? {
+        smartbinId: smartBinApplication?._id,
         status: latestSmartBinHistory.status,
         statusDescription: latestSmartBinHistory.description,
         lastUpdatedDate: latestSmartBinHistory.timestamp,
         formattedlastUpdatedDate: formatTimestamp(latestSmartBinHistory.timestamp),
       }: {
+        smartbinId: null,
         status: 'N/A',
         statusDescription: 'No application found',
         lastUpdatedDate: 'N/A',
