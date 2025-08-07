@@ -13,16 +13,22 @@ import { FacilityManager } from '@models/users/facility-manager.model';
 import { Resident } from '@models/users/resident.model';
 import { Bill } from '@models/bill.model';
 import { Wallet } from '@models/wallet.model';
-import { Transaction } from '@models/transaction.model';
 import { SmartBin } from '@models/smart-bin.model';
 import { UserRole } from '@models/types';
 import { Payer } from '@models/users/payer.model';
 import { Paging } from '@common/http';
 import { generateRandomChars } from '@common/utils';
+import {
+  ServiceType,
+  Transaction,
+  TransactionStatus,
+} from '@models/transaction.model';
 
 @Injectable()
 export class PickupService {
   constructor(
+    @InjectModel(Transaction.name)
+    private readonly transactionModel: Model<Transaction>,
     @InjectModel(Pickup.name)
     private readonly pickupModel: Model<PickupDocument>,
   ) { }
@@ -152,18 +158,37 @@ export class PickupService {
   }
 
   //create pickup
-  async createPickup(dto: CreatePickupDto) {
+    async createPickup(dto: CreatePickupDto) {
     const wasteId = `W#${generateRandomChars(12).toUpperCase()}`;
-
-    await this.pickupModel.create({
-      ...dto,
-      wasteId,
-    });
+    const transactionReference = generateRandomChars(10, 'alphanum');
+    const amount = 100000;
+    
+    const [pickup, transaction] = await Promise.all([
+      this.pickupModel.create({
+        ...dto,
+        wasteId,
+        transactionReference,
+      }),
+      this.transactionModel.create({
+        userId: dto.userId,
+        userType: dto.userType,
+        transactionReference,
+        amount: amount,
+        status: TransactionStatus.Pending,
+        service: ServiceType.WasteDisposal,
+        meta: {
+          location: dto?.location,
+          description: dto?.description,
+          address: dto?.address,
+        },
+      }),
+    ]);
 
     return {
       message: 'Pickup requested successfully',
       wasteId,
-      amount: 100000,
+      amount,
+      transactionReference
     };
   }
 }
