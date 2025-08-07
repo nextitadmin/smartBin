@@ -84,3 +84,57 @@ export const compileTemplateWithData = (templateName: string, data: any) => {
 export const parseAmountToNumber = (amount: string) => {
   return Number(amount.replace(/[^0-9.-]+/g, ''));
 };
+
+export const formatTimestamp = (timestamp: Date): string => {
+  const date = new Date(timestamp);
+
+  const day = date.getDate();
+  const month = date.toLocaleString('default', { month: 'long' });
+  const year = date.getFullYear();
+
+  let hours = date.getHours();
+  const minutes = date.getMinutes();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+
+  hours = hours % 12 || 12; // Convert to 12-hour format
+
+  const ordinalSuffix = (n: number) => {
+    const s = ['th', 'st', 'nd', 'rd'];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  };
+
+  return `${ordinalSuffix(day)} ${month} ${year} ${hours}:${minutes
+    .toString()
+    .padStart(2, '0')}${ampm}`;
+};
+
+export const formatCustomDate = (dateString: string): string => {
+  const date = new Date(dateString);
+
+  const day = date.getDate();
+  const month = date.toLocaleString('default', { month: 'long' });
+  const year = date.getFullYear();
+
+  const ordinalSuffix = (n: number) => {
+    const s = ['th', 'st', 'nd', 'rd'];
+    const v = n % 100;
+    return n + (s[(v - 20) % 10] || s[v] || s[0]);
+  };
+
+  return `${ordinalSuffix(day)} ${month} ${year}`;
+};
+
+export const formatCustomTime = (time: string): string => {
+  const date = new Date(time);
+
+  const hours24 = date.getHours();
+  const minutes = date.getMinutes();
+
+  const hours12 = hours24 % 12 || 12;
+  const ampm = hours24 >= 12 ? 'PM' : 'AM';
+
+  return `${hours12}:${minutes.toString().padStart(2, '0')}${ampm}`;
+
+}
+

@@ -34,7 +34,7 @@ import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 import { SmartBin } from '@models/smart-bin.model';
 import { Bill } from '@models/bill.model';
 import { Wallet } from '@models/wallet.model';
-import { comparePassword } from '@common/utils';
+import { comparePassword, formatCustomDate, formatCustomTime, formatTimestamp } from '@common/utils';
 import { UserKyc } from '@models/user-kyc.model';
 import { Pickup } from '@models/pickup';
 
@@ -377,53 +377,116 @@ export class ResidentService {
       .select('payerId firstName lastName address role')
       .lean();
 
-    const smartBinCount = await this.smartBinModel.countDocuments({
-      userId: resident._id,
-      customerType: UserRole.Resident,
-    });
+    if (!resident) {
+      throw new NotFoundException('Resident not found');
+    }
 
-    const totalOutstanding = await this.billModel.aggregate([
-      {
-        $match: {
-          userId: resident._id,
-          status: 'pending',
+    const [
+      smartBinCount,
+      totalOutstandingResult,
+      walletDetails,
+      lastPickUpDetails,
+      smartBinApplication,
+    ] = await Promise.all([
+      this.smartBinModel.countDocuments({
+        userId: resident._id,
+        customerType: UserRole.Resident,
+      }),
+
+      this.billModel.aggregate([
+        {
+          $match: {
+            userId: resident._id,
+            status: 'pending',
+          },
         },
-      },
-      {
-        $group: {
-          _id: null,
-          total: { $sum: '$totalOutstandingBill' },
+        {
+          $group: {
+            _id: null,
+            total: { $sum: '$totalOutstandingBill' },
+          },
         },
-      },
+      ]),
+
+      this.walletModel
+        .findOne(
+          {
+            userId: resident._id,
+            userType: UserRole.Resident,
+          },
+          {
+            available_balance: 1,
+            _id: 0,
+          },
+        )
+        .lean(),
+
+      this.pickupModel
+        .findOne(
+          {
+            accountId: resident._id,
+            accountType: UserRole.Resident,
+            status: 'Pending',
+          },
+          {
+            pickupDate: 1,
+            pickupTime: 1,
+            _id: 0,
+          },
+        )
+        .sort({ createdAt: -1 })
+        .lean(),
+      this.smartBinModel
+        .findOne(
+          {
+            userId: resident._id,
+            customerType: UserRole.Resident,
+          },
+          {
+            applicationHistory: 1,
+            _id: 0,
+          },
+        )
+        .sort({ createdAt: -1 })
+        .lean(),
     ]);
 
-    const totalOutstandingBill = totalOutstanding[0]?.total || 0;
+    const latestSmartBinHistory =
+      smartBinApplication?.applicationHistory?.[
+        smartBinApplication.applicationHistory.length - 1
+      ] ?? null;
 
-    const walletDetails = await this.walletModel.findOne({
-      userId: resident._id,
-      userType: UserRole.Resident,
-    });
+    const totalOutstandingBill = totalOutstandingResult?.[0]?.total ?? 0;
 
     const data = {
       name: `${resident.firstName} ${resident.lastName}`,
       role: resident.role,
-      address: resident.address || null,
+      address: resident.address ?? null,
       payerId: resident.payerId,
       userId: resident._id,
-      totalOutstandingBill: totalOutstandingBill,
-      avaliableBalance: walletDetails.available_balance ?? 0.00,
-      smartBinApplicationCount: smartBinCount || 0,
-      smartBinApplicationDetails:{
-        status: "",
-        statusDescription: "",
-        lastUpdatedDate: ""
-      },
+      totalOutstandingBill,
+      avaliableBalance: walletDetails?.available_balance ?? 0.0,
+      smartBinApplicationCount: smartBinCount,
+      smartBinApplicationDetails: latestSmartBinHistory
+        ? {
+            status: latestSmartBinHistory.status,
+            statusDescription: latestSmartBinHistory.description,
+            lastUpdatedDate: latestSmartBinHistory.timestamp,
+            formattedlastUpdatedDate: formatTimestamp(latestSmartBinHistory.timestamp),
+          }
+        : {
+            status: 'N/A',
+            statusDescription: 'No application found',
+            lastUpdatedDate: 'N/A',
+          },
       estimatedAnnualSubscriptionFee: 0,
-      nextPickUpDate: 'N/A',
+      nextPickUpDate: lastPickUpDetails
+        ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${lastPickUpDetails.pickupTime}`
+        : 'N/A',
     };
 
     return {
-      message: 'Resident Dashboard details retrived successfully',
+      message: 'Resident Dashboard details retrieved successfully',
       data,
     };
   }
