@@ -18,3 +18,9 @@ export enum SmartBinApplicationStatus {
   Inventory = 'Inventory',
   Activated = 'Activated'
 }
+
+export enum PickupStatus{
+  Pending = 'Pending',
+  Completed = 'Completed',
+  Cancelled = 'Cancelled',
+}

@@ -132,14 +132,14 @@ export class ResidentController {
     return new SuccessResponse('profile picture updated', null);
   }
 
-  @Get('dashboard')
-  @ResidentAuth()
-  async getResidentDashboard(@AuthenticatedResident() resident: AuthUser) {
-    const response = await this.residentService.getDashboardDetails(
-      resident.id,
-    );
-    return new SuccessResponse(response.message, response.data);
-  }
+  // @Get('dashboard')
+  // @ResidentAuth()
+  // async getResidentDashboard(@AuthenticatedResident() resident: AuthUser) {
+  //   const response = await this.residentService.getDashboardDetails(
+  //     resident.id,
+  //   );
+  //   return new SuccessResponse(response.message, response.data);
+  // }
 
   @Post('apply-smart-bin')
   @ResidentAuth()
