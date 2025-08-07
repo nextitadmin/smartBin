@@ -1,6 +1,6 @@
 import { UserRole } from '@models/types';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsString } from 'class-validator';
+import { IsDateString, IsOptional, IsString } from 'class-validator';
 
 export class CreatePickupDto {
   userId: string;
@@ -30,6 +30,11 @@ export class CreatePickupDto {
 
   accountId: string;
   accountType: UserRole;
+  
+    @ApiProperty()
+    @IsString()
+    @IsOptional()
+    transactionReference?: string;
 }
 
 export class CreatePickupResponseDto {
