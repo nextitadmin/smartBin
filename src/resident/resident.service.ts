@@ -36,6 +36,7 @@ import { Bill } from '@models/bill.model';
 import { Wallet } from '@models/wallet.model';
 import { comparePassword } from '@common/utils';
 import { UserKyc } from '@models/user-kyc.model';
+import { Pickup } from '@models/pickup';
 
 @Injectable()
 export class ResidentService {
@@ -51,6 +52,7 @@ export class ResidentService {
     @InjectModel(SmartBin.name) private readonly smartBinModel: Model<SmartBin>,
     @InjectModel(Bill.name) private billModel: Model<Bill>,
     @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
+    @InjectModel(Pickup.name) private pickupModel: Model<Pickup>,
     private ee: EventEmitter2,
   ) {}
 
