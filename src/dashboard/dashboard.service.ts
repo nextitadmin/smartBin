@@ -15,6 +15,8 @@ import { Wallet } from '@models/wallet.model';
 import { SmartBin } from '@models/smart-bin.model';
 import { Transaction } from '@models/transaction.model';
 import { Pickup, Status } from '@models/pickup';
+import { PickupStatus, UserRole } from '@models/types';
+import { formatCustomDate, formatTimestamp } from '@common/utils';
 
 @Injectable()
 export class DashboardService {
@@ -40,16 +42,20 @@ export class DashboardService {
       wallet,
       smartbin,
       disposals,
+      lastPickUpDetails,
+      smartBinApplication
     ] = await Promise.all([
       this.residentModel.findById(userId).lean(),
       this.billModel.find({ userId, userType: 'Resident' }).lean(),
       this.walletModel.findOne({ userId }).lean(),
       this.smartbinModel
-        .find({ userId, userType: 'Resident' })
+        .find({ userId, customerType: 'Resident' })
         .sort({ createdAt: -1 })
         .lean(),
-      this.pickupModel.find({ accountId: userId, accountType: 'Resident', status: Status.Completed }).lean(),
-
+      this.pickupModel.find({ accountId: userId, accountType: 'Resident', status: PickupStatus.Completed }).lean(),
+      this.pickupModel.findOne({ accountId:userId, accountType: UserRole.Resident, status: PickupStatus.Pending },{pickupDate: 1, pickupTime: 1,_id: 0 }).sort({ createdAt: -1 }).lean(),
+      this.smartbinModel.findOne({userId: userId, customerType: UserRole.Resident },{ applicationHistory: 1, _id: 0,},)
+      .sort({ createdAt: -1 }).lean(),
     ]);
     const filteredDisposals = disposals.filter(
       (d) => new Date(d.pickupDate).getFullYear() === year,
@@ -62,6 +68,7 @@ export class DashboardService {
       0,
     );
     const annualEstimate = this.estimateAnnualSubscription(bills);
+    const latestSmartBinHistory = smartBinApplication?.applicationHistory?.[smartBinApplication.applicationHistory.length - 1] ?? null;
 
     return {
       id: resident?._id,
@@ -71,6 +78,17 @@ export class DashboardService {
       smartbinApplicationsCount: smartbin.length,
       latestSmartbinStatus: smartbin[0]?.status || 'none',
       estimatedAnnualSubscription: annualEstimate,
+      nextPickupDate: lastPickUpDetails ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${lastPickUpDetails.pickupTime}`: 'N/A',
+      smartBinDetails: latestSmartBinHistory ? {
+        status: latestSmartBinHistory.status,
+        statusDescription: latestSmartBinHistory.description,
+        lastUpdatedDate: latestSmartBinHistory.timestamp,
+        formattedlastUpdatedDate: formatTimestamp(latestSmartBinHistory.timestamp),
+      }: {
+        status: 'N/A',
+        statusDescription: 'No application found',
+        lastUpdatedDate: 'N/A',
+      },
       binDisposalAnalytics: {
         year,
         totalDisposals: filteredDisposals.length,
@@ -220,15 +238,20 @@ export class DashboardService {
       wallet,
       smartbin,
       disposals,
+      lastPickUpDetails,
+      smartBinApplication
     ] = await Promise.all([
       this.corporateModel.findById(userId).lean(),
       this.billModel.find({ userId, userType: 'Corporate' }).lean(),
       this.walletModel.findOne({ userId }).lean(),
       this.smartbinModel
-        .find({ userId, userType: 'Corporate' })
+        .find({ userId, customerType: 'Corporate' })
         .sort({ createdAt: -1 })
         .lean(),
-      this.pickupModel.find({ accountId: userId, accountType: 'Corporate', status: Status.Completed }).lean(),
+      this.pickupModel.find({ accountId: userId, accountType: 'Corporate', status: PickupStatus.Completed }).lean(),
+      this.pickupModel.findOne({ accountId: userId, accountType: UserRole.Corporate, status: PickupStatus.Pending },{pickupDate: 1, pickupTime: 1,_id: 0 },).sort({ createdAt: -1 }).lean(),
+      this.smartbinModel.findOne({userId: userId, customerType: UserRole.Corporate },{ applicationHistory: 1, _id: 0,},)
+      .sort({ createdAt: -1 }).lean(),
     ]);
 
     const filteredDisposals = disposals.filter(
@@ -242,6 +265,7 @@ export class DashboardService {
       0,
     );
     const annualEstimate = this.estimateAnnualSubscription(bills);
+    const latestSmartBinHistory = smartBinApplication?.applicationHistory?.[smartBinApplication.applicationHistory.length - 1] ?? null;
 
     return {
       id: corporate?._id,
@@ -251,6 +275,17 @@ export class DashboardService {
       smartbinApplicationsCount: smartbin.length,
       latestSmartbinStatus: smartbin[0]?.status || 'none',
       estimatedAnnualSubscription: annualEstimate,
+      nextPickupDate: lastPickUpDetails ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${lastPickUpDetails.pickupTime}`: 'N/A',
+      smartBinDetails: latestSmartBinHistory ? {
+        status: latestSmartBinHistory.status,
+        statusDescription: latestSmartBinHistory.description,
+        lastUpdatedDate: latestSmartBinHistory.timestamp,
+        formattedlastUpdatedDate: formatTimestamp(latestSmartBinHistory.timestamp),
+      }: {
+        status: 'N/A',
+        statusDescription: 'No application found',
+        lastUpdatedDate: 'N/A',
+      },
       binDisposalAnalytics: {
         year,
         totalDisposals: filteredDisposals.length,
