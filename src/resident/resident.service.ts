@@ -32,6 +32,8 @@ import {
 } from './dto/resident.dto';
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 import { SmartBin } from '@models/smart-bin.model';
+import { Bill } from '@models/bill.model';
+import { Wallet } from '@models/wallet.model';
 import { comparePassword } from '@common/utils';
 import { UserKyc } from '@models/user-kyc.model';
 
@@ -47,8 +49,10 @@ export class ResidentService {
     @InjectModel(UserKyc.name) private readonly userKycModel: Model<UserKyc>,
     @InjectModel(Payer.name) private readonly payerModel: Model<PayerDocument>,
     @InjectModel(SmartBin.name) private readonly smartBinModel: Model<SmartBin>,
+    @InjectModel(Bill.name) private billModel: Model<Bill>,
+    @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
     private ee: EventEmitter2,
-  ) { }
+  ) {}
 
   async registerResident(body: CreateResidentAccountDto) {
     const { payerId, password, confirmPassword } = body;
@@ -82,8 +86,8 @@ export class ResidentService {
 
     await this.userKycModel.create({
       userId: newResident._id,
-      userType: UserRole.Resident
-    })
+      userType: UserRole.Resident,
+    });
 
     this.ee.emit(
       MailNotificationEvents.Account.Welcome,
@@ -197,7 +201,6 @@ export class ResidentService {
     };
   }
 
-
   // const business = await this.corporateModel
   //       .findById(userId)
   //       .select('-password -loginCode -loginCodeExpires')
@@ -205,38 +208,38 @@ export class ResidentService {
   //     if (!business) {
   //       throw new NotFoundException('Corporate business not found');
   //     }
-  
+
   //     const userKyc = await this.userKycModel
   //       .findOne({ userId: new Types.ObjectId(userId) })
   //       .lean();
   //     const defaultAvatar =
   //       'https://res.cloudinary.com/demo/image/upload/avatar.png';
-  
-      // const data = {
-      //   businessName: business.businessName || null,
-      //   payerId: business.payerId || null,
-      //   fullName: `${business.firstName} ${business.lastName}` || null,
-      //   email: business.email || null,
-      //   address: userKyc?.address || null,
-      //   landmark: userKyc?.closestLandmark || null,
-      //   nextPickupDate: null,
-      //   accountNumber: null,
-      //   localGovermentArea: userKyc?.localGovernment || null,
-      //   buildingType: userKyc?.buildingType || null,
-      //   hasSubmittedIdentity: userKyc?.hasSubmittedIdentity || false,
-      //   hasSubmittedCorporateInformation:
-      //     userKyc?.hasSubmittedPersonalInformation || false,
-      //   hasSubmittedSignatories: userKyc?.hasSubmittedSignatories || false,
-      //   identityVerificationStatus: userKyc?.identityVerificationStatus || null,
-      //  
-      // };
-      // return {
-      //   message: 'Corporate profile retrieved successfully',
-      //   ...business,
-      //   ...data,
-      //   phoneNumber: business.phoneNumber || null,
-      //   profilePicture: business.profilePicture || defaultAvatar,
-      // };
+
+  // const data = {
+  //   businessName: business.businessName || null,
+  //   payerId: business.payerId || null,
+  //   fullName: `${business.firstName} ${business.lastName}` || null,
+  //   email: business.email || null,
+  //   address: userKyc?.address || null,
+  //   landmark: userKyc?.closestLandmark || null,
+  //   nextPickupDate: null,
+  //   accountNumber: null,
+  //   localGovermentArea: userKyc?.localGovernment || null,
+  //   buildingType: userKyc?.buildingType || null,
+  //   hasSubmittedIdentity: userKyc?.hasSubmittedIdentity || false,
+  //   hasSubmittedCorporateInformation:
+  //     userKyc?.hasSubmittedPersonalInformation || false,
+  //   hasSubmittedSignatories: userKyc?.hasSubmittedSignatories || false,
+  //   identityVerificationStatus: userKyc?.identityVerificationStatus || null,
+  //
+  // };
+  // return {
+  //   message: 'Corporate profile retrieved successfully',
+  //   ...business,
+  //   ...data,
+  //   phoneNumber: business.phoneNumber || null,
+  //   profilePicture: business.profilePicture || defaultAvatar,
+  // };
 
   async getProfile(residentId: string) {
     const resident = await this.residentModel
@@ -246,8 +249,9 @@ export class ResidentService {
       )
       .lean();
 
-    const userKyc = await this.userKycModel.findOne({ userId: new Types.ObjectId(residentId) }).lean();
-    
+    const userKyc = await this.userKycModel
+      .findOne({ userId: new Types.ObjectId(residentId) })
+      .lean();
 
     if (!resident) {
       throw new NotFoundException('Resident not found');
@@ -370,20 +374,48 @@ export class ResidentService {
       .findById(userId)
       .select('payerId firstName lastName address role')
       .lean();
-    const smartBinCount = await this.smartBinModel.find({
+
+    const smartBinCount = await this.smartBinModel.countDocuments({
       userId: resident._id,
       customerType: UserRole.Resident,
     });
 
+    const totalOutstanding = await this.billModel.aggregate([
+      {
+        $match: {
+          userId: resident._id,
+          status: 'pending',
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$totalOutstandingBill' },
+        },
+      },
+    ]);
+
+    const totalOutstandingBill = totalOutstanding[0]?.total || 0;
+
+    const walletDetails = await this.walletModel.findOne({
+      userId: resident._id,
+      userType: UserRole.Resident,
+    });
+
     const data = {
-      smartBinApplicationCount: smartBinCount || 0,
       name: `${resident.firstName} ${resident.lastName}`,
       role: resident.role,
       address: resident.address || null,
       payerId: resident.payerId,
       userId: resident._id,
-      totalOutstandingBill: 24000,
-      avaliableBalance: 50000,
+      totalOutstandingBill: totalOutstandingBill,
+      avaliableBalance: walletDetails.available_balance ?? 0.00,
+      smartBinApplicationCount: smartBinCount || 0,
+      smartBinApplicationDetails:{
+        status: "",
+        statusDescription: "",
+        lastUpdatedDate: ""
+      },
       estimatedAnnualSubscriptionFee: 0,
       nextPickUpDate: 'N/A',
     };
@@ -408,7 +440,6 @@ export class ResidentService {
   async getAllResidentApplications(userId: string, page = 1, limit = 10) {
     return this.smartBinService.getResidentBinApplication(userId, page, limit);
   }
-
 
   async getApplicationDetails(applicationId: string) {
     const data = await this.smartBinService.getBinApplicationDetails(

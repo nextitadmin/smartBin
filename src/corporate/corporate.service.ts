@@ -40,6 +40,8 @@ import { UserKyc } from '@models/user-kyc.model';
 import { PickupService } from '@src/pickup/pickup.service';
 import { ConfigAttributes } from '@src/config';
 import { Branch } from '@models/branch.model';
+import { Bill } from '@models/bill.model';
+import { Wallet } from '@models/wallet.model';
 
 @Injectable()
 export class CorporateService {
@@ -50,6 +52,8 @@ export class CorporateService {
     @InjectModel(Payer.name) private readonly payerModel: Model<PayerDocument>,
     @InjectModel(UserKyc.name) private userKycModel: Model<UserKyc>,
     @InjectModel(Branch.name) private branchModel: Model<Branch>,
+    @InjectModel(Bill.name) private billModel: Model<Bill>,
+    @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
     private ee: EventEmitter2,
     private jwtService: JwtService,
     private readonly configService: ConfigService<ConfigAttributes>,
@@ -132,8 +136,6 @@ export class CorporateService {
 
     const loginCode = Math.floor(10000 + Math.random() * 90000).toString();
     const loginCodeExpiry = new Date(Date.now() + 10 * 60 * 1000);
-
-    console.log(loginCode);
 
     business.loginCode = loginCode;
     business.loginCodeExpiry = loginCodeExpiry;
@@ -336,20 +338,48 @@ export class CorporateService {
       .findById(userId)
       .select('payerId firstName lastName address role')
       .lean();
-    const smartBinCount = await this.corporateModel.find({
+
+    const smartBinCount = await this.corporateModel.countDocuments({
       userId: business._id,
       customerType: UserRole.Corporate,
     });
 
+    const totalOutstanding = await this.billModel.aggregate([
+      {
+        $match: {
+          userId: business._id,
+          status: 'pending',
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          total: { $sum: '$totalOutstandingBill' },
+        },
+      },
+    ]);
+
+    const totalOutstandingBill = totalOutstanding[0]?.total || 0;
+
+    const walletDetails = await this.walletModel.findOne({
+      userId: business._id,
+      userType: UserRole.Corporate,
+    });
+
     const data = {
-      smartBinApplicationCount: smartBinCount || 0,
       name: `${business.firstName} ${business.lastName}`,
       role: business.role,
       address: business[0]?.address || 'N/A',
       payerId: business.payerId,
       userId: business._id,
-      totalOutstandingBill: 24000,
-      avaliableBalance: 50000,
+      totalOutstandingBill: totalOutstandingBill,
+      avaliableBalance: walletDetails.available_balance ?? 0.0,
+      smartBinApplicationCount: smartBinCount || 0,
+      smartBinApplicationDetails: {
+        status: '',
+        statusDescription: '',
+        lastUpdatedDate: '',
+      },
       estimatedAnnualSubscriptionFee: 0,
       nextPickUpDate: 'N/A',
     };
