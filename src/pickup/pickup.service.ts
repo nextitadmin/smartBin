@@ -31,7 +31,7 @@ export class PickupService {
     private readonly transactionModel: Model<Transaction>,
     @InjectModel(Pickup.name)
     private readonly pickupModel: Model<PickupDocument>,
-  ) { }
+  ) {}
 
   //  findAll pickups
   async getAllPickups(accountId: Types.ObjectId) {
@@ -158,63 +158,61 @@ export class PickupService {
   }
 
   //create pickup
-    async createPickup({
-      accountId,
+  async createPickup({
+    accountId,
     accountType,
     applicationData,
   }: {
     accountId: string;
     accountType: UserRole;
     applicationData: CreatePickupDto;
-    }) {
-      if(applicationData.transactionReference) {
-        const successfulCharge = await this.transactionModel.exists({
-          transactionReference: applicationData.transactionReference,
-          userId: accountId,
-          userType: accountType,
-          status: TransactionStatus.Successful,
-        });
-        if (!successfulCharge) {
-          throw new BadRequestException(
-            'Invalid transaction reference.',
-          );
-        } 
+  }) {
+    if (applicationData.transactionReference) {
+      const successfulCharge = await this.transactionModel.exists({
+        transactionReference: applicationData.transactionReference,
+        userId: accountId,
+        userType: accountType,
+        status: TransactionStatus.Successful,
+      });
+      if (!successfulCharge) {
+        throw new BadRequestException('Invalid transaction reference.');
       }
-      const generateTransactionRef = generateRandomChars(10, 'alphanum');
-      const newBinApplication = await Promise.all([
-        this.pickupModel.create({
-          userId: String(accountId),
-          customType: accountType,
-          transactionReference:
-            applicationData.transactionReference || generateTransactionRef,
-          ...applicationData,
-          applicationHistory: [
-            {
-              timestamp: new Date(),
-              status: Status.Pending,
-              description: 'Application successful awaiting approval',
-            },
-          ],
-          }),
-          this.transactionModel.create({
-            userId: String(accountId),
-            transactionReference: generateTransactionRef,
-            userType: accountType,
-            amount: 100000,
-            service: ServiceType.WasteDisposal,
-            status: applicationData.transactionReference
-              ? TransactionStatus.Successful
-              : TransactionStatus.Pending,
-            meta: {
-              location: applicationData?.location,
-              description: applicationData?.description,
-              address: applicationData?.address,
-            },
-          }),
-        ]);
-        return {
-          application: newBinApplication,
-          transactionReference: generateTransactionRef,
-        }
-        }
+    }
+    const generateTransactionRef = generateRandomChars(10, 'alphanum');
+    const newBinApplication = await Promise.all([
+      this.pickupModel.create({
+        userId: String(accountId),
+        customType: accountType,
+        transactionReference:
+          applicationData.transactionReference || generateTransactionRef,
+        ...applicationData,
+        applicationHistory: [
+          {
+            timestamp: new Date(),
+            status: Status.Pending,
+            description: 'Application successful awaiting approval',
+          },
+        ],
+      }),
+      this.transactionModel.create({
+        userId: String(accountId),
+        transactionReference: generateTransactionRef,
+        userType: accountType,
+        amount: 100000,
+        service: ServiceType.WasteDisposal,
+        status: applicationData.transactionReference
+          ? TransactionStatus.Successful
+          : TransactionStatus.Pending,
+        meta: {
+          location: applicationData?.location,
+          description: applicationData?.description,
+          address: applicationData?.address,
+        },
+      }),
+    ]);
+    return {
+      application: newBinApplication,
+      transactionReference: generateTransactionRef,
+    };
+  }
 }
