@@ -179,7 +179,7 @@ export class PickupService {
       }
     }
     const generateTransactionRef = generateRandomChars(10, 'alphanum');
-    const newBinApplication = await Promise.all([
+    const wasteApplication = await Promise.all([
       this.pickupModel.create({
         userId: String(accountId),
         customType: accountType,
@@ -211,7 +211,7 @@ export class PickupService {
       }),
     ]);
     return {
-      application: newBinApplication,
+      application: wasteApplication,
       transactionReference: generateTransactionRef,
     };
   }
