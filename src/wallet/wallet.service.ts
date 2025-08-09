@@ -198,6 +198,8 @@ export class WalletService {
     if (!wallet) {
       wallet = await this.walletModel.create({
         userId: user.id,
+        userType: user.role,
+        status: WalletStatus.Active,
         available_balance: 0,
         ledger_balance: 0,
       });

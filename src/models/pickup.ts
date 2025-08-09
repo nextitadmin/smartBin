@@ -41,6 +41,7 @@ export interface PickupAttributes {
   location?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  transactionReference?: string;
 }
 
 @Schema({
@@ -123,6 +124,9 @@ export class Pickup {
 
   @Prop()
   notification?: string;
+
+  @Prop()
+  transactionReference?: string;
 
   @Prop()
   issuedOn?: Date;

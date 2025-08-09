@@ -25,11 +25,15 @@ import { AuthUser } from '@common/types';
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
 
+  @Get()
+  async getWalletDetails(@AuthenticatedUser() user: AuthUser) {
+    const response = await this.walletService.getWallet(user);
+    return new SuccessResponse('wallet fetched', response);
+  }
+
   @Get('mock-verify')
   async mockVerify(@Query() query: WalletMockVerifyDto) {
-    const response = await this.walletService.mockWalletCallback(
-      query.reference,
-    );
+    await this.walletService.mockWalletCallback(query.reference);
     return new SuccessResponse('Wallet callback URL received', null);
   }
 
