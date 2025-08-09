@@ -17,7 +17,6 @@ export interface PickupAttributes {
   accountId: Types.ObjectId;
   accountType: UserRole;
   wasteId: string;
-
   address: string;
   billReference?: string;
   description?: string;
@@ -95,7 +94,7 @@ export class Pickup {
   @Prop()
   agentNote?: string;
 
-  @Prop({ required: true })
+  @Prop()
   wasteId: string;
 
   @Prop()
