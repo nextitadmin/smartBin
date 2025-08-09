@@ -22,9 +22,9 @@ import {
 import { SmartBinController } from './smart-bin/smart-bin.controller';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { WasteManagementController } from './waste-management/waste-management.controller';
-import { PickupModule } from '@src/pickup/pickup.module';
-import { WasteManagementService } from './waste-management/waste-management.service';
-import { PickupService } from '@src/pickup/pickup.service';
+import { PickupModule } from '@src/waste-management/pickup/pickup.module';
+import { WasteManagementService } from '@src/waste-management/waste-management.service';
+import { PickupService } from '@src/waste-management/pickup/pickup.service';
 import { Pickup, PickupSchema } from '@models/pickup';
 import { WasteManagementModule } from '@src/waste-management/waste-management.module';
 import { BillService } from '@src/bill/bill.service';
@@ -33,7 +33,7 @@ import { DashboardController } from './dashboard/dashboard.controller';
 import { DashboardModule } from '@src/dashboard/dashboard.module';
 import { Branch, BranchSchema } from '@models/branch.model';
 import { CorporateNotificationSettingsController } from './notifications/notification.controller';
-import { NotificationModule } from '@src/notification/notification.module'; 
+import { NotificationModule } from '@src/notification/notification.module';
 import { NotificationSettingsService } from '@src/notification/notification-setting.service';
 import { KycApplicationController } from './kyc-application/kyc-application.controller';
 import { KycModule } from '@src/kyc/kyc.module';
@@ -57,13 +57,13 @@ import { PayerService } from '@src/payer/payer.service';
       { name: UserKyc.name, schema: UserKycSchema },
       { name: Pickup.name, schema: PickupSchema },
       { name: Branch.name, schema: BranchSchema },
-      { name: Report.name, schema: ReportSchema }
+      { name: Report.name, schema: ReportSchema },
     ]),
     WalletModule,
     PickupModule,
     DashboardModule,
     NotificationModule,
-    KycModule
+    KycModule,
   ],
 
   controllers: [
@@ -75,7 +75,7 @@ import { PayerService } from '@src/payer/payer.service';
     DashboardController,
     CorporateNotificationSettingsController,
     KycApplicationController,
-    CorporatePaymentController
+    CorporatePaymentController,
   ],
   providers: [
     CorporateService,
@@ -84,8 +84,8 @@ import { PayerService } from '@src/payer/payer.service';
     BillService,
     WasteManagementService,
     ReportService,
-    PayerService
+    PayerService,
   ],
   exports: [CorporateService],
 })
-export class CorporateModule { }
+export class CorporateModule {}

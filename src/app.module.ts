@@ -34,13 +34,14 @@ import { FacilityManagerAuthGuard } from '@common/guards/facility-manager.guard'
 import { MediaModule } from './media/media.module';
 import { FacilityManagerModule } from './facility-manager/facility-manager.module';
 import { IntegrationsModule } from './integrations/integrations.module';
-import { PickupModule } from './pickup/pickup.module';
+import { PickupModule } from './waste-management/pickup/pickup.module';
 import { UtilityModule } from './utility/utility.module';
 import { AuthGuard } from '@common/guards/actor.guard';
 import { SupportModule } from './support/support.module';
 import { WalletController } from './wallet/wallet.controller';
 import { ReportModule } from './report/report.module';
 import { SubscriptionModule } from './subscription/subscription.module';
+import { WasteManagementModule } from './waste-management/waste-management.module';
 
 @Module({
   imports: [
@@ -70,6 +71,7 @@ import { SubscriptionModule } from './subscription/subscription.module';
     WalletModule,
     ReportModule,
     SubscriptionModule,
+    WasteManagementModule,
   ],
   controllers: [AppController],
   providers: [

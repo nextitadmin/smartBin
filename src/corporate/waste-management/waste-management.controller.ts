@@ -4,12 +4,12 @@ import {
 } from '@common/decorators/auth.decorator';
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { PickupService } from '@src/pickup/pickup.service';
-import { WasteManagementService } from './waste-management.service';
+import { PickupService } from '@src/waste-management/pickup/pickup.service';
+import { WasteManagementService } from '@src/waste-management/waste-management.service';
 import { PaginatedSuccessResponse, SuccessResponse } from '@common/http';
 import { CorporateService } from '../corporate.service';
 import { CorporateUser } from '@common/types';
-import { CreatePickupDto } from '@src/pickup/dto/createPickup.dto';
+import { CreatePickupDto } from '@src/waste-management/pickup/dto/createPickup.dto';
 
 @ApiTags('Corporate/Waste Management')
 @Controller({
@@ -29,7 +29,7 @@ export class WasteManagementController {
 
   @Get('pickups')
   async getAllPickups(@AuthenticatedCorporate() account: CorporateUser) {
-    const pickups = await this.wasteManagementService.getAllPickups(account.id);
+    const pickups = await this.wasteManagementService.getAllPickups(account);
     return new PaginatedSuccessResponse(
       'pickups fetched',
       pickups.data,
@@ -42,11 +42,10 @@ export class WasteManagementController {
     @Body() body: CreatePickupDto,
     @AuthenticatedCorporate() account: CorporateUser,
   ) {
-    const pickupRequest = await this.wasteManagementService.createPickup({
-      ...body,
-      accountId: account.id,
-      accountType: account.role,
-    });
+    const pickupRequest = await this.wasteManagementService.createPickup(
+      account,
+      body,
+    );
 
     return new SuccessResponse('pickup created', pickupRequest);
   }

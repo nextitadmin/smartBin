@@ -19,16 +19,8 @@ import { AgentModule } from '@src/agent/agent.module';
   imports: [
     MongooseModule.forFeature([
       { name: Pickup.name, schema: PickupSchema },
-      // { name: SmartBin.name, schema: SmartBinSchema },
-      // { name: Resident.name, schema: ResidentSchema },
-      // { name: Agent.name, schema: AgentSchema },
-      // { name: Corporate.name, schema: CorporateSchema },
-      // { name: FacilityManager.name, schema: FacilityManagerSchema },
-      // { name: Bill.name, schema: BillSchema },
-      // { name: Wallet.name, schema: WalletSchema },
       { name: Transaction.name, schema: TransactionSchema },
     ]),
-    // AgentModule,
   ],
   providers: [PickupService],
   exports: [PickupService],

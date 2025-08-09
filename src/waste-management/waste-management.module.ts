@@ -1,11 +1,22 @@
 import { Module } from '@nestjs/common';
 import { WasteManagementService } from './waste-management.service';
-import { PickupService } from './pickup/pickup.service';
-import { PickupController } from './pickup/pickup.controller';
 import { WasteManagementController } from './waste-management.controller';
+import { PickupModule } from '@src/waste-management/pickup/pickup.module';
+import { ResidentModule } from '@src/resident/resident.module';
+import { CorporateModule } from '@src/corporate/corporate.module';
+import { FacilityManagerModule } from '@src/facility-manager/facility-manager.module';
+import { AgentModule } from '@src/agent/agent.module';
+import { PickupService } from './pickup/pickup.service';
 
 @Module({
-  providers: [WasteManagementService, PickupService],
-  controllers: [PickupController, WasteManagementController]
+  imports: [
+    PickupModule,
+    ResidentModule,
+    CorporateModule,
+    FacilityManagerModule,
+    AgentModule,
+  ],
+  providers: [WasteManagementService],
+  controllers: [WasteManagementController],
 })
 export class WasteManagementModule {}
