@@ -15,6 +15,7 @@ export class WasteManagementService {
   }
 
   async createPickup(user: AuthUser, param: CreatePickupDto) {
+    console.log('Creating pickup for user:', user);
     return this.pickupService.createPickup({
       accountId: user.id,
       accountType: user.role,

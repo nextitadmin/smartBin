@@ -22,11 +22,6 @@ export class WasteManagementController {
     private readonly wasteManagementService: WasteManagementService,
   ) {}
 
-  @Get()
-  async getWasteManagements() {
-    return this.wasteManagementService.getWasteManagements();
-  }
-
   @Get('pickups')
   async getAllPickups(@AuthenticatedCorporate() account: CorporateUser) {
     const pickups = await this.wasteManagementService.getAllPickups(account);

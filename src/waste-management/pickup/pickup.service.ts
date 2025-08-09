@@ -89,6 +89,7 @@ export class PickupService {
     const totalDocument = await this.pickupModel.countDocuments(query);
     const pickups = await this.pickupModel
       .find(query)
+      .populate('payment')
       .sort({ createdAt: -1 })
       .lean();
 
@@ -169,6 +170,10 @@ export class PickupService {
     accountType: UserRole;
     applicationData: CreatePickupDto;
   }) {
+    console.log('Creating pickup with data:', {
+      accountId,
+      accountType,
+    });
     if (applicationData.transactionReference) {
       const successfulCharge = await this.transactionModel.exists({
         transactionReference: applicationData.transactionReference,
@@ -181,10 +186,10 @@ export class PickupService {
       }
     }
     const generateTransactionRef = generateRandomChars(10, 'alphanum');
-    const newBinApplication = await Promise.all([
+    const [wastePickupApplicaiton, transaction] = await Promise.all([
       this.pickupModel.create({
-        userId: String(accountId),
-        customType: accountType,
+        accountId: new Types.ObjectId(accountId),
+        accountType: accountType,
         transactionReference:
           applicationData.transactionReference || generateTransactionRef,
         ...applicationData,
@@ -213,7 +218,7 @@ export class PickupService {
       }),
     ]);
     return {
-      application: newBinApplication,
+      application: wastePickupApplicaiton,
       transactionReference: generateTransactionRef,
     };
   }
