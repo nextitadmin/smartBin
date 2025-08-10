@@ -21,6 +21,7 @@ export class CreatePickupDto {
 
   @ApiProperty()
   @IsString()
+  @IsOptional()
   branch: string;
 
   @ApiProperty()
