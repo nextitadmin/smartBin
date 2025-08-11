@@ -191,13 +191,15 @@ export class WalletService {
       16,
       'alphanum',
     ).toUpperCase()}`;
-    //   const userType = role.charAt(0).toUpperCase() + role.slice(1);
+
     let wallet = await this.walletModel.findOne({
       userId: new Types.ObjectId(user.id),
     });
     if (!wallet) {
       wallet = await this.walletModel.create({
         userId: user.id,
+        userType: user.role,
+        status: WalletStatus.Active,
         available_balance: 0,
         ledger_balance: 0,
       });

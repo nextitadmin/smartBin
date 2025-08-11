@@ -42,7 +42,7 @@ import { Cache } from 'cache-manager';
 import { UserRole } from '@models/types';
 import { ConfigService } from '@nestjs/config';
 import { UserKyc } from '@models/user-kyc.model';
-import { PickupService } from '@src/pickup/pickup.service';
+import { PickupService } from '@src/waste-management/pickup/pickup.service';
 import { ConfigAttributes } from '@src/config';
 import { Branch } from '@models/branch.model';
 import { Bill } from '@models/bill.model';
@@ -358,7 +358,7 @@ export class CorporateService {
       walletDetails,
       lastPickUpDetails,
       smartBinApplication,
-      userKyc
+      userKyc,
     ] = await Promise.all([
       this.smartBinModel.countDocuments({
         userId: business._id,

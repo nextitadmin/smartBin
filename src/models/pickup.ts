@@ -40,12 +40,14 @@ export interface PickupAttributes {
   location?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  transactionReference?: string;
 }
 
 @Schema({
   timestamps: true,
   collection: 'waste_management_pickups',
   versionKey: false,
+  virtuals: true,
 })
 export class Pickup {
   @Prop({
@@ -124,6 +126,9 @@ export class Pickup {
   notification?: string;
 
   @Prop()
+  transactionReference?: string;
+
+  @Prop()
   issuedOn?: Date;
 
   @Prop()
@@ -137,3 +142,11 @@ export class Pickup {
 }
 
 export const PickupSchema = SchemaFactory.createForClass(Pickup);
+
+PickupSchema.virtual('payment', {
+  ref: 'Transaction',
+  localField: 'transactionReference',
+  foreignField: 'transactionReference',
+  justOne: true,
+  options: { select: 'amount status -_id' },
+});

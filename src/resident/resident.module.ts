@@ -33,12 +33,11 @@ import { ResidentReportController } from './report.controller';
 import { ReportService } from '@src/report/report.service';
 import { Report, ReportSchema } from '@models/report.model';
 import { Pickup, PickupSchema } from '@models/pickup';
-import { PickupModule } from '@src/pickup/pickup.module';
+import { PickupModule } from '@src/waste-management/pickup/pickup.module';
 import { NotificationModule } from '@src/notification/notification.module';
 import { ResidentotificationSettingsController } from './notifications/notification.controller';
 
 import { WalletModule } from '@src/wallet/wallet.module';
-
 
 @Module({
   imports: [
@@ -82,7 +81,6 @@ import { WalletModule } from '@src/wallet/wallet.module';
       { name: UserKyc.name, schema: UserKycSchema },
       { name: Report.name, schema: ReportSchema },
       { name: Pickup.name, schema: PickupSchema },
-
     ]),
     SmartBinModule,
     KycModule,
@@ -99,9 +97,15 @@ import { WalletModule } from '@src/wallet/wallet.module';
     ResidentPaymentController,
     ResidentReportController,
     ResidentotificationSettingsController,
-
   ],
-  providers: [ResidentService, SmartBinService, BillService, TransactionService, PayerService, ReportService],
+  providers: [
+    ResidentService,
+    SmartBinService,
+    BillService,
+    TransactionService,
+    PayerService,
+    ReportService,
+  ],
   exports: [ResidentService, SmartBinService, BillService],
 })
-export class ResidentModule { }
+export class ResidentModule {}
