@@ -8,6 +8,8 @@ import {
   IsOptional,
   IsString,
 } from 'class-validator';
+import { SmartbinStatus } from '@models/smart-bin.model';
+import { SmartBinApplicationStatus } from '@models/types/index';
 
 export class BinAppDto {
   userId: string;
@@ -198,4 +200,11 @@ export class CreateBusinessApplicationDto {
   @IsString()
   @IsOptional()
   transactionReference?: string;
+}
+
+
+export class UpdateSmartBinStatusDto {
+  @IsEnum(SmartBinApplicationStatus)
+  @IsNotEmpty()
+  status: SmartBinApplicationStatus;
 }

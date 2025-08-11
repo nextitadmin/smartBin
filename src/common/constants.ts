@@ -18,6 +18,9 @@ export const events = Object.freeze({
   bills: {
     purchased: 'bills.purchased',
   },
+  notifications: {
+    created: 'created.notifications.new',
+  },
 });
 
 export enum EmailTemplates {

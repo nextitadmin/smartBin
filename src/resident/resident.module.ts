@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Resident, ResidentSchema } from '@models/users/resident.model';
 import { Payer, PayerSchema } from '@models/users/payer.model';
@@ -35,7 +35,8 @@ import { Report, ReportSchema } from '@models/report.model';
 import { Pickup, PickupSchema } from '@models/pickup';
 import { PickupModule } from '@src/waste-management/pickup/pickup.module';
 import { NotificationModule } from '@src/notification/notification.module';
-import { ResidentotificationSettingsController } from './notifications/notification.controller';
+// import { ResidentotificationSettingsController } from './notifications/notification.controller';
+
 import { WalletModule } from '@src/wallet/wallet.module';
 
 @Module({
@@ -85,8 +86,8 @@ import { WalletModule } from '@src/wallet/wallet.module';
     KycModule,
     DashboardModule,
     PickupModule,
-    NotificationModule,
     WalletModule,
+    forwardRef(() => NotificationModule),
   ],
   controllers: [
     ResidentController,
@@ -95,7 +96,7 @@ import { WalletModule } from '@src/wallet/wallet.module';
     DashboardController,
     ResidentPaymentController,
     ResidentReportController,
-    ResidentotificationSettingsController,
+    // ResidentotificationSettingsController,
   ],
   providers: [
     ResidentService,

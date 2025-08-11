@@ -23,6 +23,7 @@ import {
   Transaction,
   TransactionStatus,
 } from '@models/transaction.model';
+import { AuthUser } from '@common/types';
 import {
   BinAppDto,
   CreateApplicationDto,
@@ -30,6 +31,16 @@ import {
 } from './dto/binAppDto';
 import { SmartBinApplicationStatus, UserRole } from '@models/types';
 import { generateRandomChars } from '@common/utils';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import {
+  InAppNotificationEvents,
+  SendInAppEvent,
+  MailNotificationEvents,
+  SendEmailEvent,
+} from '@src/notification/dto/event';
+import { NotificationType } from '@models/notification.model';
+import { events } from '@common/constants';
+import { NotificationEvent } from '@src/notification/dto/notification.event';
 
 @Injectable()
 export class SmartBinService {
@@ -45,24 +56,8 @@ export class SmartBinService {
     @InjectModel(Wallet.name) private readonly walletModel: Model<Wallet>,
     @InjectModel(Transaction.name)
     private readonly transactionModel: Model<Transaction>,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
-
-  // For Resident
-  // async getResidentBinApplication(residentId: string) {
-  //   const [applications] = await Promise.all([
-  //     this.smartbinModel
-  //       .find({
-  //         userId: new Types.ObjectId(residentId),
-  //         customerType: UserRole.Resident,
-  //       })
-  //       .sort({ createdAt: -1 })
-  //       .lean(),
-  //   ]);
-
-  //   return {
-  //     applications,
-  //   };
-  // }
 
   async getResidentBinApplication(residentId: string, page = 1, limit = 10) {
     const skip = (page - 1) * limit;
@@ -189,13 +184,45 @@ export class SmartBinService {
     return smartbin;
   }
   // Update bin application status
-  async updateBinApplicationStatus(id: string, status: string) {
+  async updateBinApplicationStatus(user: AuthUser, id: string, status: string) {
     const smartbin = await this.smartbinModel
       .findByIdAndUpdate(id, { status }, { new: true })
       .lean();
     if (!smartbin) {
       throw new NotFoundException('Bin application not found');
     }
+    // 1️⃣ Email notification
+    this.eventEmitter.emit(
+      MailNotificationEvents.Application.SmartBinUpdate,
+      new SendEmailEvent({
+        to: user.email,
+        from: `"LAWMA REG" <accounts@lawma.co>`,
+        subject: 'SmartBin Application Status Update',
+        context: {
+          name: user.firstName,
+          status: status,
+          applicationId: id,
+        },
+      }),
+    );
+
+    // 2️⃣ In-app notification
+    this.eventEmitter.emit(
+      events.notifications.created,
+      new NotificationEvent({
+        userId: user.id,
+        title: 'SmartBin Application',
+        text: `Your SmartBin application status has been updated to ${status}.`,
+        type: NotificationType.SmartBinUpdate,
+      }),
+      // new SendInAppEvent({
+      //   userId: user.id,
+      //   text: `Your SmartBin application status has been updated to ${status}.`,
+      //   type: NotificationType.SmartBinUpdate,
+      //   isRead: false,
+      // }),
+    );
+
     return smartbin;
   }
 

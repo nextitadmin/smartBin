@@ -1,3 +1,5 @@
+import { NotificationType } from '@models/notification.model';
+
 export const MailNotificationEvents = Object.freeze({
   Account: {
     ForgotPassword: 'password.forgot.account',
@@ -37,5 +39,25 @@ export interface SendEmailEventData {
 }
 
 export class SendEmailEvent {
-  constructor(public data: SendEmailEventData) { }
+  constructor(public data: SendEmailEventData) {}
+}
+
+export const InAppNotificationEvents = Object.freeze({
+  SmartBinUpdate: 'notification.smartbin.updated',
+  LowWalletBalance: 'notification.wallet.low',
+  GeneralAppUpdate: 'notification.app.update',
+  SupportRequest: 'support.new.request',
+});
+
+export interface SendInAppEventData {
+  userId: string;
+  type: NotificationType;
+  email?: string;
+  isRead: boolean;
+  text: string;
+  subject?: string;
+}
+
+export class SendInAppEvent {
+  constructor(public data: SendInAppEventData) {}
 }
