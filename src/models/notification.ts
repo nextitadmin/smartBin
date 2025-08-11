@@ -20,20 +20,17 @@ export class Notification {
     @Prop()
     title: string;
 
-    @Prop({ required: true })
-    message: string;
+    @Prop()
+    text: string;
 
     @Prop({ required: true })
     type: NotificationType;
-
-    @Prop()
-    referenceId?: string;
 
     @Prop({ type: Object, default: {} })
     meta?: Record<string, any>;
 
     @Prop({ default: false })
-    read?: boolean;
+    isRead?: boolean;
 
     createdAt?: Date;
     updatedAt?: Date;

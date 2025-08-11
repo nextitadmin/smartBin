@@ -1,5 +1,5 @@
 import { ApiTags } from "@nestjs/swagger";
-import { Controller, Get, Put, Body } from "@nestjs/common";
+import { Controller, Get, Put, Body, Patch, Param } from "@nestjs/common";
 import {
     AuthenticatedResident,
     ResidentAuth,
@@ -10,17 +10,20 @@ import { NotificationSettingsService } from "@src/notification/notification-sett
 import { SuccessResponse } from '@common/http';
 import { UpdateNotificationSettingsDto } from "@src/notification/dto/notifification-settings.dto";
 import { UserRole } from "@models/types";
+import { NotificationInAppService } from "@src/notification/notification.inapp.service";
 
 
 
-@ApiTags('Resident Notification Settings')
+@ApiTags('Resident Notifications')
 @Controller({
     path: 'residents/notification-settings',
     version: '1',
 })
 @ResidentAuth()
 export class ResidentotificationSettingsController {
-    constructor(private readonly settingsService: NotificationSettingsService) { }
+    constructor(private readonly settingsService: NotificationSettingsService,
+        private readonly notificationService: NotificationInAppService
+    ) { }
 
     @Get()
     async getResidentSettings(
@@ -45,4 +48,24 @@ export class ResidentotificationSettingsController {
         );
         return new SuccessResponse('Notification settings updated', updated);
     }
+
+    @Get('notifications')
+    async getResidentNotifications(
+        @AuthenticatedResident() resident: ResidentUser
+    ) {
+        const notifications = await this.notificationService.getUserNotifications(
+            resident.id
+        );
+        return new SuccessResponse('Notifications retrieved', notifications);
+    }
+
+    @Patch(':id/read')
+    async markAsRead(
+        @Param('id') notificationId: string,
+        @AuthenticatedResident() resident: ResidentUser
+    ) {
+        return this.notificationService.markAsRead(notificationId, resident.id);
+    }
+
+
 }

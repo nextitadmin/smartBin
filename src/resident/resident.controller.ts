@@ -39,6 +39,9 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { SuccessResponse, PaginatedSuccessResponse } from '@common/http';
 import { Public } from '@common/guards/public.guard';
+import { UpdateSmartBinStatusDto } from '@src/smart-bin/dto/binAppDto';
+import { SmartBinService } from '@src/smart-bin/smart-bin.service';
+import { SmartBinApplicationStatus } from '@models/types';
 
 @ApiTags('Residents')
 @Controller({
@@ -211,6 +214,20 @@ export class ResidentController {
     return new SuccessResponse(
       'Smart Bin application retrieved successfully',
       response,
+    );
+  }
+
+  @Patch('smartbin/:applicationId/status')
+  async updateBinApplicationStatus(
+    @Param('applicationId') applicationId: string,
+    @Body() dto: UpdateSmartBinStatusDto,
+    @AuthenticatedResident() resident: AuthUser,
+  ) {
+    return this.residentService.updateBinApplicationStatus(
+      resident,
+      applicationId,
+      dto.status,
+
     );
   }
 }

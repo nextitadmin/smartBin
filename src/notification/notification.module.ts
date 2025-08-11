@@ -5,8 +5,8 @@ import { NotificationSettingsService } from './notification-setting.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { NotificationSettings, NotificationSettingsSchema } from '@models/notification.setting';
 import { NotificationInAppService } from './notification.inapp.service';
-import { NotificationListener } from './notification.listener';
-import { NotificationGateway } from './notification.gateway';
+
+
 import { Notification, NotificationSchema } from '../models/notification'
 @Module({
   imports: [
@@ -15,7 +15,7 @@ import { Notification, NotificationSchema } from '../models/notification'
       { name: Notification.name, schema: NotificationSchema },
     ])
   ],
-  providers: [NotificationService, MailerService, NotificationSettingsService, NotificationGateway, NotificationInAppService, NotificationListener],
-  exports: [MailerService, NotificationInAppService, NotificationGateway, NotificationSettingsService],
+  providers: [NotificationService, MailerService, NotificationSettingsService, NotificationInAppService],
+  exports: [MailerService, NotificationInAppService, NotificationSettingsService],
 })
 export class NotificationModule { }

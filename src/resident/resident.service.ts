@@ -15,12 +15,14 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   MailNotificationEvents,
   SendEmailEvent,
+  InAppNotificationEvents,
+  SendInAppEvent,
 } from '@src/notification/dto/event';
 import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { CacheKeys } from '@src/shared/constants';
-import { UserRole } from '@models/types';
+import { SmartBinApplicationStatus, UserRole } from '@models/types';
 import { JwtService } from '@nestjs/jwt';
 import {
   CreateResidentAccountDto,
@@ -37,6 +39,7 @@ import { Wallet } from '@models/wallet.model';
 import { comparePassword, formatCustomDate, formatCustomTime, formatTimestamp } from '@common/utils';
 import { UserKyc } from '@models/user-kyc.model';
 import { Pickup } from '@models/pickup';
+import { AuthUser } from '@common/types';
 
 @Injectable()
 export class ResidentService {
@@ -54,7 +57,7 @@ export class ResidentService {
     @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
     @InjectModel(Pickup.name) private pickupModel: Model<Pickup>,
     private ee: EventEmitter2,
-  ) {}
+  ) { }
 
   async registerResident(body: CreateResidentAccountDto) {
     const { payerId, password, confirmPassword } = body;
@@ -203,45 +206,7 @@ export class ResidentService {
     };
   }
 
-  // const business = await this.corporateModel
-  //       .findById(userId)
-  //       .select('-password -loginCode -loginCodeExpires')
-  //       .lean();
-  //     if (!business) {
-  //       throw new NotFoundException('Corporate business not found');
-  //     }
 
-  //     const userKyc = await this.userKycModel
-  //       .findOne({ userId: new Types.ObjectId(userId) })
-  //       .lean();
-  //     const defaultAvatar =
-  //       'https://res.cloudinary.com/demo/image/upload/avatar.png';
-
-  // const data = {
-  //   businessName: business.businessName || null,
-  //   payerId: business.payerId || null,
-  //   fullName: `${business.firstName} ${business.lastName}` || null,
-  //   email: business.email || null,
-  //   address: userKyc?.address || null,
-  //   landmark: userKyc?.closestLandmark || null,
-  //   nextPickupDate: null,
-  //   accountNumber: null,
-  //   localGovermentArea: userKyc?.localGovernment || null,
-  //   buildingType: userKyc?.buildingType || null,
-  //   hasSubmittedIdentity: userKyc?.hasSubmittedIdentity || false,
-  //   hasSubmittedCorporateInformation:
-  //     userKyc?.hasSubmittedPersonalInformation || false,
-  //   hasSubmittedSignatories: userKyc?.hasSubmittedSignatories || false,
-  //   identityVerificationStatus: userKyc?.identityVerificationStatus || null,
-  //
-  // };
-  // return {
-  //   message: 'Corporate profile retrieved successfully',
-  //   ...business,
-  //   ...data,
-  //   phoneNumber: business.phoneNumber || null,
-  //   profilePicture: business.profilePicture || defaultAvatar,
-  // };
 
   async getProfile(residentId: string) {
     const resident = await this.residentModel
@@ -453,7 +418,7 @@ export class ResidentService {
 
     const latestSmartBinHistory =
       smartBinApplication?.applicationHistory?.[
-        smartBinApplication.applicationHistory.length - 1
+      smartBinApplication.applicationHistory.length - 1
       ] ?? null;
 
     const totalOutstandingBill = totalOutstandingResult?.[0]?.total ?? 0;
@@ -469,16 +434,16 @@ export class ResidentService {
       smartBinApplicationCount: smartBinCount,
       smartBinApplicationDetails: latestSmartBinHistory
         ? {
-            status: latestSmartBinHistory.status,
-            statusDescription: latestSmartBinHistory.description,
-            lastUpdatedDate: latestSmartBinHistory.timestamp,
-            formattedlastUpdatedDate: formatTimestamp(latestSmartBinHistory.timestamp),
-          }
+          status: latestSmartBinHistory.status,
+          statusDescription: latestSmartBinHistory.description,
+          lastUpdatedDate: latestSmartBinHistory.timestamp,
+          formattedlastUpdatedDate: formatTimestamp(latestSmartBinHistory.timestamp),
+        }
         : {
-            status: 'N/A',
-            statusDescription: 'No application found',
-            lastUpdatedDate: 'N/A',
-          },
+          status: 'N/A',
+          statusDescription: 'No application found',
+          lastUpdatedDate: 'N/A',
+        },
       estimatedAnnualSubscriptionFee: 0,
       nextPickUpDate: lastPickUpDetails
         ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${lastPickUpDetails.pickupTime}`
@@ -512,4 +477,22 @@ export class ResidentService {
     );
     return data;
   }
+
+
+  async updateBinApplicationStatus(
+    user: AuthUser,
+    applicationId: string,
+    status: SmartBinApplicationStatus,
+  ) {
+    const data = await this.smartBinService.updateBinApplicationStatus(
+      user,
+      applicationId,
+      status
+
+
+    );
+    return data;
+  }
+
+
 }

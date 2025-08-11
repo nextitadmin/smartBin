@@ -32,4 +32,4 @@ import { AgentModule } from '@src/agent/agent.module';
   providers: [SmartBinService],
   exports: [SmartBinService],
 })
-export class SmartBinModule {}
+export class SmartBinModule { }

@@ -36,7 +36,7 @@ import { Pickup, PickupSchema } from '@models/pickup';
 import { PickupModule } from '@src/pickup/pickup.module';
 import { NotificationModule } from '@src/notification/notification.module';
 import { ResidentotificationSettingsController } from './notifications/notification.controller';
-import { NotificationController } from './notifications/notificationInapp.controller';
+
 import { WalletModule } from '@src/wallet/wallet.module';
 
 
@@ -98,7 +98,6 @@ import { WalletModule } from '@src/wallet/wallet.module';
     DashboardController,
     ResidentPaymentController,
     ResidentReportController,
-    NotificationController,
     ResidentotificationSettingsController,
 
   ],

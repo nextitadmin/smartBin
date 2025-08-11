@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Notification, NotificationDocument, NotificationType } from '../models/notification';
+import { SendInAppEventData } from './dto/event';
 
 @Injectable()
 export class NotificationInAppService {
@@ -9,36 +10,16 @@ export class NotificationInAppService {
         @InjectModel(Notification.name) private notificationModel: Model<NotificationDocument>,
     ) { }
 
-    async createNotification(payload: {
-        userId: string;
-        title: string;
-        message: string;
-        type: NotificationType;
-        meta?: Record<string, any>;
-    }) {
-        const doc = await this.notificationModel.create({
-            userId: new Types.ObjectId(payload.userId),
-            title: payload.title,
-            message: payload.message,
-            type: payload.type,
-            meta: payload.meta || {},
-            read: false,
+    async create(data: SendInAppEventData) {
+        return this.notificationModel.create({
+            ...data,
+            isRead: data.isRead ?? false,
+            createdAt: new Date()
         });
-
-        return doc.toObject();
     }
 
-    async getNotifications(userId: string, page = 1, limit = 20) {
-        const query = { userId: new Types.ObjectId(userId) };
-        const skip = (page - 1) * limit;
-        const [items, total] = await Promise.all([
-            this.notificationModel.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-            this.notificationModel.countDocuments(query),
-        ]);
-        return {
-            data: items,
-            paging: { total, page, pages: Math.ceil(total / limit), size: items.length },
-        };
+    async getUserNotifications(userId: string) {
+        return this.notificationModel.find({ userId }).sort({ createdAt: -1 });
     }
 
     async markAsRead(notificationId: string, userId: string) {

@@ -1,11 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { MailNotificationEvents, SendEmailEvent, Templates } from './dto/event';
+import { MailNotificationEvents, SendEmailEvent, Templates, InAppNotificationEvents, SendInAppEvent } from './dto/event';
 import { MailerService } from './mailer.service';
+import { NotificationInAppService } from './notification.inapp.service';
 
 @Injectable()
 export class NotificationService {
-  constructor(private readonly mailerService: MailerService) { }
+  constructor(private readonly mailerService: MailerService,
+    private readonly notificationInAppService: NotificationInAppService,
+  ) { }
 
   @OnEvent(MailNotificationEvents.Account.PayerGenerated)
   async onAccountPayerGenerated(event: SendEmailEvent) {
@@ -130,4 +133,37 @@ export class NotificationService {
   //     subject,
   //   });
   // }
+
+  @OnEvent(InAppNotificationEvents.SmartBinUpdate)
+  async handleSmartBinUpdate(event: SendInAppEvent) {
+    const { userId, email, subject, text, type } = event.data;
+    await this.notificationInAppService.create({
+      userId,
+      text: text,
+      type,
+      isRead: false,
+    });
+
+    if (email) {
+      await this.mailerService.sendMail({
+        to: email,
+        subject,
+        template: Templates.SmartBinUpdate,
+        context: { text },
+      });
+    }
+
+    // @OnEvent(InAppNotificationEvents.GeneralAppUpdate)
+    // async handleAppUpdate(event: SendInAppEvent) {
+    //   await this.notificationInAppService.create(event.data);
+    // }
+
+    // @OnEvent(InAppNotificationEvents.LowWalletBalance)
+    // async handleLowBalance(event: SendInAppEvent) {
+    //   await this.notificationInAppService.create(event.data);
+  }
+
+
+
+
 }
