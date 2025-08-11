@@ -1,4 +1,4 @@
-import { NotificationType } from "@models/notification";
+import { NotificationType } from '@models/notification.model';
 
 export const MailNotificationEvents = Object.freeze({
   Account: {
@@ -39,7 +39,7 @@ export interface SendEmailEventData {
 }
 
 export class SendEmailEvent {
-  constructor(public data: SendEmailEventData) { }
+  constructor(public data: SendEmailEventData) {}
 }
 
 export const InAppNotificationEvents = Object.freeze({
@@ -56,10 +56,8 @@ export interface SendInAppEventData {
   isRead: boolean;
   text: string;
   subject?: string;
-
 }
 
 export class SendInAppEvent {
-  constructor(public data: SendInAppEventData) { }
+  constructor(public data: SendInAppEventData) {}
 }
-

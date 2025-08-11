@@ -36,7 +36,12 @@ import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 import { SmartBin } from '@models/smart-bin.model';
 import { Bill } from '@models/bill.model';
 import { Wallet } from '@models/wallet.model';
-import { comparePassword, formatCustomDate, formatCustomTime, formatTimestamp } from '@common/utils';
+import {
+  comparePassword,
+  formatCustomDate,
+  formatCustomTime,
+  formatTimestamp,
+} from '@common/utils';
 import { UserKyc } from '@models/user-kyc.model';
 import { Pickup } from '@models/pickup';
 import { AuthUser } from '@common/types';
@@ -57,7 +62,7 @@ export class ResidentService {
     @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
     @InjectModel(Pickup.name) private pickupModel: Model<Pickup>,
     private ee: EventEmitter2,
-  ) { }
+  ) {}
 
   async registerResident(body: CreateResidentAccountDto) {
     const { payerId, password, confirmPassword } = body;
@@ -205,8 +210,6 @@ export class ResidentService {
       profilePicture: resident.profilePicture,
     };
   }
-
-
 
   async getProfile(residentId: string) {
     const resident = await this.residentModel
@@ -418,7 +421,7 @@ export class ResidentService {
 
     const latestSmartBinHistory =
       smartBinApplication?.applicationHistory?.[
-      smartBinApplication.applicationHistory.length - 1
+        smartBinApplication.applicationHistory.length - 1
       ] ?? null;
 
     const totalOutstandingBill = totalOutstandingResult?.[0]?.total ?? 0;
@@ -434,19 +437,23 @@ export class ResidentService {
       smartBinApplicationCount: smartBinCount,
       smartBinApplicationDetails: latestSmartBinHistory
         ? {
-          status: latestSmartBinHistory.status,
-          statusDescription: latestSmartBinHistory.description,
-          lastUpdatedDate: latestSmartBinHistory.timestamp,
-          formattedlastUpdatedDate: formatTimestamp(latestSmartBinHistory.timestamp),
-        }
+            status: latestSmartBinHistory.status,
+            statusDescription: latestSmartBinHistory.description,
+            lastUpdatedDate: latestSmartBinHistory.timestamp,
+            formattedlastUpdatedDate: formatTimestamp(
+              latestSmartBinHistory.timestamp,
+            ),
+          }
         : {
-          status: 'N/A',
-          statusDescription: 'No application found',
-          lastUpdatedDate: 'N/A',
-        },
+            status: 'N/A',
+            statusDescription: 'No application found',
+            lastUpdatedDate: 'N/A',
+          },
       estimatedAnnualSubscriptionFee: 0,
       nextPickUpDate: lastPickUpDetails
-        ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${lastPickUpDetails.pickupTime}`
+        ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${
+            lastPickUpDetails.pickupTime
+          }`
         : 'N/A',
     };
 
@@ -478,7 +485,6 @@ export class ResidentService {
     return data;
   }
 
-
   async updateBinApplicationStatus(
     user: AuthUser,
     applicationId: string,
@@ -487,12 +493,8 @@ export class ResidentService {
     const data = await this.smartBinService.updateBinApplicationStatus(
       user,
       applicationId,
-      status
-
-
+      status,
     );
     return data;
   }
-
-
 }

@@ -32,9 +32,15 @@ import {
 import { SmartBinApplicationStatus, UserRole } from '@models/types';
 import { generateRandomChars } from '@common/utils';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { InAppNotificationEvents, SendInAppEvent, MailNotificationEvents, SendEmailEvent } from '@src/notification/dto/event';
-import { NotificationType } from '@models/notification';
-
+import {
+  InAppNotificationEvents,
+  SendInAppEvent,
+  MailNotificationEvents,
+  SendEmailEvent,
+} from '@src/notification/dto/event';
+import { NotificationType } from '@models/notification.model';
+import { events } from '@common/constants';
+import { NotificationEvent } from '@src/notification/dto/notification.event';
 
 @Injectable()
 export class SmartBinService {
@@ -51,9 +57,7 @@ export class SmartBinService {
     @InjectModel(Transaction.name)
     private readonly transactionModel: Model<Transaction>,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
-
-
+  ) {}
 
   async getResidentBinApplication(residentId: string, page = 1, limit = 10) {
     const skip = (page - 1) * limit;
@@ -204,13 +208,19 @@ export class SmartBinService {
 
     // 2️⃣ In-app notification
     this.eventEmitter.emit(
-      InAppNotificationEvents.SmartBinUpdate,
-      new SendInAppEvent({
+      events.notifications.created,
+      new NotificationEvent({
         userId: user.id,
+        title: 'SmartBin Application',
         text: `Your SmartBin application status has been updated to ${status}.`,
         type: NotificationType.SmartBinUpdate,
-        isRead: false,
       }),
+      // new SendInAppEvent({
+      //   userId: user.id,
+      //   text: `Your SmartBin application status has been updated to ${status}.`,
+      //   type: NotificationType.SmartBinUpdate,
+      //   isRead: false,
+      // }),
     );
 
     return smartbin;

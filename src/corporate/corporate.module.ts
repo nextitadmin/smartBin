@@ -32,7 +32,7 @@ import { BillController } from '@src/bill/bill.controller';
 import { DashboardController } from './dashboard/dashboard.controller';
 import { DashboardModule } from '@src/dashboard/dashboard.module';
 import { Branch, BranchSchema } from '@models/branch.model';
-import { CorporateNotificationSettingsController } from './notifications/notification.controller';
+// import { CorporateNotificationSettingsController } from './notifications/notification.controller';
 import { NotificationModule } from '@src/notification/notification.module';
 import { NotificationSettingsService } from '@src/notification/notification-setting.service';
 import { KycApplicationController } from './kyc-application/kyc-application.controller';
@@ -62,7 +62,7 @@ import { PayerService } from '@src/payer/payer.service';
     WalletModule,
     PickupModule,
     DashboardModule,
-    NotificationModule,
+    forwardRef(() => NotificationModule),
     KycModule,
   ],
 
@@ -73,7 +73,7 @@ import { PayerService } from '@src/payer/payer.service';
     SmartBinController,
     WasteManagementController,
     DashboardController,
-    CorporateNotificationSettingsController,
+    // CorporateNotificationSettingsController,
     KycApplicationController,
     CorporatePaymentController,
   ],

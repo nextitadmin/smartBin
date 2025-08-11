@@ -1,16 +1,17 @@
-import { NotificationType } from "@models/notification";
+import { NotificationType } from '@models/notification.model';
 
-export class NotificationEvent {
-    constructor(
-        public readonly userId: string,
-        public readonly title: string,
-        public readonly message: string,
-        public readonly type: NotificationType,
-        public readonly meta?: Record<string, any>,
-    ) { }
+export interface NotificationEventData {
+  userId: string;
+  title: string;
+  text: string;
+  type: NotificationType;
+  metadata?: Record<string, any>;
 }
 
+export class NotificationEvent {
+  constructor(public data: NotificationEventData) {}
+}
 
 export const NotificationEvents = {
-    CREATED: 'notification.created',
+  CREATED: 'notification.created',
 };
