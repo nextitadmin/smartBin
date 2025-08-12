@@ -128,6 +128,56 @@ export class PersonalInfoDto {
   lawmaCustomerType?: LawmaCustomerType;
 }
 
+export class AgentInfoDto {
+  @ApiProperty()
+  @IsString({ message: 'First name must be a string' })
+  firstName?: string;
+
+  @ApiProperty()
+  @IsString({ message: 'Last name must be a string' })
+  lastName?: string;
+
+  @ApiProperty()
+  @IsString({ message: 'Nationality must be a string' })
+  nationality?: string;
+
+  @ApiProperty()
+  @IsEnum(Gender, { message: 'Gender must be Male or Female' })
+  gender: Gender;
+
+  @ApiProperty()
+  @IsString({ message: 'NIN number must be a string' })
+  @IsNotEmpty({ message: 'NIN number is required' })
+  idDocumentNo: string;
+
+  @ApiProperty()
+  @IsString({ message: 'ID document must be a string' })
+  @IsNotEmpty({ message: 'ID document is required' })
+  idDocument: string;
+}
+
+export class AgencyInformationDto {
+  @ApiProperty()
+  @IsString({ message: 'Business registration number must be a string' })
+  businessRegistrationNumber: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsEmail()
+  businessEmailAddress: string;
+
+  @ApiProperty()
+  @IsString({ message: 'Business phone number must be a string' })
+  businessPhoneNumber: string;
+}
+
+export class AgencyDocumentDto {
+  @ApiProperty()
+  @IsString({ message: 'Agency Certificate document must be a string' })
+  @IsNotEmpty({ message: 'Agency Certificate is required' })
+  agencyCertificateDocument: string;
+}
+
 export class IdVerificationDto {
   @ApiProperty()
   @IsString({ message: 'NIN number must be a string' })
@@ -197,6 +247,24 @@ export class CreateFacilityManagerKycDto {
   @ValidateNested()
   @Type(() => AddressVerificationDto)
   addressInformation: AddressVerificationDto;
+}
+
+
+export class CreateAgentKycDto {
+  @ApiProperty({ type: AgentInfoDto })
+  @ValidateNested()
+  @Type(() => AgentInfoDto)
+  personalInformation: AgentInfoDto;
+
+  @ApiProperty({ type: AgencyInformationDto })
+  @ValidateNested()
+  @Type(() => AgencyInformationDto)
+  agencyInformation: AgencyInformationDto;
+
+  @ApiProperty({ type: AgencyDocumentDto })
+  @ValidateNested()
+  @Type(() => AgencyDocumentDto)
+  addressDocument: AgencyDocumentDto;
 }
 
 

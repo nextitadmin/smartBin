@@ -6,6 +6,7 @@ import { FacilityManager } from '@models/users/facility-manager.model';
 import { UserRole } from '@models/types';
 import {
   AddressVerificationStatus,
+  AgencyInformationStatus,
   IdVerificationStatus,
   SignatoryVerificationStatus,
   UserKyc,
@@ -13,6 +14,7 @@ import {
 import {
   AddressVerificationDto,
   CompanyInfoDto,
+  CreateAgentKycDto,
   CreateCorporateKycDto,
   CreateFacilityManagerKycDto,
   CreateResidentKycDto,
@@ -35,6 +37,40 @@ export class KycService {
     private readonly corporateTeamModel: Model<CorporateTeam>,
   ) {}
 
+
+   async createAgentKyc(dto:{
+    userId:string;
+    accountType:UserRole;
+    applicationData:CreateAgentKycDto;
+  }){
+
+     const userKyc = await this.userKycModel.findOneAndUpdate(
+      { userId: new Types.ObjectId(dto.userId), userType: dto.accountType },
+      {
+        $set: {
+          ...dto.applicationData.personalInformation,
+          ...dto.applicationData.agencyInformation,
+          ...dto.applicationData.addressDocument,
+          hasSubmittedPersonalInformation: true,
+          hasSubmittedIdentity: true,
+          hasSubmittedAgencyDocument: true,
+          hasSubmittedAgencyInformation: true,
+          hasCompletedKyc:true,
+          identityVerificationStatus: IdVerificationStatus.SUBMITTED,
+          agencyInformationStatus: AgencyInformationStatus.SUBMITTED
+        },
+      },
+      { upsert: true, new: true },
+    );
+
+    return {
+      hasSubmittedPersonalInformation: userKyc.hasSubmittedPersonalInformation,
+      hasSubmittedidentity: userKyc.hasSubmittedIdentity,
+      identityVerificationStatus: userKyc.identityVerificationStatus,
+      addressVerificationStatus: userKyc.addressVerificationStatus
+    };
+
+  }
 
   // for both resident and facility manager
   async createKyc(dto:{
@@ -218,6 +254,22 @@ export class KycService {
     return {
       identityVerificationStatus: userKyc.identityVerificationStatus,
       addressVerificationStatus: userKyc.addressVerificationStatus,
+      hasSubmittedPersonalInformation: userKyc.hasSubmittedPersonalInformation,
+      hasSubmittedAddress: userKyc.hasSubmittedAddress,
+      hasSubmittedIdentity: userKyc.hasSubmittedIdentity,
+    };
+  }
+
+  async verifyAgentKycStatus(dto: { userId: string; accountType: UserRole }) {
+    const userKyc = await this.userKycModel.findOne({
+      userId: new Types.ObjectId(dto.userId),
+      userType: dto.accountType,
+    });
+
+    return {
+      identityVerificationStatus: userKyc.identityVerificationStatus,
+      addressVerificationStatus: userKyc.addressVerificationStatus,
+      hasSubmittedPersonalInformation: userKyc.hasSubmittedPersonalInformation,
       hasSubmittedAddress: userKyc.hasSubmittedAddress,
       hasSubmittedIdentity: userKyc.hasSubmittedIdentity,
     };
