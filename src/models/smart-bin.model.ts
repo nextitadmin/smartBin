@@ -67,6 +67,8 @@ export interface SmartBinAttributes {
   ];
 }
 
+export type SmartbinDocument = SmartBinAttributes & Document;
+
 @Schema({ _id: false })
 class ApplicationHistoryItem {
   @Prop({ type: Date, required: true })

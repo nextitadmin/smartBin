@@ -497,4 +497,8 @@ export class ResidentService {
     );
     return data;
   }
+
+  async deleteBinApplication(applicationId: string) {
+    return this.smartBinService.deleteBinApplication(applicationId);
+  }
 }

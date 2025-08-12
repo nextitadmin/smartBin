@@ -23,6 +23,7 @@ export class QueryNotificationDto {
   @ApiProperty({
     description: 'Filter notifications by read status',
     example: 'true',
+    required: false,
   })
   @IsOptional()
   isRead: string;

@@ -12,7 +12,10 @@ import { events } from '@common/constants';
 import { NotificationEvent } from './dto/notification.event';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { UpdateNotificationDto } from './dto/notification.dto';
+import {
+  QueryNotificationDto,
+  UpdateNotificationDto,
+} from './dto/notification.dto';
 import { Notification, NotificationDocument } from '@models/notification.model';
 import { NotificationSettingsService } from './notification-setting.service';
 import { AuthUser } from '@common/types';
@@ -37,8 +40,10 @@ export class NotificationService {
     return this.notifications.create(event.data);
   }
 
-  async getUserNotifications(userId: string) {
-    return this.notifications.find({ userId }).sort({ createdAt: -1 });
+  async getUserNotifications(userId: string, query: QueryNotificationDto) {
+    return this.notifications
+      .find({ userId, ...query })
+      .sort({ createdAt: -1 });
   }
 
   async updateNotification(

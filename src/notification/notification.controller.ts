@@ -35,6 +35,7 @@ export class NotificationController {
   ) {
     const notification = await this.notificationService.getUserNotifications(
       user.id,
+      query,
     );
     return new SuccessResponse('Notifications retrieved', notification);
   }

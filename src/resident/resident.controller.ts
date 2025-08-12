@@ -13,12 +13,13 @@ import {
   Param,
   UsePipes,
   ValidationPipe,
+  Delete,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ResidentService } from './resident.service';
 
 import { diskStorage } from 'multer';
-import { Request, Response } from 'express';
+import { application, Request, Response } from 'express';
 import {
   ResidentAuth,
   AuthenticatedResident,
@@ -49,7 +50,7 @@ import { SmartBinApplicationStatus } from '@models/types';
   version: '1',
 })
 export class ResidentController {
-  constructor(private readonly residentService: ResidentService) { }
+  constructor(private readonly residentService: ResidentService) {}
 
   @Public()
   @Post('register')
@@ -88,12 +89,9 @@ export class ResidentController {
     @Body() body: ResidentVerifyResetCodeDto,
     @Req() req: Request | any,
   ) {
-    const response = await this.residentService.verifyPasswordResetCode(
-      body
-    );
+    const response = await this.residentService.verifyPasswordResetCode(body);
     return new SuccessResponse('success', response);
   }
-
 
   @Post('reset-password')
   async resetPassword(
@@ -102,7 +100,7 @@ export class ResidentController {
   ) {
     const response = await this.residentService.resetPassword(
       resident.id,
-      body
+      body,
     );
 
     return new SuccessResponse('reset password successful', response);
@@ -175,7 +173,6 @@ export class ResidentController {
   //   );
   // }
 
-
   @Get('smart-bin-applications')
   @ResidentAuth()
   async getAllResidentBinApplications(
@@ -186,11 +183,12 @@ export class ResidentController {
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
 
-    const { data, paging } = await this.residentService.getAllResidentApplications(
-      resident.id,
-      pageNumber,
-      limitNumber,
-    );
+    const { data, paging } =
+      await this.residentService.getAllResidentApplications(
+        resident.id,
+        pageNumber,
+        limitNumber,
+      );
 
     return new PaginatedSuccessResponse(
       'Smart bin applications retrieved successfully',
@@ -198,7 +196,6 @@ export class ResidentController {
       paging,
     );
   }
-
 
   @Get('smart-bin-applications/:applicationId')
   @ResidentAuth()
@@ -227,7 +224,12 @@ export class ResidentController {
       resident,
       applicationId,
       dto.status,
-
     );
+  }
+
+  @Delete('smartbin/:applicationId')
+  async deleteApplication(@Param('applicationId') applicationId: string) {
+    await this.residentService.deleteBinApplication(applicationId);
+    return new SuccessResponse('application deleted', null);
   }
 }

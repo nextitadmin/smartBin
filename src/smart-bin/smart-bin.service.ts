@@ -10,6 +10,8 @@ import {
   BinType,
   DEFAULT_SMART_BIN_AMOUNT,
   SmartBin,
+  SmartBinAttributes,
+  SmartbinDocument,
   SmartbinStatus,
 } from '@models/smart-bin.model';
 import { Resident } from '@models/users/resident.model';
@@ -21,6 +23,7 @@ import { Wallet } from '@models/wallet.model';
 import {
   ServiceType,
   Transaction,
+  TransactionAttributes,
   TransactionStatus,
 } from '@models/transaction.model';
 import { AuthUser } from '@common/types';
@@ -226,15 +229,6 @@ export class SmartBinService {
     return smartbin;
   }
 
-  // Delete bin application
-  async deleteBinApplication(id: string) {
-    const smartbin = await this.smartbinModel.findByIdAndDelete(id).lean();
-    if (!smartbin) {
-      throw new NotFoundException('Bin application not found');
-    }
-    return { message: 'Bin application deleted successfully' };
-  }
-
   async createBinApplication({
     accountId,
     accountType,
@@ -334,5 +328,24 @@ export class SmartBinService {
       ...smartBin,
       ...userDetails,
     };
+  }
+
+  async deleteBinApplication(applicationId: string) {
+    const smartBin:
+      | (SmartbinDocument & { payment: TransactionAttributes })
+      | any = await this.smartbinModel
+      .findById(applicationId)
+      .populate('payment');
+
+    if (!smartBin) {
+      throw new NotFoundException('Bin application not found');
+    }
+
+    if (smartBin.payment.status === TransactionStatus.Successful) {
+      throw new BadRequestException('Application already paid!');
+    }
+
+    await smartBin.deleteOne();
+    return { message: 'Bin application deleted successfully' };
   }
 }
