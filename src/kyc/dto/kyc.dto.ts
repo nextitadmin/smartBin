@@ -230,6 +230,11 @@ export class CreateResidentKycDto {
   @ValidateNested()
   @Type(() => IdVerificationDto)
   identityInformation: IdVerificationDto;
+
+  @ApiProperty({ type: AddressVerificationDto })
+  @ValidateNested()
+  @Type(() => AddressVerificationDto)
+  addressInformation: AddressVerificationDto;
 }
 
 export class CreateFacilityManagerKycDto {
@@ -249,7 +254,6 @@ export class CreateFacilityManagerKycDto {
   addressInformation: AddressVerificationDto;
 }
 
-
 export class CreateAgentKycDto {
   @ApiProperty({ type: AgentInfoDto })
   @ValidateNested()
@@ -267,8 +271,6 @@ export class CreateAgentKycDto {
   addressDocument: AgencyDocumentDto;
 }
 
-
-
 export class CompanyInfoDto {
   @ApiProperty()
   @IsString({ message: 'Address must be a string' })
@@ -282,10 +284,6 @@ export class CompanyInfoDto {
   @IsString({ message: 'Business sector must be a string' })
   businessSector?: string;
 }
-
-
-
-
 
 export class SignatoriesDto {
   @ApiProperty({

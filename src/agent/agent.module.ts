@@ -21,6 +21,9 @@ import { Corporate, CorporateSchema } from '@models/users/corporate.model';
 import { FacilityManager, FacilityManagerSchema } from '@models/users/facility-manager.model';
 import { Resident, ResidentSchema } from '@models/users/resident.model';
 import { Pickup, PickupSchema } from '@models/pickup';
+import { KycApplicationController } from './kyc-application/kyc-application.controller';
+import { KycService } from '@src/kyc/kyc.service';
+import { CorporateTeam, CorporateTeamSchema } from '@models/corporate-team.model';
 
 @Module({
   imports: [
@@ -59,12 +62,16 @@ import { Pickup, PickupSchema } from '@models/pickup';
         name: UserKyc.name,
         schema: UserKycSchema,
       },
+      {
+        name: CorporateTeam.name,
+        schema: CorporateTeamSchema
+      }
     ]),
     forwardRef(() => WalletModule),
     forwardRef(() => TransactionModule),
   ],
-  providers: [AgentService, WalletService, DashboardService],
+  providers: [AgentService, WalletService, DashboardService, KycService],
   exports: [AgentService],
-  controllers: [AgentController, DashboardController, AgentWalletController, AgentPaymentController],
+  controllers: [AgentController, DashboardController, AgentWalletController, AgentPaymentController, KycApplicationController],
 })
 export class AgentModule { }
