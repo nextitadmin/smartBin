@@ -26,6 +26,11 @@ export enum SignatoryVerificationStatus {
   REJECTED = 'rejected',
 }
 
+interface BranchDetails {
+  branchName: string;
+  branchAddress: string;
+}
+
 export interface UserKycAttributes {
   userId: Types.ObjectId;
   userType: UserRole;
@@ -38,6 +43,7 @@ export interface UserKycAttributes {
   address?: string;
   localGovernment?: string;
   closestLandmark?: string;
+  branches?: BranchDetails[];
   signatories?: Types.ObjectId[];
   hasSubmittedPersonalInformation?: boolean;
   hasSubmittedIdentity?: boolean;
@@ -136,6 +142,18 @@ export class UserKyc extends Document {
     default: AddressVerificationStatus.PENDING,
   })
   addressVerificationStatus: AddressVerificationStatus;
+
+  @Prop({
+    type: [
+      {
+        branchName: { type: SchemaTypes.String, required: true },
+        branchAddress: { type: SchemaTypes.String, required: true },
+      },
+    ],
+    required: false,
+    default: [],
+  })
+  branches: BranchDetails[];
 
 
   @Prop({

@@ -19,7 +19,7 @@ export class KycApplicationController {
   constructor(private readonly kycService: KycService) {}
 
   @Post('/')
-  async submitFacilityManagerKyc(
+  async submitAgentKyc(
     @Body() dto: CreateAgentKycDto,
     @AuthenticatedAgent() agent: AgentUser,
   ) {

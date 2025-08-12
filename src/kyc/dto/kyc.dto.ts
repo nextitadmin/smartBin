@@ -156,6 +156,18 @@ export class AgentInfoDto {
   idDocument: string;
 }
 
+export class Branches {
+  @ApiProperty()
+  @IsString({ message: 'Branch name must be a string' })
+  @IsNotEmpty({ message: 'Branch name is required' })
+  branchName: string;
+
+  @ApiProperty()
+  @IsString({ message: 'Branch Address must be a string' })
+  @IsNotEmpty({ message: 'Branch Address is required' })
+  branchAddress: string;
+}
+
 export class AgencyInformationDto {
   @ApiProperty()
   @IsString({ message: 'Business registration number must be a string' })
@@ -169,6 +181,12 @@ export class AgencyInformationDto {
   @ApiProperty()
   @IsString({ message: 'Business phone number must be a string' })
   businessPhoneNumber: string;
+
+  @ApiProperty({ type: [Branches], description: 'Array of Branches' })
+  @IsArray({ message: 'Branches must be an array' })
+  @ValidateNested({ each: true })
+  @Type(() => Branches)
+  branches: Branches[];
 }
 
 export class AgencyDocumentDto {
