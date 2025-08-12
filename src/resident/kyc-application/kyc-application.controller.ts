@@ -4,9 +4,14 @@ import {
 } from '@common/decorators/auth.decorator';
 import { SuccessResponse } from '@common/http';
 import { ResidentUser } from '@common/types';
-import { Body, Controller, Get, Patch } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { AddressVerificationDto, IdVerificationDto, PersonalInfoDto } from '@src/kyc/dto/kyc.dto';
+import {
+  AddressVerificationDto,
+  CreateResidentKycDto,
+  IdVerificationDto,
+  PersonalInfoDto,
+} from '@src/kyc/dto/kyc.dto';
 import { KycService } from '@src/kyc/kyc.service';
 
 @ApiTags('Resident Kyc Application')
@@ -18,6 +23,22 @@ import { KycService } from '@src/kyc/kyc.service';
 export class KycApplicationController {
   constructor(private readonly kycService: KycService) {}
 
+  @Post('/')
+  async submitResidentKyc(
+    @Body() dto: CreateResidentKycDto,
+    @AuthenticatedResident() resident: ResidentUser,
+  ) {
+    const response = await this.kycService.createKyc({
+      userId: resident.id,
+      accountType: resident.role,
+      applicationData: dto,
+    });
+    return new SuccessResponse(
+      'Resident Kyc Information submitted successfully',
+      response,
+    );
+  }
+
   @Patch('personal-info')
   async submitPersonalInformation(
     @AuthenticatedResident() resident: ResidentUser,
@@ -26,7 +47,7 @@ export class KycApplicationController {
     const response = await this.kycService.submitPersonalInformation({
       userId: resident.id,
       accountType: resident.role,
-      applicationData: dto
+      applicationData: dto,
     });
 
     return new SuccessResponse(
@@ -43,7 +64,7 @@ export class KycApplicationController {
     const response = await this.kycService.idVerification({
       userId: resident.id,
       accountType: resident.role,
-      applicationData: dto
+      applicationData: dto,
     });
 
     return new SuccessResponse(
@@ -60,7 +81,7 @@ export class KycApplicationController {
     const response = await this.kycService.addressVerification({
       userId: resident.id,
       accountType: resident.role,
-      applicationData: dto
+      applicationData: dto,
     });
 
     return new SuccessResponse(
@@ -78,9 +99,6 @@ export class KycApplicationController {
       accountType: resident.role,
     });
 
-    return new SuccessResponse(
-      'Kyc status retrieved successfully',
-      response,
-    );
+    return new SuccessResponse('Kyc status retrieved successfully', response);
   }
 }

@@ -20,7 +20,7 @@ import { ApiTags } from '@nestjs/swagger';
 import {
   AddressVerificationDto,
   CompanyInfoDto,
-  CreateKycDto,
+  CreateCorporateKycDto,
   IdVerificationDto,
   PersonalInfoDto,
   SignatoriesDto,
@@ -40,8 +40,8 @@ export class KycApplicationController {
   constructor(private readonly kycService: KycService) {}
 
   @Post('/')
-  async submitKyc(
-    @Body() dto: CreateKycDto,
+  async submitCorporateKyc(
+    @Body() dto: CreateCorporateKycDto,
     @AuthenticatedCorporate() corporate: CorporateUser,
   ) {
     const response = await this.kycService.createCorporateKyc({

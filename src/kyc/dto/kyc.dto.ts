@@ -88,7 +88,7 @@ class AuthorizedSignatoryDto {
   idDocument: string;
 }
 
-export class CreateKycDto {
+export class CreateCorporateKycDto {
   @ApiProperty({ type: CompanyInformationDto })
   @ValidateNested()
   @Type(() => CompanyInformationDto)
@@ -128,25 +128,11 @@ export class PersonalInfoDto {
   lawmaCustomerType?: LawmaCustomerType;
 }
 
-export class CompanyInfoDto {
-  @ApiProperty()
-  @IsString({ message: 'Address must be a string' })
-  address?: string;
-
-  @ApiProperty()
-  @IsString({ message: 'Business registration number must be a string' })
-  businessRegistrationNumber?: string;
-
-  @ApiProperty()
-  @IsString({ message: 'Business sector must be a string' })
-  businessSector?: string;
-}
-
 export class IdVerificationDto {
   @ApiProperty()
   @IsString({ message: 'NIN number must be a string' })
   @IsNotEmpty({ message: 'NIN number is required' })
-  ninNumber: string;
+  idDocumentNo: string;
 
   @ApiProperty()
   @IsString({ message: 'ID document must be a string' })
@@ -183,6 +169,55 @@ export class AddressVerificationDto {
   @IsString({ message: 'Closest landmark must be a string' })
   closestLandmark?: string;
 }
+
+export class CreateResidentKycDto {
+  @ApiProperty({ type: PersonalInfoDto })
+  @ValidateNested()
+  @Type(() => PersonalInfoDto)
+  personalInformation: PersonalInfoDto;
+
+  @ApiProperty({ type: IdVerificationDto })
+  @ValidateNested()
+  @Type(() => IdVerificationDto)
+  identityInformation: IdVerificationDto;
+}
+
+export class CreateFacilityManagerKycDto {
+  @ApiProperty({ type: PersonalInfoDto })
+  @ValidateNested()
+  @Type(() => PersonalInfoDto)
+  personalInformation: PersonalInfoDto;
+
+  @ApiProperty({ type: IdVerificationDto })
+  @ValidateNested()
+  @Type(() => IdVerificationDto)
+  identityInformation: IdVerificationDto;
+
+  @ApiProperty({ type: AddressVerificationDto })
+  @ValidateNested()
+  @Type(() => AddressVerificationDto)
+  addressInformation: AddressVerificationDto;
+}
+
+
+
+export class CompanyInfoDto {
+  @ApiProperty()
+  @IsString({ message: 'Address must be a string' })
+  address?: string;
+
+  @ApiProperty()
+  @IsString({ message: 'Business registration number must be a string' })
+  businessRegistrationNumber?: string;
+
+  @ApiProperty()
+  @IsString({ message: 'Business sector must be a string' })
+  businessSector?: string;
+}
+
+
+
+
 
 export class SignatoriesDto {
   @ApiProperty({

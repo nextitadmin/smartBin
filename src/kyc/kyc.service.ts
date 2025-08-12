@@ -13,7 +13,9 @@ import {
 import {
   AddressVerificationDto,
   CompanyInfoDto,
-  CreateKycDto,
+  CreateCorporateKycDto,
+  CreateFacilityManagerKycDto,
+  CreateResidentKycDto,
   IdVerificationDto,
   PersonalInfoDto,
   SignatoriesDto,
@@ -33,10 +35,43 @@ export class KycService {
     private readonly corporateTeamModel: Model<CorporateTeam>,
   ) {}
 
+
+  // for both resident and facility manager
+  async createKyc(dto:{
+    userId:string;
+    accountType:UserRole;
+    applicationData:CreateResidentKycDto | CreateFacilityManagerKycDto;
+  }){
+
+     const userKyc = await this.userKycModel.findOneAndUpdate(
+      { userId: new Types.ObjectId(dto.userId), userType: dto.accountType },
+      {
+        $set: {
+          ...dto.applicationData.personalInformation,
+          ...dto.applicationData.identityInformation,
+          hasSubmittedPersonalInformation: true,
+          hasSubmittedIdentity: true,
+          hasCompletedKyc:true,
+          identityVerificationStatus: IdVerificationStatus.SUBMITTED,
+          addressVerificationStatus: AddressVerificationStatus.SUBMITTED
+        },
+      },
+      { upsert: true, new: true },
+    );
+
+    return {
+      hasSubmittedPersonalInformation: userKyc.hasSubmittedPersonalInformation,
+      hasSubmittedidentity: userKyc.hasSubmittedIdentity,
+      identityVerificationStatus: userKyc.identityVerificationStatus,
+      addressVerificationStatus: userKyc.addressVerificationStatus
+    };
+
+  }
+
   async createCorporateKyc(dto: {
     userId: string;
     accountType: UserRole;
-    applicationData: CreateKycDto;
+    applicationData: CreateCorporateKycDto;
   }) {
     const signatoryDocs = await this.corporateTeamModel.insertMany(
       dto.applicationData.authorizedSignatories.map((signatory) => ({

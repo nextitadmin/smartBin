@@ -1,6 +1,6 @@
 import {
   AuthenticatedFacilityManager,
-  FacilityManagerAuth
+  FacilityManagerAuth,
 } from '@common/decorators/auth.decorator';
 import { SuccessResponse } from '@common/http';
 import { FacilityManagerUser } from '@common/types';
@@ -8,7 +8,12 @@ import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { KycService } from '@src/kyc/kyc.service';
 
-import { AddressVerificationDto, IdVerificationDto, PersonalInfoDto } from '@src/kyc/dto/kyc.dto';
+import {
+  AddressVerificationDto,
+  CreateFacilityManagerKycDto,
+  IdVerificationDto,
+  PersonalInfoDto,
+} from '@src/kyc/dto/kyc.dto';
 
 @ApiTags('Facility Manager Kyc Application')
 @Controller({
@@ -19,6 +24,22 @@ import { AddressVerificationDto, IdVerificationDto, PersonalInfoDto } from '@src
 export class KycApplicationController {
   constructor(private readonly kycService: KycService) {}
 
+  @Post('/')
+  async submitFacilityManagerKyc(
+    @Body() dto: CreateFacilityManagerKycDto,
+    @AuthenticatedFacilityManager() facilityManager: FacilityManagerUser,
+  ) {
+    const response = await this.kycService.createKyc({
+      userId: facilityManager.id,
+      accountType: facilityManager.role,
+      applicationData: dto,
+    });
+    return new SuccessResponse(
+      'Facility manager Kyc Information submitted successfully',
+      response,
+    );
+  }
+
   @Patch('personal-info')
   async submitPersonalInformation(
     @AuthenticatedFacilityManager() resident: FacilityManagerUser,
@@ -27,7 +48,7 @@ export class KycApplicationController {
     const response = await this.kycService.submitPersonalInformation({
       userId: resident.id,
       accountType: resident.role,
-      applicationData: dto
+      applicationData: dto,
     });
 
     return new SuccessResponse(
@@ -44,7 +65,7 @@ export class KycApplicationController {
     const response = await this.kycService.idVerification({
       userId: facilityManager.id,
       accountType: facilityManager.role,
-      applicationData: dto
+      applicationData: dto,
     });
 
     return new SuccessResponse(
@@ -56,12 +77,12 @@ export class KycApplicationController {
   @Patch('address')
   async addressVerification(
     @AuthenticatedFacilityManager() facilityManager: FacilityManagerUser,
-    @Body() dto: AddressVerificationDto
+    @Body() dto: AddressVerificationDto,
   ) {
     const response = await this.kycService.addressVerification({
       userId: facilityManager.id,
       accountType: facilityManager.role,
-      applicationData: dto
+      applicationData: dto,
     });
 
     return new SuccessResponse(
@@ -79,9 +100,6 @@ export class KycApplicationController {
       accountType: facilityManager.role,
     });
 
-    return new SuccessResponse(
-      'Kyc status retrieved successfully',
-      response,
-    );
+    return new SuccessResponse('Kyc status retrieved successfully', response);
   }
 }
