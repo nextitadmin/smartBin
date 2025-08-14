@@ -3,8 +3,9 @@ import { SchemaTypes, Types } from 'mongoose';
 
 export enum NotificationType {
   LowWalletBalance = 'low_wallet_balance',
-  Pickup = 'waste-pickup',
+  PickupUpdate = 'pickup-application',
   SmartBinUpdate = 'smartbin-application',
+  WalletUpdate = 'wallet-application',
   SystemUpdate = 'system-update',
 }
 

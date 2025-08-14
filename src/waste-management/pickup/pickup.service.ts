@@ -25,6 +25,12 @@ import {
 } from '@models/transaction.model';
 import { RequestPickupDto } from '@src/waste-management/pickup/dto/pickup.dto';
 import { AuthUser } from '@common/types';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { MailNotificationEvents, SendEmailEvent } from '@src/notification/dto/event';
+import { NotificationType } from '@models/notification.model';
+import { events } from '@common/constants';
+import { NotificationEvent } from '@src/notification/dto/notification.event';
+
 
 @Injectable()
 export class PickupService {
@@ -33,6 +39,8 @@ export class PickupService {
     private readonly transactionModel: Model<Transaction>,
     @InjectModel(Pickup.name)
     private readonly pickupModel: Model<PickupDocument>,
+    private readonly eventEmitter: EventEmitter2,
+    
   ) {}
 
   //  findAll pickups
@@ -132,13 +140,44 @@ export class PickupService {
   }
 
   //update pickups status
-  async updatePickupStatus(id: string, status: Status) {
+  async updatePickupStatus(user: AuthUser, id: string, status: Status) {
     const pickup = await this.pickupModel
       .findByIdAndUpdate(id, { status }, { new: true })
       .lean();
     if (!pickup) {
       throw new NotFoundException(`Pickup with ID ${id} not found`);
     }
+    // 1️⃣ Email notification
+    this.eventEmitter.emit(
+      MailNotificationEvents.Application.PickupUpdate,
+      new SendEmailEvent({
+        to: user.email,
+        from: `"LAWMA REG" <accounts@lawma.co>`,
+        subject: 'Pickup Application Status Update',
+        context: {
+          name: user.firstName,
+          status: status,
+          applicationId: id,
+        },
+      }),
+    );
+
+    // 2️⃣ In-app notification
+    this.eventEmitter.emit(
+      events.notifications.created,
+      new NotificationEvent({
+        userId: user.id,
+        title: 'Pickup Application',
+        text: `Your Pickup application status has been updated to ${status}.`,
+        type: NotificationType.PickupUpdate,
+      }),
+      // new SendInAppEvent({
+      //   userId: user.id,
+      //   text: `Your SmartBin application status has been updated to ${status}.`,
+      //   type: NotificationType.SmartBinUpdate,
+      //   isRead: false,
+      // }),
+    );
     return pickup;
   }
 

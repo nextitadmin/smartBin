@@ -26,6 +26,12 @@ import { generateRandomChars } from '@common/utils';
 import { AuthUser } from '@common/types';
 import { ConfigService } from '@nestjs/config';
 import { ConfigAttributes } from '@src/config';
+import {  MailNotificationEvents, SendEmailEvent,
+} from '@src/notification/dto/event';
+import { NotificationType } from '@models/notification.model';
+import { events } from '@common/constants';
+import { NotificationEvent } from '@src/notification/dto/notification.event';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class WalletService {
@@ -33,6 +39,7 @@ export class WalletService {
     @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
     private readonly transactionService: TransactionService,
     private readonly configService: ConfigService<ConfigAttributes>,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   // Resident
@@ -116,6 +123,7 @@ export class WalletService {
     if (!wallet) {
       throw new NotFoundException('No wallet found for this user');
     }
+    let transaction;
 
     if (reference) {
       const existingTransaction =
@@ -124,6 +132,7 @@ export class WalletService {
         throw new BadRequestException('Transaction already completed');
       }
       amount = existingTransaction.amount;
+      transaction = existingTransaction;
     }
 
     if (wallet.available_balance < amount) {
@@ -143,7 +152,7 @@ export class WalletService {
     });
 
     if (!reference) {
-      const transaction = await this.transactionService.initiateTransaction({
+      const newTransaction = await this.transactionService.initiateTransaction({
         userId: user.id,
         userType: user.role,
         amount,
@@ -152,18 +161,50 @@ export class WalletService {
           description: 'Wallet charge operation',
         },
       });
-      if (!transaction.success) {
-        throw new BadRequestException(transaction.message);
+      if (!newTransaction.success) {
+        throw new BadRequestException(newTransaction.message);
       }
 
-      return transaction.data.reference;
+      reference = transaction.reference;
+      return transaction = newTransaction.data;
     } else {
       await this.transactionService.updateTransaction({
         reference,
         walletId: wallet._id,
         status: TransactionStatus.Successful,
       });
-    }
+    };
+    // 1️⃣ Email notification
+    this.eventEmitter.emit(
+      MailNotificationEvents.Application.PickupUpdate,
+      new SendEmailEvent({
+        to: user.email,
+        from: `"LAWMA REG" <accounts@lawma.co>`,
+        subject: 'Wallet Application Status Update',
+        context: {
+          name: user.firstName,
+          status: transaction.status,
+          applicationId: transaction._id,
+        },
+      }),
+    );
+
+    // 2️⃣ In-app notification
+    this.eventEmitter.emit(
+      events.notifications.created,
+      new NotificationEvent({
+        userId: user.id,
+        title: 'Wallet Application',
+        text: `Your Wallet application status has been updated to ${status}.`,
+        type: NotificationType.WalletUpdate,
+      }),
+      // new SendInAppEvent({
+      //   userId: user.id,
+      //   text: `Your SmartBin application status has been updated to ${status}.`,
+      //   type: NotificationType.SmartBinUpdate,
+      //   isRead: false,
+      // }),
+    );
 
     return reference;
   }

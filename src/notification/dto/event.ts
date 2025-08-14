@@ -10,6 +10,8 @@ export const MailNotificationEvents = Object.freeze({
   },
   Application: {
     SmartBinUpdate: 'notification.smartbin.updated',
+    PickupUpdate: 'notification.pickup.updated',
+    WalletUpdate: 'notification.wallet.updated',
     LowWalletBalance: 'notification.wallet.low',
     GeneralAppUpdate: 'notification.app.update',
   },
@@ -25,6 +27,8 @@ export enum Templates {
   VerifyOTP = 'verify-otp',
   Welcome = 'welcome',
   SmartBinUpdate = 'smartbin-update',
+  PickupUpdate = 'pickup-update',
+  WalletUpdate = 'wallet-update',
   LowWalletBalance = 'low-balance',
   GeneralAppUpdate = 'app-update',
   SupportRequest = 'support-request',
@@ -44,6 +48,8 @@ export class SendEmailEvent {
 
 export const InAppNotificationEvents = Object.freeze({
   SmartBinUpdate: 'notification.smartbin.updated',
+  PickupUpdate: 'notification.pickup.updated',
+  WalletUpdate: 'notification.wallet.updated',
   LowWalletBalance: 'notification.wallet.low',
   GeneralAppUpdate: 'notification.app.update',
   SupportRequest: 'support.new.request',
