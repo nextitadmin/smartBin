@@ -195,7 +195,7 @@ export class WalletService {
       new NotificationEvent({
         userId: user.id,
         title: 'Wallet Application',
-        text: `Your Wallet application status has been updated to ${status}.`,
+        text: `Your Wallet application has been charged and status has been updated.`,
         type: NotificationType.WalletUpdate,
       }),
       // new SendInAppEvent({
