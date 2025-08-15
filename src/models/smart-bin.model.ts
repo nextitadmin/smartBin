@@ -28,6 +28,7 @@ export const DEFAULT_SMART_BIN_AMOUNT = 100000;
 export interface SmartBinAttributes {
   _id?: string;
   userId: Types.ObjectId;
+  facilityId?: Types.ObjectId;
   payerId: string;
   binType: BinType;
   status: SmartbinStatus;
@@ -97,6 +98,12 @@ export class SmartBin extends Document {
     required: true,
   })
   userId: Types.ObjectId;
+
+  @Prop({
+    type: SchemaTypes.ObjectId,
+    required: false,
+  })
+  facilityId?: Types.ObjectId;
 
   @Prop({
     type: SchemaTypes.String,

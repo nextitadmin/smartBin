@@ -13,6 +13,7 @@ import { Wallet, WalletSchema } from '@models/wallet.model';
 import { Transaction, TransactionSchema } from '@models/transaction.model';
 import { SmartBinService } from './smart-bin.service';
 import { AgentModule } from '@src/agent/agent.module';
+import { Facility, FacilitySchema } from '@models/facilities';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { AgentModule } from '@src/agent/agent.module';
       { name: Bill.name, schema: BillSchema },
       { name: Wallet.name, schema: WalletSchema },
       { name: Transaction.name, schema: TransactionSchema },
+      { name: Facility.name, schema: FacilitySchema },
     ]),
     AgentModule,
   ],
@@ -32,4 +34,4 @@ import { AgentModule } from '@src/agent/agent.module';
   providers: [SmartBinService],
   exports: [SmartBinService],
 })
-export class SmartBinModule { }
+export class SmartBinModule {}

@@ -28,6 +28,7 @@ import { Branch, BranchSchema } from '@models/branch.model';
 import { WalletController } from './wallet.controller';
 import { PayerService } from '@src/payer/payer.service';
 import { Pickup, PickupSchema } from '@models/pickup';
+import { Facility, FacilitySchema } from '@models/facilities';
 
 @Module({
   imports: [
@@ -43,7 +44,8 @@ import { Pickup, PickupSchema } from '@models/pickup';
       { name: Bill.name, schema: BillSchema },
       { name: UserKyc.name, schema: UserKycSchema },
       { name: Branch.name, schema: BranchSchema },
-      { name: Pickup.name, schema: PickupSchema }
+      { name: Pickup.name, schema: PickupSchema },
+      { name: Facility.name, schema: FacilitySchema }
     ]),
     // SmartBinModule,
     TransactionModule,

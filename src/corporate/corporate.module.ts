@@ -26,6 +26,7 @@ import { PickupModule } from '@src/waste-management/pickup/pickup.module';
 import { WasteManagementService } from '@src/waste-management/waste-management.service';
 import { PickupService } from '@src/waste-management/pickup/pickup.service';
 import { Pickup, PickupSchema } from '@models/pickup';
+import { Facility, FacilitySchema } from '@models/facilities';
 import { WasteManagementModule } from '@src/waste-management/waste-management.module';
 import { BillService } from '@src/bill/bill.service';
 import { BillController } from '@src/bill/bill.controller';
@@ -58,6 +59,7 @@ import { PayerService } from '@src/payer/payer.service';
       { name: Pickup.name, schema: PickupSchema },
       { name: Branch.name, schema: BranchSchema },
       { name: Report.name, schema: ReportSchema },
+      { name: Facility.name, schema: FacilitySchema }
     ]),
     WalletModule,
     PickupModule,
