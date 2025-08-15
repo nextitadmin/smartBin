@@ -2,11 +2,15 @@ import {
   AuthenticatedFacilityManager,
   FacilityManagerAuth,
 } from '@common/decorators/auth.decorator';
-import { SuccessResponse } from '@common/http';
+import { PaginationQueryDto } from '@common/dto';
+import { PaginatedSuccessResponse, SuccessResponse } from '@common/http';
 import { FacilityManagerUser } from '@common/types';
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { CreateApplicationDto } from '@src/smart-bin/dto/binAppDto';
+import {
+  CreateApplicationDto,
+  CreateFacilityApplicationDto,
+} from '@src/smart-bin/dto/binAppDto';
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 
 @ApiTags('Facility Manager Smart Bin')
@@ -21,31 +25,39 @@ export class SmartBinController {
   @Get('applications')
   async getSmartBinApplications(
     @AuthenticatedFacilityManager() facilityManager: FacilityManagerUser,
+    @Query() query: PaginationQueryDto,
   ) {
-    const response =
-      await this.smartBinService.getFacilityManagerBinApplication(
+    const { page = '1', limit = '10' } = query;
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+
+    const { data, paging } =
+      await this.smartBinService.getCorporateBinApplication(
         facilityManager.id,
+        pageNumber,
+        limitNumber,
       );
 
-    return new SuccessResponse(
+    return new PaginatedSuccessResponse(
       'Smart Bin applications retrieved successfully',
-      response,
+      data,
+      paging,
     );
   }
 
   @Post('applications')
   async createSmartBinApplication(
     @AuthenticatedFacilityManager() facilityManager: FacilityManagerUser,
-    @Body() dto: CreateApplicationDto,
+    @Body() dto: CreateFacilityApplicationDto,
   ) {
-    const response = await this.smartBinService.createBinApplication({
+    const response = await this.smartBinService.createFacilityBinApplication({
       accountId: facilityManager.id,
       accountType: facilityManager.role,
       applicationData: dto,
     });
 
     return new SuccessResponse(
-      'Smart Bin application created successfully',
+      'Smart Bin application for your facility created successfully',
       response,
     );
   }

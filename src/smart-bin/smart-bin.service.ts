@@ -31,6 +31,7 @@ import {
   BinAppDto,
   CreateApplicationDto,
   CreateBusinessApplicationDto,
+  CreateFacilityApplicationDto,
 } from './dto/binAppDto';
 import { SmartBinApplicationStatus, UserRole } from '@models/types';
 import { generateRandomChars } from '@common/utils';
@@ -44,6 +45,7 @@ import {
 import { NotificationType } from '@models/notification.model';
 import { events } from '@common/constants';
 import { NotificationEvent } from '@src/notification/dto/notification.event';
+import { Facility } from '@models/facilities';
 
 @Injectable()
 export class SmartBinService {
@@ -57,6 +59,7 @@ export class SmartBinService {
     private readonly facilityModel: Model<FacilityManager>,
     @InjectModel(Bill.name) private readonly billModel: Model<Bill>,
     @InjectModel(Wallet.name) private readonly walletModel: Model<Wallet>,
+    @InjectModel(Facility.name) private readonly facility: Model<Facility>,
     @InjectModel(Transaction.name)
     private readonly transactionModel: Model<Transaction>,
     private readonly eventEmitter: EventEmitter2,
@@ -228,6 +231,76 @@ export class SmartBinService {
     );
 
     return smartbin;
+  }
+
+  async createFacilityBinApplication({
+    accountId,
+    accountType,
+    applicationData,
+  }: {
+    accountId: string;
+    accountType: UserRole;
+    applicationData: CreateFacilityApplicationDto;
+  }) {
+    const facilty = await this.facility.findOne({
+      _id: applicationData.facilityId,
+      userId: accountId,
+    });
+    if (!facilty) {
+      throw new NotFoundException('Facility not found');
+    }
+
+    if (applicationData.transactionReference) {
+      const successfulCharge = await this.transactionModel.exists({
+        transactionReference: applicationData.transactionReference,
+        userId: accountId,
+        userType: accountType,
+        status: TransactionStatus.Successful,
+      });
+
+      if (!successfulCharge) {
+        throw new BadRequestException(
+          'Invalid transaction reference. Please ensure the transaction was successful.',
+        );
+      }
+    }
+
+    const generateTransactionRef = generateRandomChars(10, 'alphanum');
+    const newBinApplication = await Promise.all([
+      this.smartbinModel.create({
+        userId: String(accountId),
+        customerType: accountType,
+        transactionReference:
+          applicationData.transactionReference || generateTransactionRef,
+        facilityId: facilty._id,
+        ...applicationData,
+        applicationHistory: [
+          {
+            timestamp: new Date(),
+            status: SmartBinApplicationStatus.Pending,
+            description: 'Application successful awaiting approval',
+          },
+        ],
+      }),
+      this.transactionModel.create({
+        userId: String(accountId),
+        transactionReference: generateTransactionRef,
+        userType: accountType,
+        amount: DEFAULT_SMART_BIN_AMOUNT,
+        service: ServiceType.SmartBinPurchase,
+        status: applicationData.transactionReference
+          ? TransactionStatus.Successful
+          : TransactionStatus.Pending,
+        meta: {
+          receiptId: applicationData.receiptId,
+        },
+      }),
+    ]);
+
+    return {
+      application: newBinApplication,
+      transactionReference: generateTransactionRef,
+    };
   }
 
   async createBinApplication({
