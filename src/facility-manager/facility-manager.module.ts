@@ -29,6 +29,7 @@ import { DashboardService } from '@src/dashboard/dashboard.service';
 import { WalletService } from '@src/wallet/wallet.service';
 import { FacilityManagerWalletController } from './wallet.controller';
 import { Pickup, PickupSchema } from '@models/pickup';
+import { Facility, FacilitySchema } from '@models/facilities';
 
 
 @Module({
@@ -45,6 +46,7 @@ import { Pickup, PickupSchema } from '@models/pickup';
       { name: Wallet.name, schema: WalletSchema },
       { name: Bill.name, schema: BillSchema },
       { name: Pickup.name, schema: PickupSchema },
+      { name: Facility.name, schema: FacilitySchema }
 
     ]),
     SmartBinModule,

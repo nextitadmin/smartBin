@@ -70,6 +70,7 @@ export class SmartBinService {
           userId: new Types.ObjectId(residentId),
           customerType: UserRole.Resident,
         })
+        .populate('payment')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)

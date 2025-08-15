@@ -9,7 +9,9 @@ describe('WasteManagementController', () => {
       controllers: [WasteManagementController],
     }).compile();
 
-    controller = module.get<WasteManagementController>(WasteManagementController);
+    controller = module.get<WasteManagementController>(
+      WasteManagementController,
+    );
   });
 
   it('should be defined', () => {
