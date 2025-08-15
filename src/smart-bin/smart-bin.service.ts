@@ -167,6 +167,36 @@ export class SmartBinService {
     };
   }
 
+    async getFacilityBinApplication(facilityMgrId: string, page = 1, limit = 10) {
+    const skip = (page - 1) * limit;
+
+    const [applications, total] = await Promise.all([
+      this.smartbinModel
+        .find({
+          userId: new Types.ObjectId(facilityMgrId),
+          customerType: UserRole.Facility,
+        })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      this.smartbinModel.countDocuments({
+        userId: new Types.ObjectId(facilityMgrId),
+        customerType: UserRole.Facility,
+      }),
+    ]);
+
+    return {
+      data: applications,
+      paging: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        size: limit,
+      },
+    };
+  }
+
   private estimateAnnualSubscription(bills: Bill[]): number {
     const total = bills.reduce((sum, bill) => sum + bill.amount, 0);
     return total * 12; // Assuming the bills are monthly

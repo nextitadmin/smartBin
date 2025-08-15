@@ -32,7 +32,7 @@ export class SmartBinController {
     const limitNumber = parseInt(limit, 10);
 
     const { data, paging } =
-      await this.smartBinService.getCorporateBinApplication(
+      await this.smartBinService.getFacilityBinApplication(
         facilityManager.id,
         pageNumber,
         limitNumber,
