@@ -46,7 +46,7 @@ export class FacilityManagerService {
     private readonly configService: ConfigService<ConfigAttributes>,
     private readonly jwtService: JwtService,
     private ee: EventEmitter2,
-  ) {}
+  ) { }
 
   async register(dto: CreateManagerAccountDto) {
     const {
@@ -192,6 +192,7 @@ export class FacilityManagerService {
 
     return {
       _id: manager._id,
+      payerId: manager.payerId || null,
       email: manager.email,
       fullName: `${manager.firstName} ${manager.lastName}`,
       phoneNumber: manager.phoneNumber || null,
