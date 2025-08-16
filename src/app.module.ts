@@ -42,6 +42,7 @@ import { WalletController } from './wallet/wallet.controller';
 import { ReportModule } from './report/report.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { WasteManagementModule } from './waste-management/waste-management.module';
+import { TeamModule } from './team/team.module';
 
 @Module({
   imports: [
@@ -72,6 +73,7 @@ import { WasteManagementModule } from './waste-management/waste-management.modul
     ReportModule,
     SubscriptionModule,
     WasteManagementModule,
+    TeamModule,
   ],
   controllers: [AppController],
   providers: [

@@ -24,6 +24,7 @@ import { Pickup, PickupSchema } from '@models/pickup';
 import { KycApplicationController } from './kyc-application/kyc-application.controller';
 import { KycService } from '@src/kyc/kyc.service';
 import { CorporateTeam, CorporateTeamSchema } from '@models/corporate-team.model';
+import { TeamMember, TeamMemberSchema } from '@models/team.model';
 
 @Module({
   imports: [
@@ -65,6 +66,10 @@ import { CorporateTeam, CorporateTeamSchema } from '@models/corporate-team.model
       {
         name: CorporateTeam.name,
         schema: CorporateTeamSchema
+      },
+      {
+        name: TeamMember.name,
+        schema: TeamMemberSchema
       }
     ]),
     forwardRef(() => WalletModule),
