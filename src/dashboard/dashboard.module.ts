@@ -19,6 +19,7 @@ import { CorporateModule } from '@src/corporate/corporate.module';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { CorporateService } from '@src/corporate/corporate.service';
 import { Pickup, PickupSchema } from '@models/pickup';
+import { TeamMember, TeamMemberSchema } from '@models/team.model';
 
 @Module({
   imports: [
@@ -33,7 +34,8 @@ import { Pickup, PickupSchema } from '@models/pickup';
       { name: Transaction.name, schema: TransactionSchema },
       { name: SmartBin.name, schema: SmartBinSchema },
       { name: Payer.name, schema: PayerSchema },
-      { name: UserKyc.name, schema: UserKycSchema }
+      { name: UserKyc.name, schema: UserKycSchema },
+      { name: TeamMember.name, schema: TeamMemberSchema }
     ]),
     SmartBinModule
   ],

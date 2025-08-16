@@ -17,6 +17,7 @@ import { Transaction } from '@models/transaction.model';
 import { Pickup, Status } from '@models/pickup';
 import { PickupStatus, UserRole } from '@models/types';
 import { formatCustomDate, formatTimestamp } from '@common/utils';
+import { TeamMember } from '@models/team.model';
 
 @Injectable()
 export class DashboardService {
@@ -31,8 +32,8 @@ export class DashboardService {
     @InjectModel(Wallet.name) private readonly walletModel: Model<Wallet>,
     @InjectModel(SmartBin.name) private readonly smartbinModel: Model<SmartBin>,
     @InjectModel(Pickup.name) private readonly pickupModel: Model<Pickup>,
-    @InjectModel(Transaction.name)
-    private readonly transactionModel: Model<Transaction>,
+    @InjectModel(Transaction.name) private readonly transactionModel: Model<Transaction>,
+    @InjectModel(TeamMember.name) private readonly teamMemberModel: Model<TeamMember>
   ) { }
 
   async getResidentDashboard(userId: string, year: number) {
@@ -131,7 +132,7 @@ export class DashboardService {
 
   // get facility manager dashboard
   async getFacilityManagerDashboard(facilityManagerId: string, year: number) {
-    const [facilityManager, residents, wallet, bills, smartbin, disposals] =
+    const [facilityManager, residents, wallet, bills, smartbin, disposals, teamMemberCount] =
       await Promise.all([
         this.facilityModel.findById(facilityManagerId),
         this.residentModel.find({
@@ -147,6 +148,7 @@ export class DashboardService {
           .find({ userId: facilityManagerId, userType: 'Facility' })
           .sort({ createdAt: -1 }),
         this.pickupModel.find({ accountId: facilityManagerId, accountType: 'Facility', status: Status.Completed }).lean(),
+        this.teamMemberModel.countDocuments({ userId: facilityManagerId })
       ]);
 
     const filteredDisposals = disposals.filter(
@@ -170,6 +172,7 @@ export class DashboardService {
       latestSmartbinStatus: smartbin[0]?.status || 'none',
       estimatedAnnualSubscription: annualEstimate,
       totalResidentsRegistered: residents.length,
+      totalTeamMembers: teamMemberCount,
       binDisposalAnalytics: {
         year,
         totalDisposals: filteredDisposals.length,

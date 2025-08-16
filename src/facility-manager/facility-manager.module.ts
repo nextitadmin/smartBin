@@ -30,6 +30,7 @@ import { WalletService } from '@src/wallet/wallet.service';
 import { FacilityManagerWalletController } from './wallet.controller';
 import { Pickup, PickupSchema } from '@models/pickup';
 import { Facility, FacilitySchema } from '@models/facilities';
+import { TeamMember, TeamMemberSchema } from '@models/team.model';
 
 
 @Module({
@@ -46,7 +47,8 @@ import { Facility, FacilitySchema } from '@models/facilities';
       { name: Wallet.name, schema: WalletSchema },
       { name: Bill.name, schema: BillSchema },
       { name: Pickup.name, schema: PickupSchema },
-      { name: Facility.name, schema: FacilitySchema }
+      { name: Facility.name, schema: FacilitySchema },
+      { name: TeamMember.name, schema: TeamMemberSchema }
 
     ]),
     SmartBinModule,
