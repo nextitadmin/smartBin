@@ -161,6 +161,9 @@ export class DashboardService {
       (sum, b) => sum + b.amount,
       0,
     );
+    const completedBills = bills.filter((b) => b.status === 'completed');
+    const totalPaymentMade = completedBills.reduce((sum, b) => sum + b.amount, 0);
+
     const annualEstimate = this.estimateAnnualSubscription(bills);
 
     return {
@@ -168,6 +171,7 @@ export class DashboardService {
       fullName: `${facilityManager?.firstName || ''}`,
       walletBalance: wallet?.ledger_balance || 0,
       totalOutstandingBill: totalOutstanding,
+      totalPaymentMade: totalPaymentMade,
       smartbinApplicationsCount: smartbin.length,
       latestSmartbinStatus: smartbin[0]?.status || 'none',
       estimatedAnnualSubscription: annualEstimate,
