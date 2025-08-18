@@ -176,7 +176,7 @@ export class SmartBinService {
           userId: new Types.ObjectId(facilityMgrId),
           customerType: UserRole.Facility,
         })
-        // .populate('payment')
+        .populate('payment')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -328,7 +328,7 @@ export class SmartBinService {
           : TransactionStatus.Pending,
         meta: {
           receiptId: applicationData.receiptId,
-          buildingName: facilty.buildingName
+          buildingName: facilty.buildingName,
         },
       }),
     ]);
