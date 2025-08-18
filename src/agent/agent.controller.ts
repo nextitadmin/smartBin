@@ -3,6 +3,7 @@ import {
   Post,
   Get,
   Patch,
+  Put,
   Body,
   UploadedFile,
   UseInterceptors,
@@ -21,6 +22,7 @@ import {
   LoginAgentAccountDto,
   ProfileDto,
   ResetPasswordDto,
+  UpdateProfileDto,
   VerifyAgentLogin,
 } from './dto/agent.dto';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
@@ -34,7 +36,7 @@ import { Public } from '@common/guards/public.guard';
   version: '1',
 })
 export class AgentController {
-  constructor(private readonly agentService: AgentService) {}
+  constructor(private readonly agentService: AgentService) { }
 
   @Public()
   @Post('register')
@@ -116,4 +118,15 @@ export class AgentController {
     await this.agentService.updateProfilePicture(agent.id, body.imageUrl);
     return new SuccessResponse('profile picture updated', null);
   }
+
+  @Put('profile')
+  @AgentAuth()
+  async updateProfile(
+    @Body() body: UpdateProfileDto,
+    @AuthenticatedAgent() agent: AuthUser,
+  ) {
+    const response = await this.agentService.updateProfile(agent.id, body);
+    return new SuccessResponse('profile updated', response);
+  }
+
 }

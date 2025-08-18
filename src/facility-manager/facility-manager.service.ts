@@ -23,6 +23,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   CreateManagerAccountDto,
   LoginManagerAccountDto,
+  UpdateProfileDto,
 } from './dto/facility-manager.dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
@@ -181,6 +182,37 @@ export class FacilityManagerService {
     await manager.save();
     return { message: 'Profile picture updated', profilePicture: fileUrl };
   }
+
+  async updateProfile(userId: string, updateData: UpdateProfileDto) {
+    const manager = await this.facilityModel.findById(userId);
+    if (!manager) {
+      throw new NotFoundException('Manager not found');
+    }
+
+    if (updateData.firstName) {
+      manager.firstName = updateData.firstName;
+    }
+    if (updateData.lastName) {
+      manager.lastName = updateData.lastName;
+    }
+    if (updateData.email) {
+      manager.email = updateData.email;
+    }
+    if (updateData.phoneNumber) {
+      manager.phoneNumber = updateData.phoneNumber;
+    }
+
+    await manager.save();
+    return {
+      manager: {
+        firstName: manager.firstName,
+        lastName: manager.lastName,
+        email: manager.email,
+        phoneNumber: manager.phoneNumber,
+      },
+    };
+  }
+
 
   async getProfile(userId: string) {
     const manager = await this.facilityModel

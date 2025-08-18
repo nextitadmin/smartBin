@@ -14,6 +14,7 @@ import {
   UsePipes,
   ValidationPipe,
   Delete,
+  Put,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ResidentService } from './resident.service';
@@ -31,6 +32,7 @@ import {
   VerifyResidentLogin,
   ResidentForgotPasswordDto,
   ResidentVerifyResetCodeDto,
+  UpdateProfileDto,
   ResetPasswordDto,
   ProfileDto,
   CreateApplicationDto,
@@ -50,7 +52,7 @@ import { SmartBinApplicationStatus } from '@models/types';
   version: '1',
 })
 export class ResidentController {
-  constructor(private readonly residentService: ResidentService) {}
+  constructor(private readonly residentService: ResidentService) { }
 
   @Public()
   @Post('register')
@@ -131,6 +133,19 @@ export class ResidentController {
       body.imageUrl,
     );
     return new SuccessResponse('profile picture updated', null);
+  }
+
+  @Put('profile')
+  @ResidentAuth()
+  async updateProfile(
+    @Body() body: UpdateProfileDto,
+    @AuthenticatedResident() resident: AuthUser,
+  ) {
+    const response = await this.residentService.updateProfile(
+      resident.id,
+      body,
+    );
+    return new SuccessResponse('profile updated', response);
   }
 
   // @Get('dashboard')

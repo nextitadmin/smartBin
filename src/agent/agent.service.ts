@@ -23,7 +23,7 @@ import { CacheKeys } from '@src/shared/constants';
 import { getSeconds } from 'date-fns';
 import { UserRole } from '@models/types';
 import { JwtService } from '@nestjs/jwt';
-import { CreateAgentAccountDto, LoginAgentAccountDto } from './dto/agent.dto';
+import { CreateAgentAccountDto, LoginAgentAccountDto, UpdateProfileDto } from './dto/agent.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   MailNotificationEvents,
@@ -43,7 +43,7 @@ export class AgentService {
     @InjectModel(UserKyc.name) private readonly userKycModel: Model<UserKyc>,
     private readonly configService: ConfigService<ConfigAttributes>,
     private ee: EventEmitter2,
-  ) {}
+  ) { }
 
   async registerAgent(body: CreateAgentAccountDto) {
     const { payerId, agencyName, password, confirmPassword } = body;
@@ -106,12 +106,12 @@ export class AgentService {
 
     const agent = await this.agentModel.findOne({ email });
 
-    if(!agent){
+    if (!agent) {
       throw new NotFoundException("Agent does not exist");
     }
 
     const isPasswordMatch = comparePassword(password, agent.password);
-   
+
     if (!isPasswordMatch) {
       throw new UnauthorizedException('Invalid email or password');
     }
@@ -187,6 +187,42 @@ export class AgentService {
       profilePicture: agent.profilePicture,
     };
   }
+
+
+  async updateProfile(userId: string, updateData: UpdateProfileDto) {
+    const agent = await this.agentModel.findById(userId);
+    if (!agent) {
+      throw new NotFoundException('Agent not found');
+    }
+
+    if (updateData.agencyName) {
+      agent.agencyName = updateData.agencyName;
+    }
+    if (updateData.firstName) {
+      agent.firstName = updateData.firstName;
+    }
+    if (updateData.lastName) {
+      agent.lastName = updateData.lastName;
+    }
+    if (updateData.email) {
+      agent.email = updateData.email;
+    }
+    if (updateData.phoneNumber) {
+      agent.phoneNumber = updateData.phoneNumber;
+    }
+
+    await agent.save();
+    return {
+      agent: {
+        agencyName: agent.agencyName,
+        firstName: agent.firstName,
+        lastName: agent.lastName,
+        email: agent.email,
+        phoneNumber: agent.phoneNumber,
+      },
+    };
+  }
+
 
   async getProfile(agentId: string) {
     const agent = await this.agentModel
@@ -311,5 +347,5 @@ export class AgentService {
     return this.getProfile(tokenDetails.id);
   }
 
-  async verifyResetCode(code: string) {}
+  async verifyResetCode(code: string) { }
 }

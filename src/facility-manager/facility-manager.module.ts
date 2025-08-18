@@ -37,6 +37,8 @@ import { FacilityManagerReportController } from './report.controller';
 import { FacilityUserController } from './user-management/facility-user.controller';
 import { FacilityUserService } from './user-management/facility-user.service';
 import { FacilityUsers, FacilityUserSchema } from '@models/facility-users.model';
+import { BillService } from '@src/bill/bill.service';
+import { FacilityManagerBillController } from './bill/bill.controller';
 
 @Module({
   imports: [
@@ -71,6 +73,7 @@ import { FacilityUsers, FacilityUserSchema } from '@models/facility-users.model'
     FacilityManagerPaymentController,
     FacilityManagerReportController,
     FacilityUserController,
+    FacilityManagerBillController,
   ],
   providers: [
     FacilityManagerService,
@@ -79,6 +82,7 @@ import { FacilityUsers, FacilityUserSchema } from '@models/facility-users.model'
     WalletService,
     ReportService,
     FacilityUserService,
+    BillService,
   ],
   exports: [FacilityManagerService, FacilityService],
 })

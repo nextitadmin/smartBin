@@ -12,6 +12,7 @@ import {
   IsString,
   MinLength,
   IsNotEmpty,
+  IsOptional,
   IsNumber,
 } from 'class-validator';
 
@@ -34,6 +35,34 @@ export class CreateCorporateAccountDto {
   @IsNotEmpty()
   confirmPassword: string;
 }
+
+export class UpdateProfileDto {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  businessName?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  firstName?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  lastName?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  phoneNumber?: string;
+}
+
 
 export class CorporateLoginDto {
   @ApiProperty()
