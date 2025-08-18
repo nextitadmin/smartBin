@@ -76,6 +76,7 @@ import { FacilityManagerBillController } from './bill/bill.controller';
     DashboardService,
     WalletService,
     ReportService,
+    BillService,
   ],
   exports: [FacilityManagerService, FacilityService],
 })
