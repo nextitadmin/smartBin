@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString } from 'class-validator';
+import { IsEmail, IsOptional, IsString } from 'class-validator';
 
 export class CreateManagerAccountDto {
   @ApiProperty()
@@ -31,7 +31,7 @@ export class LoginManagerAccountDto {
   password: string;
 }
 
-export class ForgetPasswordManagerAccountDto{
+export class ForgetPasswordManagerAccountDto {
   @ApiProperty()
   @IsEmail()
   email: string;
@@ -49,6 +49,29 @@ export class UpdatePictureDto {
   profilePicture: string;
 }
 
+export class UpdateProfileDto {
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  firstName?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  lastName?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  phoneNumber?: string;
+}
+
 export class UpdatePasswordDto {
   @ApiProperty()
   @IsString()
@@ -58,3 +81,5 @@ export class UpdatePasswordDto {
   @IsString()
   confirmPassword: string;
 }
+
+

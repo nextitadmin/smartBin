@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Patch,
+  Put,
   Post,
   Req,
   UsePipes,
@@ -23,6 +24,7 @@ import {
   CorporateForgotPasswordDto,
   CorporateLoginDto,
   CorporateVerifyResetCodeDto,
+  UpdateProfileDto,
   CreateApplicationDto,
   CreateCorporateAccountDto,
   GetApplicationParamDto,
@@ -37,7 +39,7 @@ import {
   version: '1',
 })
 export class CorporateController {
-  constructor(private readonly corporateService: CorporateService) {}
+  constructor(private readonly corporateService: CorporateService) { }
 
   @Public()
   @Post('register')
@@ -89,6 +91,20 @@ export class CorporateController {
 
     return new SuccessResponse('reset password successful', response);
   }
+
+  @Put('profile')
+  @CorporateAuth()
+  async updateProfile(
+    @Body() body: UpdateProfileDto,
+    @AuthenticatedCorporate() corporate: AuthUser,
+  ) {
+    const response = await this.corporateService.updateProfile(
+      corporate.id,
+      body,
+    );
+    return new SuccessResponse('profile updated', response);
+  }
+
 
   @Get('profile')
   @CorporateAuth()

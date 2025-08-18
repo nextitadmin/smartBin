@@ -34,6 +34,8 @@ import { TeamMember, TeamMemberSchema } from '@models/team.model';
 import { ReportService } from '@src/report/report.service';
 import { Report, ReportSchema } from '@models/report.model';
 import { FacilityManagerReportController } from './report.controller';
+import { BillService } from '@src/bill/bill.service';
+import { FacilityManagerBillController } from './bill/bill.controller';
 
 
 @Module({
@@ -68,8 +70,9 @@ import { FacilityManagerReportController } from './report.controller';
     KycApplicationController,
     FacilityManagerPaymentController,
     FacilityManagerReportController,
+    FacilityManagerBillController,
   ],
-  providers: [FacilityManagerService, FacilityService, DashboardService, WalletService, ReportService],
+  providers: [FacilityManagerService, FacilityService, DashboardService, WalletService, ReportService, BillService],
   exports: [FacilityManagerService, FacilityService],
 })
 export class FacilityManagerModule { }

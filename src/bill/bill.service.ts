@@ -31,7 +31,7 @@ export class BillService {
     // private readonly facilityModel: Model<FacilityManager>,
     @InjectModel(Bill.name) private readonly billModel: Model<Bill>,
     @InjectModel(Wallet.name) private readonly walletModel: Model<Wallet>,
-  ) {}
+  ) { }
 
   async getResidentBills(
     userId: string,
@@ -110,61 +110,7 @@ export class BillService {
     throw new BadRequestException('Unsupported payment method');
   }
 
-  //   async verifyPayment(reference: string) {
-  //     const transaction = await verifyAlatTransaction(reference);
-  //     if (!transaction) throw new NotFoundException('Transaction not found');
 
-  //     const bill = await this.billModel.findOne({
-  //       userId: transaction.userId,
-  //       userType: transaction.userType,
-  //       amount: transaction.amount,
-  //       service: transaction.service,
-  //       status: transaction.status,
-  //     });
-
-  //     if (!bill) throw new NotFoundException('Bill not found for transaction');
-
-  //     if (bill.status !== 'paid') {
-  //       bill.status = 'paid';
-  //       bill.paidAt = new Date();
-  //       bill.paymentMethod = 'Alat By Wema';
-  //       await bill.save();
-  //     }
-
-  //     return { message: 'Payment verified and bill updated', bill, transaction };
-  //   }
-
-  //   async seedBills(userId: string): Promise<any> {
-  //     const bills = [
-  //       {
-  //         userId,
-  //         userType: 'Resident',
-  //         billId: `OD${Math.floor(Math.random() * 1e8)}`,
-  //         service: 'Waste Bin Disposal',
-  //         amount: 20000,
-  //         dueDate: new Date('2025-07-21'),
-  //       },
-  //       {
-  //         userId,
-  //         userType: 'Resident',
-  //         billId: `OD${Math.floor(Math.random() * 1e8)}`,
-  //         service: 'Smart Bin Purchase',
-  //         amount: 150000,
-  //         dueDate: new Date('2025-07-25'),
-  //       },
-  //       {
-  //         userId,
-  //         userType: 'Resident',
-  //         billId: `OD${Math.floor(Math.random() * 1e8)}`,
-  //         service: 'Waste Bin Disposal',
-  //         amount: 10000,
-  //         dueDate: new Date('2025-07-30'),
-  //       },
-  //     ];
-
-  //     await this.billModel.insertMany(bills);
-  //     return { message: 'Sample bills created', count: bills.length, data: bills };
-  //   }
 
   async getFacilityBills(
     userId: string,
@@ -317,7 +263,7 @@ export class BillService {
       );
     }
 
-    // For AlatByWema (if you want to add later)
+
     throw new BadRequestException('Invalid payment method');
   }
 }

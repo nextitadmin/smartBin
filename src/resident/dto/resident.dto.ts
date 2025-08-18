@@ -43,6 +43,31 @@ export class ProfileDto {
   imageUrl: string;
 }
 
+export class UpdateProfileDto {
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  firstName?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  lastName?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  phoneNumber?: string;
+}
+
+
+
 export class CreateApplicationDto {
   @ApiProperty()
   @IsString()

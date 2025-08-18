@@ -73,6 +73,20 @@ export class TeamService {
         };
     }
 
+    async getTeamMemberById(id: string, userId: string) {
+        const teamMember = await this.teamMemberModel.findOne({
+            _id: id,
+            userId: new Types.ObjectId(userId),
+        });
+
+        if (!teamMember) {
+            throw new NotFoundException('Team member not found or does not belong to you.');
+        }
+        return teamMember;
+    }
+
+
+
     async updateTeamMemberInfo(
         id: string,
         userId: string,

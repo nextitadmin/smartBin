@@ -38,6 +38,15 @@ export class TeamController {
         );
     }
 
+    @Get(':id')
+    async getTeamMemberById(
+        @Param('id') id: string,
+        @AuthenticatedUser() user: AuthUser,
+    ) {
+        const teamMember = await this.teamService.getTeamMemberById(id, user.id);
+        return new SuccessResponse('Team member fetched successfully', teamMember);
+    }
+
 
     @Put(':id')
     async updateTeamMember(

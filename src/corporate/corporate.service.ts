@@ -26,6 +26,7 @@ import { JwtService } from '@nestjs/jwt';
 import {
   CorporateLoginDto,
   CreateCorporateAccountDto,
+  UpdateProfileDto,
   VerifyCorporateLogin,
   CorporateForgotPasswordDto,
   CorporateVerifyResetCodeDto,
@@ -66,7 +67,7 @@ export class CorporateService {
     private ee: EventEmitter2,
     private jwtService: JwtService,
     private readonly configService: ConfigService<ConfigAttributes>,
-  ) {}
+  ) { }
 
   async registerCorporate(body: CreateCorporateAccountDto) {
     const { password, payerId, businessName, confirmPassword } = body;
@@ -218,6 +219,41 @@ export class CorporateService {
     return {
       message: 'Profile picture updated successfully',
       profilePicture: business.profilePicture,
+    };
+  }
+
+
+  async updateProfile(userId: string, updateData: UpdateProfileDto) {
+    const corporate = await this.corporateModel.findById(userId);
+    if (!corporate) {
+      throw new NotFoundException('Corporate not found');
+    }
+
+    if (updateData.businessName) {
+      corporate.businessName = updateData.businessName;
+    }
+    if (updateData.firstName) {
+      corporate.firstName = updateData.firstName;
+    }
+    if (updateData.lastName) {
+      corporate.lastName = updateData.lastName;
+    }
+    if (updateData.email) {
+      corporate.email = updateData.email;
+    }
+    if (updateData.phoneNumber) {
+      corporate.phoneNumber = updateData.phoneNumber;
+    }
+
+    await corporate.save();
+    return {
+      corporate: {
+        businessName: corporate.businessName,
+        firstName: corporate.firstName,
+        lastName: corporate.lastName,
+        email: corporate.email,
+        phoneNumber: corporate.phoneNumber,
+      },
     };
   }
 
@@ -430,7 +466,7 @@ export class CorporateService {
 
     const latestSmartBinHistory =
       smartBinApplication?.applicationHistory?.[
-        smartBinApplication.applicationHistory.length - 1
+      smartBinApplication.applicationHistory.length - 1
       ] ?? null;
 
     const totalOutstandingBill = totalOutstanding[0]?.total || 0;
@@ -447,23 +483,22 @@ export class CorporateService {
       smartBinApplicationCount: smartBinCount,
       smartBinApplicationDetails: latestSmartBinHistory
         ? {
-            status: latestSmartBinHistory.status,
-            statusDescription: latestSmartBinHistory.description,
-            lastUpdatedDate: latestSmartBinHistory.timestamp,
-            formattedlastUpdatedDate: formatTimestamp(
-              latestSmartBinHistory.timestamp,
-            ),
-          }
+          status: latestSmartBinHistory.status,
+          statusDescription: latestSmartBinHistory.description,
+          lastUpdatedDate: latestSmartBinHistory.timestamp,
+          formattedlastUpdatedDate: formatTimestamp(
+            latestSmartBinHistory.timestamp,
+          ),
+        }
         : {
-            status: 'N/A',
-            statusDescription: 'No application found',
-            lastUpdatedDate: 'N/A',
-          },
+          status: 'N/A',
+          statusDescription: 'No application found',
+          lastUpdatedDate: 'N/A',
+        },
       estimatedAnnualSubscriptionFee: 0,
       nextPickUpDate: lastPickUpDetails
-        ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${
-            lastPickUpDetails.pickupTime
-          }`
+        ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${lastPickUpDetails.pickupTime
+        }`
         : 'N/A',
     };
 
