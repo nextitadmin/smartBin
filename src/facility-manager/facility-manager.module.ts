@@ -34,7 +34,9 @@ import { TeamMember, TeamMemberSchema } from '@models/team.model';
 import { ReportService } from '@src/report/report.service';
 import { Report, ReportSchema } from '@models/report.model';
 import { FacilityManagerReportController } from './report.controller';
-
+import { FacilityUserController } from './user-management/facility-user.controller';
+import { FacilityUserService } from './user-management/facility-user.service';
+import { FacilityUsers, FacilityUserSchema } from '@models/facility-users.model';
 
 @Module({
   imports: [
@@ -52,8 +54,8 @@ import { FacilityManagerReportController } from './report.controller';
       { name: Pickup.name, schema: PickupSchema },
       { name: Facility.name, schema: FacilitySchema },
       { name: TeamMember.name, schema: TeamMemberSchema },
-      { name: Report.name, schema: ReportSchema }
-
+      { name: Report.name, schema: ReportSchema },
+      { name: FacilityUsers.name, schema: FacilityUserSchema }
     ]),
     SmartBinModule,
     KycModule,
@@ -68,8 +70,16 @@ import { FacilityManagerReportController } from './report.controller';
     KycApplicationController,
     FacilityManagerPaymentController,
     FacilityManagerReportController,
+    FacilityUserController,
   ],
-  providers: [FacilityManagerService, FacilityService, DashboardService, WalletService, ReportService],
+  providers: [
+    FacilityManagerService,
+    FacilityService,
+    DashboardService,
+    WalletService,
+    ReportService,
+    FacilityUserService,
+  ],
   exports: [FacilityManagerService, FacilityService],
 })
-export class FacilityManagerModule { }
+export class FacilityManagerModule {}

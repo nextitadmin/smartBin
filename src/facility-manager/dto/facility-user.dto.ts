@@ -56,29 +56,33 @@ export class CreateFacilityUserDto {
   @IsOptional()
   buildingType?: string;
 
+  @ApiProperty()
   @IsString()
   @IsOptional()
   address?: string;
 
+  @ApiProperty()
   @IsString()
   @IsOptional()
   localGovernment?: string;
 
+  @ApiProperty()
   @IsString()
   @IsOptional()
   closestLandmark?: string;
 
+  @ApiProperty()
   @IsEnum(LawmaCustomerType)
   @IsOptional()
   lawmaCustomerType?: LawmaCustomerType;
 
+  @ApiProperty()
   @IsEnum(BinType)
-  @IsNotEmpty()
+  @IsOptional()
   binType: BinType;
 }
 
 export class UpdateFacilityUserDto extends PartialType(CreateFacilityUserDto) {}
-
 
 export class AssignBinToTenantDto {
   @ApiProperty()

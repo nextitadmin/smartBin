@@ -29,7 +29,7 @@ import { PaginationQueryDto } from '@common/dto';
   version: '1',
 })
 @FacilityManagerAuth()
-export class DashboardController {
+export class FacilityUserController {
   constructor(private readonly facilityUser: FacilityUserService) {}
 
   @Post()
