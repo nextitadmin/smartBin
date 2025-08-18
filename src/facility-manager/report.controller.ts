@@ -41,7 +41,6 @@ export class FacilityManagerReportController {
         @Body() dto: CreateReportDto,
         @AuthenticatedFacilityManager() facility: FacilityManagerUser,
     ) {
-        console.log(dto);
         const response = await this.reportService.generateReport(dto, facility);
         return new SuccessResponse('Report generated successfully', response.data);
     }
