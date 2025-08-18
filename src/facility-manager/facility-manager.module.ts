@@ -31,6 +31,9 @@ import { FacilityManagerWalletController } from './wallet.controller';
 import { Pickup, PickupSchema } from '@models/pickup';
 import { Facility, FacilitySchema } from '@models/facilities';
 import { TeamMember, TeamMemberSchema } from '@models/team.model';
+import { ReportService } from '@src/report/report.service';
+import { Report, ReportSchema } from '@models/report.model';
+import { FacilityManagerReportController } from './report.controller';
 
 @Module({
   imports: [
@@ -48,6 +51,7 @@ import { TeamMember, TeamMemberSchema } from '@models/team.model';
       { name: Pickup.name, schema: PickupSchema },
       { name: Facility.name, schema: FacilitySchema },
       { name: TeamMember.name, schema: TeamMemberSchema },
+      { name: Report.name, schema: ReportSchema },
     ]),
     SmartBinModule,
     KycModule,
@@ -61,12 +65,14 @@ import { TeamMember, TeamMemberSchema } from '@models/team.model';
     FacilityController,
     KycApplicationController,
     FacilityManagerPaymentController,
+    FacilityManagerReportController,
   ],
   providers: [
     FacilityManagerService,
     FacilityService,
     DashboardService,
     WalletService,
+    ReportService,
   ],
   exports: [FacilityManagerService, FacilityService],
 })
