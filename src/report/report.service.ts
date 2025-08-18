@@ -292,6 +292,8 @@ export class ReportService {
             type: report.type,
             reportName: report.reportName,
             period: report.period,
+            tenantName: report?.tenantName,
+            businessName: report?.businessName,
             generatedAt: report.createdAt,
             filters: report.filters,
             data: report.data,

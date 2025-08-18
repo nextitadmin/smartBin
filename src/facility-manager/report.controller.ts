@@ -1,9 +1,9 @@
 import { Controller, Post, Body, Get, Param, Query } from '@nestjs/common';
 import {
-    AuthenticatedCorporate,
-    CorporateAuth,
+    AuthenticatedFacilityManager,
+    FacilityManagerAuth,
 } from '@common/decorators/auth.decorator';
-import { CorporateUser } from '@common/types';
+import { FacilityManagerUser } from '@common/types';
 import { ReportService } from '@src/report/report.service';
 import {
     CreateReportDto,
@@ -22,13 +22,13 @@ import {
     ApiParam,
 } from '@nestjs/swagger';
 
-@ApiTags('Corporate - Reports')
+@ApiTags('Facility Manager- Reports')
 @Controller({
-    path: 'corporate/reports',
+    path: 'facility-manager/reports',
     version: '1',
 })
-@CorporateAuth()
-export class CorporateReportController {
+@FacilityManagerAuth()
+export class FacilityManagerReportController {
     constructor(private readonly reportService: ReportService) { }
 
     @Post()
@@ -39,9 +39,9 @@ export class CorporateReportController {
     })
     async generateReport(
         @Body() dto: CreateReportDto,
-        @AuthenticatedCorporate() corporate: CorporateUser,
+        @AuthenticatedFacilityManager() facility: FacilityManagerUser,
     ) {
-        const response = await this.reportService.generateReport(dto, corporate);
+        const response = await this.reportService.generateReport(dto, facility);
         return new SuccessResponse('Report generated successfully', response.data);
     }
 
@@ -52,8 +52,8 @@ export class CorporateReportController {
     @ApiQuery({ name: 'type', enum: ReportType, required: false })
     @ApiQuery({ name: 'startDate', required: false })
     @ApiQuery({ name: 'endDate', required: false })
-    async getReports(@AuthenticatedCorporate() corporate: CorporateUser, @Query() filters: GetReportsDto) {
-        const reports = await this.reportService.getReportsByUser(corporate, filters);
+    async getReports(@AuthenticatedFacilityManager() facility: FacilityManagerUser, @Query() filters: GetReportsDto) {
+        const reports = await this.reportService.getReportsByUser(facility, filters);
         return new SuccessResponse('Reports fetched', reports);
     }
 
@@ -65,10 +65,10 @@ export class CorporateReportController {
         type: FullReportResponseDto,
     })
     async getReport(
-        @AuthenticatedCorporate() corporate: CorporateUser,
+        @AuthenticatedFacilityManager() facility: FacilityManagerUser,
         @Param('id') id: string,
     ) {
-        const report = await this.reportService.getReportById(id, corporate);
+        const report = await this.reportService.getReportById(id, facility);
         return new SuccessResponse('Report retrieved successfully', report);
     }
 }
