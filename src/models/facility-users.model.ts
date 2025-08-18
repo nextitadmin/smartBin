@@ -16,8 +16,7 @@ export enum BinAssignmentStatus {
   Unassigned = 'unassigned',
 }
 
-
-export type FacilityDocument = FacilityUsers & Document;
+export type FacilityUserDocument = FacilityUsers & Document;
 
 @Schema({
   collection: 'facility-users',
@@ -25,6 +24,12 @@ export type FacilityDocument = FacilityUsers & Document;
   versionKey: false,
 })
 export class FacilityUsers {
+  @Prop({
+    required: true,
+    type: SchemaTypes.String,
+  })
+  userId?: string;
+
   @Prop({
     required: true,
     type: SchemaTypes.ObjectId,
@@ -61,7 +66,7 @@ export class FacilityUsers {
   @Prop({ required: false })
   localGovernment: string;
 
-   @Prop({ required: false })
+  @Prop({ required: false })
   binStatus: string;
 
   @Prop({ required: false })

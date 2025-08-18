@@ -12,11 +12,9 @@ import { BinType, LawmaCustomerType } from '@models/facility-users.model';
 import { PartialType } from '@nestjs/mapped-types';
 
 export class CreateFacilityUserDto {
-
- @ApiProperty()
-  @IsMongoId()
+  @ApiProperty()
   @IsNotEmpty()
-  accountId: Types.ObjectId;
+  userId: string;
 
   @ApiProperty()
   @IsString()
@@ -79,5 +77,4 @@ export class CreateFacilityUserDto {
   binType: BinType;
 }
 
-export class UpdateFacilityUserDto extends PartialType(CreateFacilityUserDto) { }
-
+export class UpdateFacilityUserDto extends PartialType(CreateFacilityUserDto) {}
