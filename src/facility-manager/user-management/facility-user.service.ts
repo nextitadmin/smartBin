@@ -4,8 +4,8 @@ import {
 } from '@models/facility-users.model';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
-import { CreateFacilityUserDto } from '../dto/facility-user.dto';
+import { Model, now, Types } from 'mongoose';
+import { CreateFacilityUserDto, UpdateFacilityUserDto } from '../dto/facility-user.dto';
 
 @Injectable()
 export class FacilityUserService {
@@ -29,6 +29,7 @@ export class FacilityUserService {
       this.facilityUser
         .find({
           accountId: new Types.ObjectId(facilityMgrId),
+          deativationDate: null
         })
         .sort({ createdAt: -1 })
         .skip(skip)
@@ -50,9 +51,29 @@ export class FacilityUserService {
     };
   }
 
-  async getFacilityUserDetails() {}
+  async getFacilityUserDetails(facilityUserId:string) {
+    const facilityUserDetails = await this.facilityUser.findById(facilityUserId);
 
-  async updateFacilityUser() {}
+    return {
+      data: facilityUserDetails
+    }
+  }
 
-  async deactivateFacilityUser() {}
+  async updateFacilityUser(facilityUserId:string, dto:UpdateFacilityUserDto) {
+    await this.facilityUser.findByIdAndUpdate(facilityUserId, {
+      ...dto
+    })
+
+    return { message: "facility user details updated successfully", data:null}
+  }
+
+  async deactivateFacilityUser(facilityUserId: string) {
+    await this.facilityUser.findByIdAndUpdate(facilityUserId, {
+      deativationDate: new Date()
+    })
+
+    return {
+      message: "facility user deactivated successfully"
+    }
+  }
 }

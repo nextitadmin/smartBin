@@ -1,5 +1,13 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
-import { DashboardService } from '@src/dashboard/dashboard.service';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { PaginatedSuccessResponse, SuccessResponse } from '@common/http';
 import {
   FacilityManagerAuth,
@@ -7,7 +15,10 @@ import {
 } from '@common/decorators/auth.decorator';
 import { AuthUser, FacilityManagerUser } from '@common/types';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
-import { CreateFacilityUserDto } from '../dto/facility-user.dto';
+import {
+  CreateFacilityUserDto,
+  UpdateFacilityUserDto,
+} from '../dto/facility-user.dto';
 import { FacilityUserService } from './facility-user.service';
 import { PaginationQueryDto } from '@common/dto';
 
@@ -41,12 +52,11 @@ export class DashboardController {
     const pageNumber = parseInt(page, 10);
     const limitNumber = parseInt(limit, 10);
 
-    const { data, paging } =
-      await this.facilityUser.getFacilityUsers(
-        facilityManager.id,
-        pageNumber,
-        limitNumber,
-      );
+    const { data, paging } = await this.facilityUser.getFacilityUsers(
+      facilityManager.id,
+      pageNumber,
+      limitNumber,
+    );
 
     return new PaginatedSuccessResponse(
       'Facility users retrieved successfully',
@@ -58,8 +68,38 @@ export class DashboardController {
   @Get(':id')
   async getRegisteredUserDetails(
     @AuthenticatedFacilityManager() facility: AuthUser,
+    @Param('id') facilityUserId: string,
   ) {
-    // const response = await this.dasboard.getFacilityManagerDashboard(facility.id, queryYear);
-    // return new SuccessResponse('Facility Manager dashboard retrieved successfully', response);
+    const response = await this.facilityUser.getFacilityUserDetails(
+      facilityUserId,
+    );
+    return new SuccessResponse(
+      'Facility user details retrieved successfully',
+      response.data,
+    );
+  }
+
+  @Patch(':id')
+  async updateFacilityUserDetails(
+    @AuthenticatedFacilityManager() facility: AuthUser,
+    @Param('id') facilityUserId: string,
+    @Body() dto: UpdateFacilityUserDto,
+  ) {
+    const response = await this.facilityUser.updateFacilityUser(
+      facilityUserId,
+      dto,
+    );
+    return new SuccessResponse(response.message, response.data);
+  }
+
+  @Delete(':id')
+  async deactivateFacilityUser(
+    @AuthenticatedFacilityManager() facility: AuthUser,
+    @Param('id') facilityUserId: string,
+  ) {
+    const response = await this.facilityUser.deactivateFacilityUser(
+      facilityUserId,
+    );
+    return new SuccessResponse(response.message, null);
   }
 }
