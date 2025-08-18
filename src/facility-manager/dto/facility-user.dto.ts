@@ -78,3 +78,15 @@ export class CreateFacilityUserDto {
 }
 
 export class UpdateFacilityUserDto extends PartialType(CreateFacilityUserDto) {}
+
+
+export class AssignBinToTenantDto {
+  @ApiProperty()
+  @IsMongoId()
+  @IsNotEmpty()
+  tenantId: Types.ObjectId;
+
+  @ApiProperty()
+  @IsNotEmpty()
+  binId: Types.ObjectId;
+}

@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaTypes, Types } from 'mongoose';
 import { UserRole } from './types';
 import { Transaction } from './transaction.model';
+import { Type } from 'class-transformer';
 
 export enum SmartbinStatus {
   Pending = 'pending',
@@ -49,6 +50,7 @@ export interface SmartBinAttributes {
   phoneNumber?: string;
   amount?: number;
   branch?: string;
+  binId?:string;
   branchId: string;
   closestLandmark?: string;
   useYourAddress?: boolean;
@@ -106,6 +108,9 @@ export class SmartBin extends Document {
   })
   userId: Types.ObjectId;
 
+  @Prop({ type: SchemaTypes.String, required: false})
+  binId?: string
+
   @Prop({
     type: SchemaTypes.ObjectId,
     required: false,
@@ -119,10 +124,10 @@ export class SmartBin extends Document {
   payerId: string;
 
    @Prop({
-    type: SchemaTypes.ObjectId,
+    type: SchemaTypes.String,
     required: false,
   })
-  assignedTo?: Types.ObjectId;
+  assignedTo?: string;
 
    @Prop({
     type: String,

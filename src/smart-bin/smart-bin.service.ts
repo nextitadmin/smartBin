@@ -303,6 +303,7 @@ export class SmartBinService {
         transactionReference:
           applicationData.transactionReference || generateTransactionRef,
         facilityId: facilty._id,
+        binId: `#${generateRandomChars(4, 'number')}`,
         ...applicationData,
         applicationHistory: [
           {
