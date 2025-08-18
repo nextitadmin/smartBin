@@ -32,7 +32,6 @@ import { Pickup, PickupSchema } from '@models/pickup';
 import { Facility, FacilitySchema } from '@models/facilities';
 import { TeamMember, TeamMemberSchema } from '@models/team.model';
 
-
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -48,8 +47,7 @@ import { TeamMember, TeamMemberSchema } from '@models/team.model';
       { name: Bill.name, schema: BillSchema },
       { name: Pickup.name, schema: PickupSchema },
       { name: Facility.name, schema: FacilitySchema },
-      { name: TeamMember.name, schema: TeamMemberSchema }
-
+      { name: TeamMember.name, schema: TeamMemberSchema },
     ]),
     SmartBinModule,
     KycModule,
@@ -64,7 +62,12 @@ import { TeamMember, TeamMemberSchema } from '@models/team.model';
     KycApplicationController,
     FacilityManagerPaymentController,
   ],
-  providers: [FacilityManagerService, FacilityService, DashboardService, WalletService],
+  providers: [
+    FacilityManagerService,
+    FacilityService,
+    DashboardService,
+    WalletService,
+  ],
   exports: [FacilityManagerService, FacilityService],
 })
-export class FacilityManagerModule { }
+export class FacilityManagerModule {}

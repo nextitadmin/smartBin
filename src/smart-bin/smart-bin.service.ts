@@ -167,7 +167,7 @@ export class SmartBinService {
     };
   }
 
-    async getFacilityBinApplication(facilityMgrId: string, page = 1, limit = 10) {
+  async getFacilityBinApplication(facilityMgrId: string, page = 1, limit = 10) {
     const skip = (page - 1) * limit;
 
     const [applications, total] = await Promise.all([
@@ -176,6 +176,7 @@ export class SmartBinService {
           userId: new Types.ObjectId(facilityMgrId),
           customerType: UserRole.Facility,
         })
+        // .populate('payment')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -205,6 +206,7 @@ export class SmartBinService {
   async getAllBinApplications() {
     const smartbins = await this.smartbinModel
       .find()
+      .populate('payment')
       .sort({ createdAt: -1 })
       .lean();
     if (!smartbins || smartbins.length === 0) {
@@ -214,7 +216,10 @@ export class SmartBinService {
   }
   // Get bin application by ID
   async getBinApplicationById(id: string) {
-    const smartbin = await this.smartbinModel.findById(id).lean();
+    const smartbin = await this.smartbinModel
+      .findById(id)
+      .populate('payment')
+      .lean();
     if (!smartbin) {
       throw new NotFoundException('Bin application not found');
     }
@@ -410,13 +415,17 @@ export class SmartBinService {
   }
 
   async getBinApplicationDetails(applicationId: string) {
-    const smartBin = await this.smartbinModel.findById(applicationId).lean();
+    const smartBin = await this.smartbinModel
+      .findById(applicationId)
+      .populate('payment')
+      .lean();
 
     let userDetails = null;
 
     if (smartBin.customerType === 'Resident') {
       userDetails = await this.residentModel
         .findById(smartBin.userId)
+
         .select(
           'payerId firstName lastName email phoneNumber lawmaCustomerType',
         );
