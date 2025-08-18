@@ -34,6 +34,9 @@ import { TeamMember, TeamMemberSchema } from '@models/team.model';
 import { ReportService } from '@src/report/report.service';
 import { Report, ReportSchema } from '@models/report.model';
 import { FacilityManagerReportController } from './report.controller';
+import { FacilityUserController } from './user-management/facility-user.controller';
+import { FacilityUserService } from './user-management/facility-user.service';
+import { FacilityUsers, FacilityUserSchema } from '@models/facility-users.model';
 import { BillService } from '@src/bill/bill.service';
 import { FacilityManagerBillController } from './bill/bill.controller';
 
@@ -54,6 +57,7 @@ import { FacilityManagerBillController } from './bill/bill.controller';
       { name: Facility.name, schema: FacilitySchema },
       { name: TeamMember.name, schema: TeamMemberSchema },
       { name: Report.name, schema: ReportSchema },
+      { name: FacilityUsers.name, schema: FacilityUserSchema }
     ]),
     SmartBinModule,
     KycModule,
@@ -68,6 +72,7 @@ import { FacilityManagerBillController } from './bill/bill.controller';
     KycApplicationController,
     FacilityManagerPaymentController,
     FacilityManagerReportController,
+    FacilityUserController,
     FacilityManagerBillController,
   ],
   providers: [
@@ -76,8 +81,9 @@ import { FacilityManagerBillController } from './bill/bill.controller';
     DashboardService,
     WalletService,
     ReportService,
+    FacilityUserService,
     BillService,
   ],
   exports: [FacilityManagerService, FacilityService],
 })
-export class FacilityManagerModule { }
+export class FacilityManagerModule {}

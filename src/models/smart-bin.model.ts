@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaTypes, Types } from 'mongoose';
 import { UserRole } from './types';
 import { Transaction } from './transaction.model';
+import { Type } from 'class-transformer';
 
 export enum SmartbinStatus {
   Pending = 'pending',
@@ -24,6 +25,11 @@ export enum PaymentMethod {
   Wallet = 'wallet',
 }
 
+export enum BinAssignmentStatus {
+  Assigned = 'assigned',
+  Unassigned = 'unassigned',
+}
+
 export const DEFAULT_SMART_BIN_AMOUNT = 100000;
 export interface SmartBinAttributes {
   _id?: string;
@@ -32,6 +38,8 @@ export interface SmartBinAttributes {
   payerId: string;
   binType: BinType;
   status: SmartbinStatus;
+  assignedTo?: Types.ObjectId;
+  assignmentStatus?: BinAssignmentStatus;
   customerType: UserRole;
   lawmaCustomerType?: LAWMACustomerType;
   paymentMethod?: PaymentMethod;
@@ -42,6 +50,7 @@ export interface SmartBinAttributes {
   phoneNumber?: string;
   amount?: number;
   branch?: string;
+  binId?:string;
   branchId: string;
   closestLandmark?: string;
   useYourAddress?: boolean;
@@ -99,6 +108,9 @@ export class SmartBin extends Document {
   })
   userId: Types.ObjectId;
 
+  @Prop({ type: SchemaTypes.String, required: false})
+  binId?: string
+
   @Prop({
     type: SchemaTypes.ObjectId,
     required: false,
@@ -110,6 +122,20 @@ export class SmartBin extends Document {
     required: true,
   })
   payerId: string;
+
+   @Prop({
+    type: SchemaTypes.String,
+    required: false,
+  })
+  assignedTo?: string;
+
+   @Prop({
+    type: String,
+    required: false,
+    enum: Object.values(BinAssignmentStatus),
+    default: BinAssignmentStatus.Unassigned
+  })
+  assignmentStatus?: BinAssignmentStatus;
 
   @Prop({
     type: String,
