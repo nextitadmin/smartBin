@@ -6,6 +6,7 @@ import {
   ForgetPasswordManagerAccountDto,
   LoginManagerAccountDto,
   UpdatePasswordDto,
+  UpdateProfileDto,
   UpdatePictureDto,
   VerifyLogin,
 } from './dto/facility-manager.dto';
@@ -26,7 +27,7 @@ import { ApiTags } from '@nestjs/swagger';
 export class FacilityManagerController {
   constructor(
     private readonly facilityManagerService: FacilityManagerService,
-  ) {}
+  ) { }
 
   @Post('account')
   @Public()
@@ -97,6 +98,19 @@ export class FacilityManagerController {
     );
     return new SuccessResponse('manager account updated', response);
   }
+
+  @Put('account/profile')
+  async updateFacilityManagerProfile(
+    @Body() body: UpdateProfileDto,
+    @AuthenticatedFacilityManager() facilityManager: AuthUser,
+  ) {
+    const response = await this.facilityManagerService.updateProfile(
+      facilityManager.id,
+      body,
+    );
+    return new SuccessResponse('Manager profile updated', response);
+  }
+
 
   @Get('profile')
   async getFacilityManagerAccount(

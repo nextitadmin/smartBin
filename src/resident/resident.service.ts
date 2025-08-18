@@ -31,6 +31,7 @@ import {
   ResidentForgotPasswordDto,
   CreateApplicationDto,
   ResetPasswordDto,
+  UpdateProfileDto,
 } from './dto/resident.dto';
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 import { SmartBin } from '@models/smart-bin.model';
@@ -62,7 +63,7 @@ export class ResidentService {
     @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
     @InjectModel(Pickup.name) private pickupModel: Model<Pickup>,
     private ee: EventEmitter2,
-  ) {}
+  ) { }
 
   async registerResident(body: CreateResidentAccountDto) {
     const { payerId, password, confirmPassword } = body;
@@ -210,6 +211,37 @@ export class ResidentService {
       profilePicture: resident.profilePicture,
     };
   }
+
+  async updateProfile(userId: string, updateData: UpdateProfileDto) {
+    const resident = await this.residentModel.findById(userId);
+    if (!resident) {
+      throw new NotFoundException('Resident not found');
+    }
+
+    if (updateData.firstName) {
+      resident.firstName = updateData.firstName;
+    }
+    if (updateData.lastName) {
+      resident.lastName = updateData.lastName;
+    }
+    if (updateData.email) {
+      resident.email = updateData.email;
+    }
+    if (updateData.phoneNumber) {
+      resident.phoneNumber = updateData.phoneNumber;
+    }
+
+    await resident.save();
+    return {
+      resident: {
+        firstName: resident.firstName,
+        lastName: resident.lastName,
+        email: resident.email,
+        phoneNumber: resident.phoneNumber,
+      },
+    };
+  }
+
 
   async getProfile(residentId: string) {
     const resident = await this.residentModel
@@ -421,7 +453,7 @@ export class ResidentService {
 
     const latestSmartBinHistory =
       smartBinApplication?.applicationHistory?.[
-        smartBinApplication.applicationHistory.length - 1
+      smartBinApplication.applicationHistory.length - 1
       ] ?? null;
 
     const totalOutstandingBill = totalOutstandingResult?.[0]?.total ?? 0;
@@ -437,23 +469,22 @@ export class ResidentService {
       smartBinApplicationCount: smartBinCount,
       smartBinApplicationDetails: latestSmartBinHistory
         ? {
-            status: latestSmartBinHistory.status,
-            statusDescription: latestSmartBinHistory.description,
-            lastUpdatedDate: latestSmartBinHistory.timestamp,
-            formattedlastUpdatedDate: formatTimestamp(
-              latestSmartBinHistory.timestamp,
-            ),
-          }
+          status: latestSmartBinHistory.status,
+          statusDescription: latestSmartBinHistory.description,
+          lastUpdatedDate: latestSmartBinHistory.timestamp,
+          formattedlastUpdatedDate: formatTimestamp(
+            latestSmartBinHistory.timestamp,
+          ),
+        }
         : {
-            status: 'N/A',
-            statusDescription: 'No application found',
-            lastUpdatedDate: 'N/A',
-          },
+          status: 'N/A',
+          statusDescription: 'No application found',
+          lastUpdatedDate: 'N/A',
+        },
       estimatedAnnualSubscriptionFee: 0,
       nextPickUpDate: lastPickUpDetails
-        ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${
-            lastPickUpDetails.pickupTime
-          }`
+        ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${lastPickUpDetails.pickupTime
+        }`
         : 'N/A',
     };
 
