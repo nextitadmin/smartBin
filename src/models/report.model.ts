@@ -14,6 +14,9 @@ export interface ReportAttributes {
     filters: Record<string, any>;
     data: Record<string, any>;
     userId: Types.ObjectId;
+    tenantName?: string;
+    businessName?: string;
+
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -26,6 +29,8 @@ export class Report implements ReportAttributes {
         type: SchemaTypes.ObjectId,
     })
     userId: Types.ObjectId;
+
+
 
     @Prop({ required: true })
     reportName: string;
@@ -56,6 +61,10 @@ export class Report implements ReportAttributes {
 
     createdAt?: Date;
     updatedAt?: Date;
+    @Prop()
+    tenantName?: string;
+    @Prop()
+    businessName?: string;
 }
 
 export type ReportDocument = Report & Document;

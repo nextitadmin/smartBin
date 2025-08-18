@@ -323,6 +323,7 @@ export class SmartBinService {
           : TransactionStatus.Pending,
         meta: {
           receiptId: applicationData.receiptId,
+          buildingName: facilty.buildingName
         },
       }),
     ]);
