@@ -91,8 +91,7 @@ export class FacilityUserService {
 
   async getTenantList(facilityMgrId: string) {
     const tenantList = await this.facilityUser
-      .find({ accountId: new Types.ObjectId(facilityMgrId) })
-      .select('_id firstName lastName email userId');
+      .find({ accountId: new Types.ObjectId(facilityMgrId), binStatus: BinAssignmentStatus.Unassigned })
 
     return { message: 'Tenant list retrived successfully', data: tenantList };
   }
@@ -134,13 +133,13 @@ export class FacilityUserService {
     );
 
     return {
-      data: facilityUserDetails,
+      data: facilityUserDetails
     };
   }
 
   async updateFacilityUser(facilityUserId: string, dto: UpdateFacilityUserDto) {
-    await this.facilityUser.findByIdAndUpdate(facilityUserId, {
-      ...dto,
+    const res = await this.facilityUser.findByIdAndUpdate(facilityUserId, {
+      ...dto
     });
 
     return {

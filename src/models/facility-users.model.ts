@@ -66,8 +66,12 @@ export class FacilityUsers {
   @Prop({ required: false })
   localGovernment: string;
 
-  @Prop({ required: false })
-  binStatus: string;
+  @Prop({
+    type: String,
+    enum: Object.values(BinAssignmentStatus),
+    default: BinAssignmentStatus.Unassigned,
+  })
+  binStatus: BinAssignmentStatus;
 
   @Prop({ required: false })
   closestLandmark: string;

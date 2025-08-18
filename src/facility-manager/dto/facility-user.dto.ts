@@ -82,15 +82,80 @@ export class CreateFacilityUserDto {
   binType: BinType;
 }
 
-export class UpdateFacilityUserDto extends PartialType(CreateFacilityUserDto) {}
+export class UpdateFacilityUserDto {
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  firstName: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  lastName: string;
+
+  @ApiProperty()
+  @IsEmail()
+  @IsOptional()
+  email: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  phoneNumber: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  houseNumber?: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  flatNumber?: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  buildingName: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  buildingType?: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  address?: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  localGovernment?: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  closestLandmark?: string;
+
+  @ApiProperty()
+  @IsEnum(LawmaCustomerType)
+  @IsOptional()
+  lawmaCustomerType?: LawmaCustomerType;
+
+  @ApiProperty()
+  @IsEnum(BinType)
+  @IsOptional()
+  binType: BinType;
+}
 
 export class AssignBinToTenantDto {
   @ApiProperty()
   @IsMongoId()
   @IsNotEmpty()
-  tenantId: Types.ObjectId;
+  tenantId: string;
 
   @ApiProperty()
   @IsNotEmpty()
-  binId: Types.ObjectId;
+  binId: string;
 }

@@ -66,6 +66,51 @@ export class FacilityUserController {
     );
   }
 
+  @Get('/tenants')
+  async getTenantList(
+    @AuthenticatedFacilityManager() facilityManager: FacilityManagerUser,
+  ) {
+    const response = await this.facilityUser.getTenantList(facilityManager.id);
+    return new SuccessResponse(
+      'Tenant list retrieved successfully',
+      response.data,
+    );
+  }
+
+  @Post('tenant/assign-bin')
+  async assignBinToTenant(
+    @AuthenticatedFacilityManager() facilityManager: FacilityManagerUser,
+    @Body() dto: AssignBinToTenantDto,
+  ) {
+    const response = await this.facilityUser.assignBinToTenant(
+      facilityManager.id,
+      dto,
+    );
+    return new SuccessResponse(response.message, response.data);
+  }
+
+  @Get('approved-bins')
+  async getAllApprovedBins(
+    @AuthenticatedFacilityManager() facilityManager: FacilityManagerUser,
+    @Query() query: PaginationQueryDto,
+  ) {
+    const { page = '1', limit = '10' } = query;
+    const pageNumber = parseInt(page, 10);
+    const limitNumber = parseInt(limit, 10);
+
+    const { data, paging } = await this.facilityUser.getFacilityApprovedBins(
+      facilityManager.id,
+      pageNumber,
+      limitNumber,
+    );
+
+    return new PaginatedSuccessResponse(
+      'Approved bins for facility retrieved successfully',
+      data,
+      paging,
+    );
+  }
+
   @Get(':id')
   async getRegisteredUserDetails(
     @AuthenticatedFacilityManager() facility: AuthUser,
@@ -103,51 +148,4 @@ export class FacilityUserController {
     );
     return new SuccessResponse(response.message, null);
   }
-
-  @Get('approved-bins')
-  async getAllApprovedBins(
-    @AuthenticatedFacilityManager() facilityManager: FacilityManagerUser,
-    @Query() query: PaginationQueryDto,
-  ){
-    const { page = '1', limit = '10' } = query;
-    const pageNumber = parseInt(page, 10);
-    const limitNumber = parseInt(limit, 10);
-
-    const { data, paging } = await this.facilityUser.getFacilityApprovedBins(
-      facilityManager.id,
-      pageNumber,
-      limitNumber,
-    );
-
-    return new PaginatedSuccessResponse(
-      'Facility users retrieved successfully',
-      data,
-      paging,
-    );
-  }
-
-  @Get('tenants')
-  async getTenantList(
-    @AuthenticatedFacilityManager() facilityManager: FacilityManagerUser,
-  ){
-    const response = await this.facilityUser.getTenantList(facilityManager.id);
-    return new SuccessResponse(
-      'Tenant list retrieved successfully',
-      response.data,
-    );
-  }
-
-  @Post('tenant/assign-bin')
-  async assignBinToTenant(
-    @AuthenticatedFacilityManager() facilityManager: FacilityManagerUser,
-    @Body() dto: AssignBinToTenantDto,
-  ){
-    const response = await this.facilityUser.assignBinToTenant(facilityManager.id, dto);
-    return new SuccessResponse(
-      response.message,
-      response.data
-    );
-  }
-
-
 }
