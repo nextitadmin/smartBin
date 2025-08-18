@@ -37,7 +37,6 @@ import { FacilityManagerReportController } from './report.controller';
 import { BillService } from '@src/bill/bill.service';
 import { FacilityManagerBillController } from './bill/bill.controller';
 
-
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -54,8 +53,7 @@ import { FacilityManagerBillController } from './bill/bill.controller';
       { name: Pickup.name, schema: PickupSchema },
       { name: Facility.name, schema: FacilitySchema },
       { name: TeamMember.name, schema: TeamMemberSchema },
-      { name: Report.name, schema: ReportSchema }
-
+      { name: Report.name, schema: ReportSchema },
     ]),
     SmartBinModule,
     KycModule,
@@ -72,7 +70,13 @@ import { FacilityManagerBillController } from './bill/bill.controller';
     FacilityManagerReportController,
     FacilityManagerBillController,
   ],
-  providers: [FacilityManagerService, FacilityService, DashboardService, WalletService, ReportService, BillService],
+  providers: [
+    FacilityManagerService,
+    FacilityService,
+    DashboardService,
+    WalletService,
+    ReportService,
+  ],
   exports: [FacilityManagerService, FacilityService],
 })
 export class FacilityManagerModule { }

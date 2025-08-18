@@ -228,7 +228,9 @@ export class CreateFacilityApplicationDto {
   @IsString()
   localGovernmentArea?: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    required: false,
+  })
   @IsString()
   @IsOptional()
   receiptId?: string;
@@ -247,7 +249,9 @@ export class CreateFacilityApplicationDto {
   })
   binType: BinType = BinType.Smart;
 
-  @ApiProperty()
+  @ApiProperty({
+    required: false,
+  })
   @IsString()
   @IsOptional()
   transactionReference?: string;
