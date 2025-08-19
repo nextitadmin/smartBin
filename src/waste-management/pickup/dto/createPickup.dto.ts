@@ -33,4 +33,11 @@ export class CreatePickupDto {
   @IsString()
   @IsOptional()
   description?: string;
+
+  @ApiProperty({
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  customerName?: string;
 }

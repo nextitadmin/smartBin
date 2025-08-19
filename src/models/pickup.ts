@@ -41,6 +41,7 @@ export interface PickupAttributes {
   createdAt?: Date;
   updatedAt?: Date;
   transactionReference?: string;
+  customerName?: string;
 }
 
 @Schema({

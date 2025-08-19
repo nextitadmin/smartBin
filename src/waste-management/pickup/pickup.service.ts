@@ -26,11 +26,13 @@ import {
 import { RequestPickupDto } from '@src/waste-management/pickup/dto/pickup.dto';
 import { AuthUser } from '@common/types';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { MailNotificationEvents, SendEmailEvent } from '@src/notification/dto/event';
+import {
+  MailNotificationEvents,
+  SendEmailEvent,
+} from '@src/notification/dto/event';
 import { NotificationType } from '@models/notification.model';
 import { events } from '@common/constants';
 import { NotificationEvent } from '@src/notification/dto/notification.event';
-
 
 @Injectable()
 export class PickupService {
@@ -40,7 +42,6 @@ export class PickupService {
     @InjectModel(Pickup.name)
     private readonly pickupModel: Model<PickupDocument>,
     private readonly eventEmitter: EventEmitter2,
-    
   ) {}
 
   //  findAll pickups
@@ -227,11 +228,12 @@ export class PickupService {
     const generateTransactionRef = generateRandomChars(10, 'alphanum');
     const [wastePickupApplicaiton, transaction] = await Promise.all([
       this.pickupModel.create({
+        ...applicationData,
         accountId: new Types.ObjectId(accountId),
         accountType: accountType,
         transactionReference:
           applicationData.transactionReference || generateTransactionRef,
-        ...applicationData,
+
         applicationHistory: [
           {
             timestamp: new Date(),
