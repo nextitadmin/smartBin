@@ -1,7 +1,4 @@
-import {
-  BinType,
-  LAWMACustomerType,
-} from '@models/smart-bin.model';
+import { BinType, LAWMACustomerType } from '@models/smart-bin.model';
 import { LawmaCustomerType } from '@models/users/resident.model';
 import { ApiProperty } from '@nestjs/swagger';
 import {
@@ -59,14 +56,11 @@ export class UpdateProfileDto {
   @IsEmail()
   email?: string;
 
-
   @ApiProperty({ required: false })
   @IsString()
   @IsOptional()
   phoneNumber?: string;
 }
-
-
 
 export class CreateApplicationDto {
   @ApiProperty()
@@ -143,7 +137,6 @@ export class CreateApplicationDto {
   @ApiProperty()
   @IsString()
   buildingName?: string;
-
 }
 
 export class VerifyResidentLogin {

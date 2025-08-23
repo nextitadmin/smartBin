@@ -8,7 +8,6 @@ import { AgentWalletController } from './agent-wallet.controller';
 import { Wallet, WalletSchema } from '@models/wallet.model';
 import { WalletService } from '@src/wallet/wallet.service';
 import { WalletModule } from '@src/wallet/wallet.module';
-import { TransactionService } from '@src/transaction/transaction.service';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { TransactionModule } from '@src/transaction/transaction.module';
 import { AgentPaymentController } from './payment/payment.controller';
@@ -18,13 +17,20 @@ import { Transaction, TransactionSchema } from '@models/transaction.model';
 import { SmartBin, SmartBinSchema } from '@models/smart-bin.model';
 import { Bill, BillSchema } from '@models/bill.model';
 import { Corporate, CorporateSchema } from '@models/users/corporate.model';
-import { FacilityManager, FacilityManagerSchema } from '@models/users/facility-manager.model';
+import {
+  FacilityManager,
+  FacilityManagerSchema,
+} from '@models/users/facility-manager.model';
 import { Resident, ResidentSchema } from '@models/users/resident.model';
 import { Pickup, PickupSchema } from '@models/pickup';
 import { KycApplicationController } from './kyc-application/kyc-application.controller';
 import { KycService } from '@src/kyc/kyc.service';
-import { CorporateTeam, CorporateTeamSchema } from '@models/corporate-team.model';
+import {
+  CorporateTeam,
+  CorporateTeamSchema,
+} from '@models/corporate-team.model';
 import { TeamMember, TeamMemberSchema } from '@models/team.model';
+import { ManagementsModule } from './managements/managements.module';
 
 @Module({
   imports: [
@@ -65,18 +71,25 @@ import { TeamMember, TeamMemberSchema } from '@models/team.model';
       },
       {
         name: CorporateTeam.name,
-        schema: CorporateTeamSchema
+        schema: CorporateTeamSchema,
       },
       {
         name: TeamMember.name,
-        schema: TeamMemberSchema
-      }
+        schema: TeamMemberSchema,
+      },
     ]),
     forwardRef(() => WalletModule),
     forwardRef(() => TransactionModule),
+    ManagementsModule,
   ],
   providers: [AgentService, WalletService, DashboardService, KycService],
   exports: [AgentService],
-  controllers: [AgentController, DashboardController, AgentWalletController, AgentPaymentController, KycApplicationController],
+  controllers: [
+    AgentController,
+    DashboardController,
+    AgentWalletController,
+    AgentPaymentController,
+    KycApplicationController,
+  ],
 })
-export class AgentModule { }
+export class AgentModule {}

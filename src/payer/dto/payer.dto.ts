@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsString, Max, MaxLength } from 'class-validator';
+import {
+  IsDateString,
+  IsEmail,
+  IsString,
+  Max,
+  MaxLength,
+} from 'class-validator';
 
 export class CreatePayerDto {
   @ApiProperty()
@@ -15,7 +21,12 @@ export class CreatePayerDto {
   email: string;
 
   @ApiProperty()
-  @IsString()
+  @IsDateString(
+    {},
+    {
+      message: 'dateOfBirth must be a valid date e.g 2020-01-01',
+    },
+  )
   dateOfBirth: string;
 
   @ApiProperty()

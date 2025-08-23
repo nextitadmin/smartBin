@@ -67,7 +67,7 @@ export class CorporateService {
     private ee: EventEmitter2,
     private jwtService: JwtService,
     private readonly configService: ConfigService<ConfigAttributes>,
-  ) { }
+  ) {}
 
   async registerCorporate(body: CreateCorporateAccountDto) {
     const { password, payerId, businessName, confirmPassword } = body;
@@ -221,7 +221,6 @@ export class CorporateService {
       profilePicture: business.profilePicture,
     };
   }
-
 
   async updateProfile(userId: string, updateData: UpdateProfileDto) {
     const corporate = await this.corporateModel.findById(userId);
@@ -466,7 +465,7 @@ export class CorporateService {
 
     const latestSmartBinHistory =
       smartBinApplication?.applicationHistory?.[
-      smartBinApplication.applicationHistory.length - 1
+        smartBinApplication.applicationHistory.length - 1
       ] ?? null;
 
     const totalOutstandingBill = totalOutstanding[0]?.total || 0;
@@ -483,22 +482,23 @@ export class CorporateService {
       smartBinApplicationCount: smartBinCount,
       smartBinApplicationDetails: latestSmartBinHistory
         ? {
-          status: latestSmartBinHistory.status,
-          statusDescription: latestSmartBinHistory.description,
-          lastUpdatedDate: latestSmartBinHistory.timestamp,
-          formattedlastUpdatedDate: formatTimestamp(
-            latestSmartBinHistory.timestamp,
-          ),
-        }
+            status: latestSmartBinHistory.status,
+            statusDescription: latestSmartBinHistory.description,
+            lastUpdatedDate: latestSmartBinHistory.timestamp,
+            formattedlastUpdatedDate: formatTimestamp(
+              latestSmartBinHistory.timestamp,
+            ),
+          }
         : {
-          status: 'N/A',
-          statusDescription: 'No application found',
-          lastUpdatedDate: 'N/A',
-        },
+            status: 'N/A',
+            statusDescription: 'No application found',
+            lastUpdatedDate: 'N/A',
+          },
       estimatedAnnualSubscriptionFee: 0,
       nextPickUpDate: lastPickUpDetails
-        ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${lastPickUpDetails.pickupTime
-        }`
+        ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${
+            lastPickUpDetails.pickupTime
+          }`
         : 'N/A',
     };
 
@@ -531,5 +531,9 @@ export class CorporateService {
       throw new UnauthorizedException('unable to unauthenticate');
     }
     return this.getProfile(tokenDetails.id);
+  }
+
+  async getCorporatesByAgent(agentId: string) {
+    return this.corporateModel.find({ agentId });
   }
 }

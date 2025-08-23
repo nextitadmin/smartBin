@@ -2,8 +2,10 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaTypes, Types } from 'mongoose';
 import { UserRole } from '@models/types'; // Adjust this path as needed
 import { getHashedPassword } from '@common/utils'; // Adjust if needed
+import { Agent } from './agent.model';
 
 export interface CorporateAttributes {
+  agentId?: Types.ObjectId;
   payerId: string;
   businessName: string;
   firstName: string;
@@ -29,6 +31,12 @@ export interface CorporateAttributes {
   toObject: { virtuals: true },
 })
 export class Corporate implements CorporateAttributes {
+  @Prop({
+    type: SchemaTypes.ObjectId,
+    ref: Agent.name,
+    required: false,
+  })
+  agentId?: Types.ObjectId;
   @Prop({ required: true, unique: true })
   payerId: string;
 

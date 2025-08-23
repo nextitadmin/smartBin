@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaTypes, Types } from 'mongoose';
 import { getHashedPassword } from '@common/utils';
 import { Gender, UserRole } from '@models/types';
+import { Agent } from './agent.model';
 
 export enum LawmaCustomerType {
   Returning = 'Returning',
@@ -9,6 +10,7 @@ export enum LawmaCustomerType {
 }
 
 export interface ResidentAttributes {
+  agentId: Types.ObjectId;
   payerId: string;
   firstName?: string;
   lastName?: string;
@@ -20,11 +22,11 @@ export interface ResidentAttributes {
   lawmaCustomerType?: LawmaCustomerType;
   role: UserRole.Resident;
   address?: string;
-  landmark?:string;
-  nextPickupDate?:string;
-  accountNo?:string;
-  localGovermentArea?:string;
-  buildingType?:string;
+  landmark?: string;
+  nextPickupDate?: string;
+  accountNo?: string;
+  localGovermentArea?: string;
+  buildingType?: string;
   password: string;
   registeredBy?: Types.ObjectId;
   registeredByModel?: 'Agent' | 'FacilityManager';
@@ -44,12 +46,19 @@ export interface ResidentAttributes {
 })
 export class Resident implements ResidentAttributes {
   @Prop({
+    type: SchemaTypes.ObjectId,
+    ref: Agent.name,
+    required: false,
+  })
+  agentId: Types.ObjectId;
+
+  @Prop({
     // type: SchemaTypes.ObjectId,
     ref: 'Payer',
     required: true,
     unique: true,
   })
-  payerId:string;
+  payerId: string;
 
   @Prop()
   firstName?: string;
@@ -94,20 +103,20 @@ export class Resident implements ResidentAttributes {
   address?: string;
 
   @Prop()
-  landmark?:string;
+  landmark?: string;
 
   @Prop()
-  nextPickupDate?:string;
+  nextPickupDate?: string;
 
   @Prop()
-  accountNo?:string;
+  accountNo?: string;
 
   @Prop()
-  localGovermentArea?:string;
+  localGovermentArea?: string;
 
   @Prop()
-  buildingType?:string;
-  
+  buildingType?: string;
+
   @Prop({ type: Types.ObjectId })
   registeredBy?: Types.ObjectId;
 

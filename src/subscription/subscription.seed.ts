@@ -18,11 +18,7 @@ export class SubscribePlanSeed {
 
   async seed() {
     const subscriptionPlans = await this.subscriptionPlan.find();
-    if (subscriptionPlans.length > 0) {
-      return this.logger.warn(
-        'Subscription plans already seeded, skipping seed operation.',
-      );
-    }
+    if (subscriptionPlans.length > 0) return;
 
     await this.subscriptionPlan.deleteMany({});
     await this.subscriptionPlan.insertMany(DefaultSubscriptionPlan);

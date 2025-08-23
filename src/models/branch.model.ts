@@ -22,6 +22,7 @@ export class Branch implements BranchAttributes {
     type: SchemaTypes.ObjectId,
   })
   userId: Types.ObjectId;
+
   @Prop({
     required: true,
     type: SchemaTypes.String,
@@ -53,3 +54,13 @@ export class Branch implements BranchAttributes {
   state: string;
 }
 export const BranchSchema = SchemaFactory.createForClass(Branch);
+
+BranchSchema.pre('find', function () {
+  const obj = this as any;
+  obj.userId = new Types.ObjectId(obj.userId);
+});
+
+BranchSchema.pre('findOne', function () {
+  const obj = this as any;
+  obj.userId = new Types.ObjectId(obj.userId);
+});
