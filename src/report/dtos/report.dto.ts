@@ -1,9 +1,13 @@
-import { IsOptional, IsEnum, IsString, IsObject, IsDateString } from 'class-validator';
+import { IsOptional, IsEnum, IsString, IsObject, IsDateString, isEnum } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { ReportType } from '@models/report.model';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
+export enum CustomerType {
+    Corporate = 'Corporate',
+    Resident = 'Resident',
+}
 
 
 export class CreateReportDto {
@@ -11,6 +15,17 @@ export class CreateReportDto {
     @ApiProperty()
     @IsString()
     reportName: string;
+
+    @ApiPropertyOptional({ enum: CustomerType, enumName: 'CustomerType', description: 'Type of customer' })
+    @IsEnum(CustomerType, { message: 'Invalid customer type' })
+    @IsOptional()
+    @IsString()
+    customerType?: CustomerType;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    customerName?: string;
 
 
     @ApiProperty({ enum: ReportType, enumName: 'ReportType', description: 'Type of report to generate' })
