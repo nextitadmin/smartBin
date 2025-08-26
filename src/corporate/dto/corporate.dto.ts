@@ -14,6 +14,7 @@ import {
   IsNotEmpty,
   IsOptional,
   IsNumber,
+  IsEnum,
 } from 'class-validator';
 
 export class CreateCorporateAccountDto {
@@ -62,7 +63,6 @@ export class UpdateProfileDto {
   @IsOptional()
   phoneNumber?: string;
 }
-
 
 export class CorporateLoginDto {
   @ApiProperty()
@@ -207,5 +207,11 @@ export class AddCorporateBranchDto {
   @IsString({ message: 'State must be a string' })
   @IsNotEmpty({ message: 'State is required' })
   state: string;
-}
 
+  @ApiProperty({ enum: LAWMACustomerType, required: false })
+  @IsOptional()
+  @IsEnum(LAWMACustomerType, {
+    message: `Lawma Customer Type must be either be '${LAWMACustomerType.New}' or '${LAWMACustomerType.Returning}'`,
+  })
+  lawmaCustomerType?: LAWMACustomerType;
+}

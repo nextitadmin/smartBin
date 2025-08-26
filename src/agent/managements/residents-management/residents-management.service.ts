@@ -39,7 +39,7 @@ export class ResidentsManagementService {
       throw new ConflictException('Email already exists');
     }
 
-    return this.residentModel.create(data);
+    return this.residentModel.create({ ...data, registeredByModel: 'Agent' });
   }
 
   async updateResident(

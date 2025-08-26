@@ -33,7 +33,7 @@ export class CorporatesManagementService {
       throw new ConflictException('Email already exists');
     }
 
-    const corporate = await this.corporateModel.create({...payload, registeredBy: payload.agentId});
+    const corporate = await this.corporateModel.create({...payload, registeredBy: payload.agentId, registeredByModel: 'Agent'});
     
     if (payload.branches.length) {
       await this.addCorporateBranch({

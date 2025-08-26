@@ -1,14 +1,20 @@
 import { SchemaTypes, Types } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 
+export enum LawmaCustomerType {
+  Returning = 'Returning',
+  New = 'New',
+}
+
 export interface BranchAttributes {
   _id?: Types.ObjectId;
   userId: Types.ObjectId;
   branchName: string;
   branchAddress: string;
   localGovernmentArea: string;
+  lawmaCustomerType?: LawmaCustomerType;
   closestLandmark: string;
-  state: string;
+  state?: string;
 }
 
 @Schema({
@@ -48,10 +54,17 @@ export class Branch implements BranchAttributes {
   closestLandmark: string;
 
   @Prop({
-    required: true,
+    required: false,
     type: SchemaTypes.String,
   })
   state: string;
+
+  @Prop({
+    type: String,
+    enum: Object.values(LawmaCustomerType),
+    default: LawmaCustomerType.Returning,
+  })
+  lawmaCustomerType?: LawmaCustomerType;
 }
 export const BranchSchema = SchemaFactory.createForClass(Branch);
 
