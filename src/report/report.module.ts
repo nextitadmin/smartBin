@@ -4,18 +4,19 @@ import { Report, ReportSchema } from '@models/report.model';
 import { ReportService } from './report.service';
 import { CorporateReportController } from '@src/corporate/report.controller';
 import { Bill, BillSchema } from '@models/bill.model';
-import { CorporateService } from '@src/corporate/corporate.service';
 import { CorporateSchema, Corporate } from '@models/users/corporate.model';
-import { Payer, PayerSchema } from '@models/users/payer.model';
 import { CorporateModule } from '@src/corporate/corporate.module';
 import { SmartBin, SmartBinSchema } from '@models/smart-bin.model';
 import { Pickup, PickupSchema } from '@models/pickup';
 import { Transaction, TransactionSchema } from '@models/transaction.model';
+import { Resident, ResidentSchema } from '@models/users/resident.model';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Report.name, schema: ReportSchema },
+      { name: Corporate.name, schema: CorporateSchema },
+      { name: Resident.name, schema: ResidentSchema },
       { name: Bill.name, schema: BillSchema },
       { name: Transaction.name, schema: TransactionSchema },
       { name: SmartBin.name, schema: SmartBinSchema },
@@ -27,4 +28,4 @@ import { Transaction, TransactionSchema } from '@models/transaction.model';
   providers: [ReportService],
   exports: [ReportService],
 })
-export class ReportModule {}
+export class ReportModule { }

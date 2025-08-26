@@ -31,6 +31,9 @@ import {
 } from '@models/corporate-team.model';
 import { TeamMember, TeamMemberSchema } from '@models/team.model';
 import { ManagementsModule } from './managements/managements.module';
+import { ReportService } from '@src/report/report.service';
+import { AgentReportController } from './report.controller';
+import { Report, ReportSchema } from '@models/report.model';
 
 @Module({
   imports: [
@@ -56,6 +59,7 @@ import { ManagementsModule } from './managements/managements.module';
       { name: Wallet.name, schema: WalletSchema },
       { name: Bill.name, schema: BillSchema },
       { name: Pickup.name, schema: PickupSchema },
+      { name: Report.name, schema: ReportSchema },
 
       {
         name: Payer.name,
@@ -82,7 +86,7 @@ import { ManagementsModule } from './managements/managements.module';
     forwardRef(() => TransactionModule),
     ManagementsModule,
   ],
-  providers: [AgentService, WalletService, DashboardService, KycService],
+  providers: [AgentService, WalletService, DashboardService, KycService, ReportService],
   exports: [AgentService],
   controllers: [
     AgentController,
@@ -90,6 +94,7 @@ import { ManagementsModule } from './managements/managements.module';
     AgentWalletController,
     AgentPaymentController,
     KycApplicationController,
+    AgentReportController,
   ],
 })
-export class AgentModule {}
+export class AgentModule { }
