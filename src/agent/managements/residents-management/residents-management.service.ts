@@ -1,5 +1,5 @@
 import { Resident } from '@models/users/resident.model';
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { CreateResidentAccountDto } from '@src/resident/dto/resident.dto';
 import { Model } from 'mongoose';
@@ -15,7 +15,7 @@ export class ResidentsManagementService {
   async getResidents({ agentId }: { agentId?: string } = {}) {
     const filter: any = {};
     if (agentId) {
-      filter.agentId = agentId;
+      filter.registeredBy = agentId;
     }
     return this.residentModel.find(filter);
   }
@@ -24,7 +24,21 @@ export class ResidentsManagementService {
     return this.residentModel.findById(id);
   }
 
-  async createResident(data: CreateAgentResidentAccountDto) {
+  async createResident(
+    data: CreateAgentResidentAccountDto & { registeredBy: string },
+  ) {
+    const [existingCorporate, existingEmail] = await Promise.all([
+      this.residentModel.findOne({ payerId: data.payerId }),
+      this.residentModel.findOne({ email: data.email }),
+    ]);
+
+    if (existingCorporate) {
+      throw new ConflictException('Resident already exists');
+    }
+    if (existingEmail) {
+      throw new ConflictException('Email already exists');
+    }
+
     return this.residentModel.create(data);
   }
 

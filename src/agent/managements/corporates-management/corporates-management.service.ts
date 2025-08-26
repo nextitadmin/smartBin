@@ -1,6 +1,6 @@
 import { Branch } from '@models/branch.model';
 import { Corporate } from '@models/users/corporate.model';
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateAgentCorporateAccountDto } from './dto/corporates-management.dto';
@@ -17,7 +17,24 @@ export class CorporatesManagementService {
   async createCorporate(
     payload: CreateAgentCorporateAccountDto & { agentId: string },
   ) {
-    const corporate = await this.corporateModel.create(payload);
+    const [existingCorporate, existingBusinessName, existingEmail] = await Promise.all([
+      this.corporateModel.findOne({ payerId: payload.payerId }),
+      this.corporateModel.findOne({ businessName: payload.businessName }),
+      this.corporateModel.findOne({ email: payload.email }),
+    ]);
+
+    if (existingCorporate) {
+      throw new ConflictException('Corporate member already exists');
+    }
+    if (existingBusinessName) {
+      throw new ConflictException('Business Name already exists');
+    }
+    if (existingEmail) {
+      throw new ConflictException('Email already exists');
+    }
+
+    const corporate = await this.corporateModel.create({...payload, registeredBy: payload.agentId});
+    
     if (payload.branches.length) {
       await this.addCorporateBranch({
         corporateId: String(corporate._id),
@@ -28,7 +45,7 @@ export class CorporatesManagementService {
 
   async getCorporates(agentId: string) {
     return this.corporateModel
-      .find({ agentId })
+      .find({registeredBy: agentId })
       .sort({ createdAt: -1 })
       .select('-__v -password')
       .lean();

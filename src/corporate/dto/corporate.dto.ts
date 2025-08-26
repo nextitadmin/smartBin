@@ -184,28 +184,28 @@ export class GetApplicationParamDto {
 
 export class AddCorporateBranchDto {
   @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: 'Branch name must be a string' })
+  @IsNotEmpty({ message: 'Branch name is required' })
   branchName: string;
 
   @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: 'Branch address must be a string' })
+  @IsNotEmpty({ message: 'Branch address is required' })
   branchAddress: string;
 
   @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: 'Local Government Area must be a string' })
+  @IsNotEmpty({ message: 'Local Government Area is required' })
   localGovernmentArea: string;
 
   @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: 'Closest landmark must be a string' })
+  @IsNotEmpty({ message: 'Closest landmark is required' })
   closestLandmark: string;
 
   @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: 'State must be a string' })
+  @IsNotEmpty({ message: 'State is required' })
   state: string;
 }
 
