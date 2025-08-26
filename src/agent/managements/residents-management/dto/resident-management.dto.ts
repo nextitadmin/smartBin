@@ -45,10 +45,6 @@ export class CreateAgentResidentAccountDto {
 
   @ApiProperty()
   @IsString()
-  houseName?: string;
-
-  @ApiProperty()
-  @IsString()
   houseNumber?: string;
 
   @ApiProperty()
@@ -73,8 +69,4 @@ export class CreateAgentResidentAccountDto {
     message: `Lawma Customer Type must be either be '${LawmaCustomerType.New}' or '${LawmaCustomerType.Returning}'`,
   })
   lawmaCustomerType?: LawmaCustomerType;
-
-  @ApiProperty()
-  @IsString()
-  buildingName?: string;
 }

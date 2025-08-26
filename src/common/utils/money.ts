@@ -1,5 +1,5 @@
 import DineroFactory from 'dinero.js';
-import { Model } from 'sequelize-typescript';
+// import { Model } from 'sequelize-typescript';
 
 export const Money = DineroFactory;
 Money.defaultCurrency = 'NGN';
@@ -18,22 +18,22 @@ export const toSubUnit = (amount: number, precision = 2): number => {
   return +`${amount * multiplier}`.split('.')[0];
 };
 
-export const setMoney = <M extends Model>(
-  model: M,
-  field: keyof M,
-  amount: Money,
-) => {
-  if (Number.isNaN(amount)) return;
-  model.setDataValue(field, amount.getAmount());
-};
+// export const setMoney = <M extends Model>(
+//   model: M,
+//   field: keyof M,
+//   amount: Money,
+// ) => {
+//   if (Number.isNaN(amount)) return;
+//   model.setDataValue(field, amount.getAmount());
+// };
 
-export const getMoney = <M extends Model>(model: M, field: keyof M) => {
-  const amount = +model.getDataValue(field);
-  if (Number.isNaN(amount)) return;
+// export const getMoney = <M extends Model>(model: M, field: keyof M) => {
+//   const amount = +model.getDataValue(field);
+//   if (Number.isNaN(amount)) return;
 
-  const currency: Currency = model.getDataValue('currency') || Currency('NGN');
-  return Money({ amount, currency });
-};
+//   const currency: Currency = model.getDataValue('currency') || Currency('NGN');
+//   return Money({ amount, currency });
+// };
 
 /**
  * returns mostly whole ratios for allocating money
