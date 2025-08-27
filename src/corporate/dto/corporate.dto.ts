@@ -1,19 +1,14 @@
 import {
   BinType,
   LAWMACustomerType,
-  PaymentMethod,
-  SmartbinStatus,
 } from '@models/smart-bin.model';
-import { UserRole } from '@models/types';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
-  IsMongoId,
   IsString,
   MinLength,
   IsNotEmpty,
   IsOptional,
-  IsNumber,
   IsEnum,
 } from 'class-validator';
 

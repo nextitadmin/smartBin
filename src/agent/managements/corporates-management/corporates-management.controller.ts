@@ -49,6 +49,15 @@ export class CorporatesManagementController {
     return new SuccessResponse('corporates fetched', response);
   }
 
+  @Get(':corporateId')
+  @AgentAuth()
+  async getCorporate(@Param('corporateId') corporateId: string) {
+    const response = await this.corporatesManagementService.getCorporate(
+      corporateId,
+    );
+    return new SuccessResponse('corporate fetched', response);
+  }
+
   @Patch(':corporateId')
   @AgentAuth()
   async updateCorporate(

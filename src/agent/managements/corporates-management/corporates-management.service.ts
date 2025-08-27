@@ -51,6 +51,11 @@ export class CorporatesManagementService {
       .lean();
   }
 
+  async getCorporate(corporateId: string) {
+    return this.corporateModel.findById(corporateId).select('-__v -password').lean();
+  }
+
+
   async updateCorporate(
     corporateId: string,
     payload: Partial<CreateAgentCorporateAccountDto>,
