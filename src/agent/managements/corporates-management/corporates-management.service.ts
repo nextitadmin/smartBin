@@ -17,11 +17,12 @@ export class CorporatesManagementService {
   async createCorporate(
     payload: CreateAgentCorporateAccountDto & { agentId: string },
   ) {
-    const [existingCorporate, existingBusinessName, existingEmail] = await Promise.all([
-      this.corporateModel.findOne({ payerId: payload.payerId }),
-      this.corporateModel.findOne({ businessName: payload.businessName }),
-      this.corporateModel.findOne({ email: payload.email }),
-    ]);
+    const [existingCorporate, existingBusinessName, existingEmail] =
+      await Promise.all([
+        this.corporateModel.findOne({ payerId: payload.payerId }),
+        this.corporateModel.findOne({ businessName: payload.businessName }),
+        this.corporateModel.findOne({ email: payload.email }),
+      ]);
 
     if (existingCorporate) {
       throw new ConflictException('Corporate member already exists');
@@ -33,8 +34,12 @@ export class CorporatesManagementService {
       throw new ConflictException('Email already exists');
     }
 
-    const corporate = await this.corporateModel.create({...payload, registeredBy: payload.agentId, registeredByModel: 'Agent'});
-    
+    const corporate = await this.corporateModel.create({
+      ...payload,
+      registeredBy: payload.agentId,
+      registeredByModel: 'Agent',
+    });
+
     if (payload.branches.length) {
       await this.addCorporateBranch({
         corporateId: String(corporate._id),
@@ -45,16 +50,40 @@ export class CorporatesManagementService {
 
   async getCorporates(agentId: string) {
     return this.corporateModel
-      .find({registeredBy: agentId })
-      .sort({ createdAt: -1 })
-      .select('-__v -password')
-      .lean();
+      .aggregate([
+        { $match: { registeredBy: agentId } },
+        { $sort: { createdAt: -1 } },
+        {
+          $lookup: {
+            from: this.branchModel.collection.name,
+            localField: '_id',
+            foreignField: 'userId',
+            as: 'branches',
+          },
+        },
+        {
+          $project: {
+            __v: 0,
+            password: 0,
+          },
+        },
+      ])
+      .exec();
   }
 
   async getCorporate(corporateId: string) {
-    return this.corporateModel.findById(corporateId).select('-__v -password').lean();
+    return this.corporateModel
+      .findById(corporateId)
+      .select('-__v -password')
+      .lean()
+      .then(async (corporate) => {
+        if (!corporate) return null;
+        const branches = await this.branchModel
+          .find({ userId: corporateId })
+          .lean();
+        return { ...corporate, branches };
+      });
   }
-
 
   async updateCorporate(
     corporateId: string,

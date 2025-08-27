@@ -200,7 +200,7 @@ export class AddCorporateBranchDto {
 
   @ApiProperty()
   @IsString({ message: 'State must be a string' })
-  @IsNotEmpty({ message: 'State is required' })
+  @IsOptional()
   state: string;
 
   @ApiProperty({ enum: LAWMACustomerType, required: false })
