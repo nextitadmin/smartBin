@@ -128,7 +128,7 @@ export class FacilityManagerService {
     );
 
     await this.cacheService.set(
-      CacheKeys.FacilityManagerLoginCode(String(123456)),
+      CacheKeys.FacilityManagerLoginCode(String(12345)),
       String(manager._id),
       expires,
     );

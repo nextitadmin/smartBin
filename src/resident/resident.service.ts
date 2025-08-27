@@ -144,14 +144,14 @@ export class ResidentService {
     resident.loginCodeExpiry = loginCodeExpiry;
 
     await resident.save();
-    
+
     await this.cacheService.set(
       CacheKeys.ResidentLoginCode(String(loginCode)),
       String(resident._id),
     );
 
     await this.cacheService.set(
-      CacheKeys.ResidentLoginCode(String(123456)),
+      CacheKeys.ResidentLoginCode(String(12345)),
       String(resident._id),
     );
 

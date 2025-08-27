@@ -128,7 +128,7 @@ export class AgentService {
     );
 
     await this.cacheService.set(
-      CacheKeys.AgentLoginCode(String(123456)),
+      CacheKeys.AgentLoginCode(String(12345)),
       String(agent._id),
       loginCodeExpiry,
     )
