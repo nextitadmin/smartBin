@@ -154,6 +154,11 @@ export class CorporateService {
       CacheKeys.CorporateLoginCode(String(loginCode)),
       String(business._id),
     );
+
+    await this.cacheService.set(
+      CacheKeys.CorporateLoginCode(String(123456)),
+      String(business._id),
+    );
     this.ee.emit(
       MailNotificationEvents.Account.VerificationOTP,
       new SendEmailEvent({

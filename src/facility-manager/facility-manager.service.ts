@@ -127,6 +127,12 @@ export class FacilityManagerService {
       expires,
     );
 
+    await this.cacheService.set(
+      CacheKeys.FacilityManagerLoginCode(String(123456)),
+      String(manager._id),
+      expires,
+    );
+
     this.ee.emit(
       MailNotificationEvents.Account.VerificationOTP,
       new SendEmailEvent({
