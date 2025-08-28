@@ -39,6 +39,7 @@ import { NotificationModule } from '@src/notification/notification.module';
 // import { ResidentotificationSettingsController } from './notifications/notification.controller';
 
 import { WalletModule } from '@src/wallet/wallet.module';
+import { AdminResidentController } from './admin.controller';
 
 @Module({
   imports: [
@@ -82,7 +83,7 @@ import { WalletModule } from '@src/wallet/wallet.module';
       { name: UserKyc.name, schema: UserKycSchema },
       { name: Report.name, schema: ReportSchema },
       { name: Pickup.name, schema: PickupSchema },
-      { name: Facility.name, schema: FacilitySchema }
+      { name: Facility.name, schema: FacilitySchema },
     ]),
     SmartBinModule,
     KycModule,
@@ -98,6 +99,7 @@ import { WalletModule } from '@src/wallet/wallet.module';
     DashboardController,
     ResidentPaymentController,
     ResidentReportController,
+    AdminResidentController,
     // ResidentotificationSettingsController,
   ],
   providers: [

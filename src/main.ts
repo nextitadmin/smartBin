@@ -9,10 +9,19 @@ import { ConfigAttributes } from './config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import session from 'express-session';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bufferLogs: true,
+  });
+
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.TCP,
+    options: {
+      host: 'localhost',
+      port: 4002,
+    },
   });
 
   app.useLogger(app.get(Logger));
@@ -68,6 +77,7 @@ async function bootstrap() {
   });
 
   const port = config.get('port', { infer: true });
+  await app.startAllMicroservices();
   await app.listen(port);
 }
 bootstrap();
