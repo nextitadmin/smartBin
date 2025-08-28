@@ -127,6 +127,12 @@ export class AgentService {
       loginCodeExpiry,
     );
 
+    await this.cacheService.set(
+      CacheKeys.AgentLoginCode(String(12345)),
+      String(agent._id),
+      loginCodeExpiry,
+    )
+
     this.ee.emit(
       MailNotificationEvents.Account.VerificationOTP,
       new SendEmailEvent({

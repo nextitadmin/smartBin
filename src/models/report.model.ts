@@ -8,6 +8,12 @@ export enum ReportType {
     SmartBinRequest = 'smartbin-request',
 }
 
+export enum CustomerType {
+    Corporate = 'Corporate',
+    Resident = 'Resident',
+}
+
+
 export interface ReportAttributes {
     type: ReportType;
     reportName: string;
@@ -30,16 +36,20 @@ export class Report implements ReportAttributes {
     })
     userId: Types.ObjectId;
 
-
-
     @Prop({ required: true })
     reportName: string;
+    @Prop()
+    customerType?: CustomerType;
+    @Prop()
+    customerName?: string;
+
     @Prop({
         type: String,
         enum: Object.values(ReportType),
         required: true,
     })
     type: ReportType;
+
 
     @Prop()
     startDate: Date;
