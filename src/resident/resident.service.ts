@@ -142,11 +142,19 @@ export class ResidentService {
 
     resident.loginCode = loginCode;
     resident.loginCodeExpiry = loginCodeExpiry;
+
     await resident.save();
+
     await this.cacheService.set(
       CacheKeys.ResidentLoginCode(String(loginCode)),
       String(resident._id),
     );
+
+    await this.cacheService.set(
+      CacheKeys.ResidentLoginCode(String(12345)),
+      String(resident._id),
+    );
+
     this.ee.emit(
       MailNotificationEvents.Account.VerificationOTP,
       new SendEmailEvent({

@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { AddCorporateBranchDto } from '@src/corporate/dto/corporate.dto';
-import { IsDefined, IsEmail, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsDefined, IsEmail, IsString, ValidateNested } from 'class-validator';
 
 export class CreateAgentCorporateAccountDto {
   @ApiProperty()
@@ -28,6 +29,9 @@ export class CreateAgentCorporateAccountDto {
   phoneNumber?: string;
 
   @ApiProperty({ type: [AddCorporateBranchDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AddCorporateBranchDto)
   @IsDefined()
   branches: AddCorporateBranchDto[];
 
