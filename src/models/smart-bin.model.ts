@@ -6,8 +6,14 @@ import { Type } from 'class-transformer';
 
 export enum SmartbinStatus {
   Pending = 'pending',
+  Inventory = 'inventory',
+  ScheduledForDelivery = 'scheduledForDelivery',
+  Delivered = 'delivered',
+  Activated = 'activated',
+  Cancelled = 'cancelled',
   Approved = 'approved',
-  Diclined = 'declined',
+  Declined = 'declined',
+
 }
 
 export enum BinType {
@@ -50,7 +56,7 @@ export interface SmartBinAttributes {
   phoneNumber?: string;
   amount?: number;
   branch?: string;
-  binId?:string;
+  binId?: string;
   branchId: string;
   closestLandmark?: string;
   useYourAddress?: boolean;
@@ -108,7 +114,7 @@ export class SmartBin extends Document {
   })
   userId: Types.ObjectId;
 
-  @Prop({ type: SchemaTypes.String, required: false})
+  @Prop({ type: SchemaTypes.String, required: false })
   binId?: string
 
   @Prop({
@@ -123,13 +129,13 @@ export class SmartBin extends Document {
   })
   payerId: string;
 
-   @Prop({
+  @Prop({
     type: SchemaTypes.String,
     required: false,
   })
   assignedTo?: string;
 
-   @Prop({
+  @Prop({
     type: String,
     required: false,
     enum: Object.values(BinAssignmentStatus),
@@ -235,6 +241,10 @@ export class SmartBin extends Document {
 
   @Prop({ type: SchemaTypes.String, required: false })
   localGovernmentArea?: string;
+
+  @Prop({ type: Date, required: false })
+  deliveredOn?: Date;
+
 
   @Prop({ type: [ApplicationHistoryItemSchema], default: [] })
   applicationHistory: ApplicationHistoryItem[];

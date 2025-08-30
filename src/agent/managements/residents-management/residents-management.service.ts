@@ -10,14 +10,10 @@ export class ResidentsManagementService {
   constructor(
     @InjectModel(Resident.name)
     private readonly residentModel: Model<Resident>,
-  ) {}
+  ) { }
 
-  async getResidents({ agentId }: { agentId?: string } = {}) {
-    const filter: any = {};
-    if (agentId) {
-      filter.registeredBy = agentId;
-    }
-    return this.residentModel.find(filter);
+  async getResidents(agentId: string) {
+    return this.residentModel.find({ registeredBy: agentId });
   }
 
   async getResident(id: string) {

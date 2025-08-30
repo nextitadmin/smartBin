@@ -32,6 +32,7 @@ import {
   CreateApplicationDto,
   CreateBusinessApplicationDto,
   CreateFacilityApplicationDto,
+  GetApplicationsDto,
 } from './dto/binAppDto';
 import { SmartBinApplicationStatus, UserRole } from '@models/types';
 import { generateRandomChars } from '@common/utils';
@@ -46,6 +47,8 @@ import { NotificationType } from '@models/notification.model';
 import { events } from '@common/constants';
 import { NotificationEvent } from '@src/notification/dto/notification.event';
 import { Facility } from '@models/facilities';
+import { CustomerType } from '@models/report.model';
+import { Paging } from '@common/http';
 
 @Injectable()
 export class SmartBinService {
@@ -63,7 +66,7 @@ export class SmartBinService {
     @InjectModel(Transaction.name)
     private readonly transactionModel: Model<Transaction>,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   async getResidentBinApplication(residentId: string, page = 1, limit = 10) {
     const skip = (page - 1) * limit;
@@ -203,19 +206,127 @@ export class SmartBinService {
     return total * 12; // Assuming the bills are monthly
   }
 
-  async getAllBinApplications() {
-    const smartbins = await this.smartbinModel
-      .find()
-      .populate('payment')
-      .sort({ createdAt: -1 })
+
+  // overview
+  async getSmartBinOverview() {
+    const totalApplications = await this.smartbinModel.countDocuments();
+
+    const deliveredApplications = await this.smartbinModel.countDocuments({
+      status: SmartbinStatus.Delivered,
+    });
+
+    const recentlyDeliveredRecords = await this.smartbinModel
+      .find({ status: SmartbinStatus.Delivered })
+      .sort({ deliveredOn: -1 })
+      .limit(5)
       .lean();
-    if (!smartbins || smartbins.length === 0) {
-      throw new NotFoundException('No bin applications found');
-    }
-    return smartbins;
+
+    const records = recentlyDeliveredRecords.map((app, index) => ({
+      sn: index + 1,
+      name: app?.assignedTo,
+      date: app.deliveredOn,
+      address: app.address,
+      binType: app.binType,
+      binId: app.binId,
+      lga: app.localGovernmentArea,
+    }));
+
+    return {
+      totalApplications,
+      deliveredApplications,
+      records,
+    };
   }
+
+  // delivered bins
+  async getDeliveredSmartBins(page: number, limit: number) {
+    const skip = (page - 1) * limit;
+    const [applications, total] = await Promise.all([
+      this.smartbinModel
+        .find({ status: SmartbinStatus.Delivered })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      this.smartbinModel.countDocuments({ status: SmartbinStatus.Approved }),
+    ]);
+
+    const records = applications.map((app, index) => {
+      return {
+        sn: index + 1,
+        name: app?.assignedTo,
+        customerType: app?.customerType,
+        date: app.deliveredOn,
+        address: app.address,
+        binType: app.binType,
+        binId: app.binId,
+        lga: app.localGovernmentArea,
+        status: app.status,
+      };
+    });
+
+    return {
+      records,
+      totalApplications: applications.length,
+      paging: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        size: limit,
+
+      }
+
+
+    }
+
+  }
+
+
+  // app bins
+  async getAllApplications(page: number, limit: number) {
+    const skip = (page - 1) * limit;
+    const query: any = {};
+
+    const applications = await this.smartbinModel
+      .find(query)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit).
+      lean();
+
+    const records = applications.map((app, index) => {
+      const firstHistory = app.applicationHistory?.[0];
+      return {
+        sn: index + 1,
+        name: app?.assignedTo,
+        customerType: app?.customerType,
+        date: firstHistory?.timestamp,
+        address: app.address,
+        binType: app.binType,
+        binId: app.binId,
+        lga: app.localGovernmentArea,
+        status: app.status,
+      };
+    });
+
+    return {
+      records,
+      totalApplications: applications.length,
+      paging: {
+        total: applications.length,
+        page,
+        pages: Math.ceil(applications.length / limit),
+        size: limit,
+      },
+
+    };
+  }
+
+
+
   // Get bin application by ID
   async getBinApplicationById(id: string) {
+
     const smartbin = await this.smartbinModel
       .findById(id)
       .populate('payment')
@@ -449,8 +560,8 @@ export class SmartBinService {
     const smartBin:
       | (SmartbinDocument & { payment: TransactionAttributes })
       | any = await this.smartbinModel
-      .findById(applicationId)
-      .populate('payment');
+        .findById(applicationId)
+        .populate('payment');
 
     if (!smartBin) {
       throw new NotFoundException('Bin application not found');
