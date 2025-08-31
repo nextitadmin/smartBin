@@ -34,6 +34,9 @@ import { ManagementsModule } from './managements/managements.module';
 import { ReportService } from '@src/report/report.service';
 import { AgentReportController } from './report.controller';
 import { Report, ReportSchema } from '@models/report.model';
+import { AgentSmartbinController } from './bin-management/bin-management.controller';
+import { AgentSmartbinService } from './bin-management/bin-management.service';
+import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
 
 @Module({
   imports: [
@@ -84,9 +87,17 @@ import { Report, ReportSchema } from '@models/report.model';
     ]),
     forwardRef(() => WalletModule),
     forwardRef(() => TransactionModule),
+    forwardRef(() => SmartBinModule),
     ManagementsModule,
   ],
-  providers: [AgentService, WalletService, DashboardService, KycService, ReportService],
+  providers: [
+    AgentService,
+    WalletService,
+    DashboardService,
+    KycService,
+    ReportService,
+    AgentSmartbinService,
+  ],
   exports: [AgentService],
   controllers: [
     AgentController,
@@ -95,6 +106,7 @@ import { Report, ReportSchema } from '@models/report.model';
     AgentPaymentController,
     KycApplicationController,
     AgentReportController,
+    AgentSmartbinController,
   ],
 })
-export class AgentModule { }
+export class AgentModule {}

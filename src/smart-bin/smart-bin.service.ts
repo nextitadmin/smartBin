@@ -28,6 +28,7 @@ import {
 } from '@models/transaction.model';
 import { AuthUser } from '@common/types';
 import {
+  AgentBinApplicationFilter,
   BinAppDto,
   CreateApplicationDto,
   CreateBusinessApplicationDto,
@@ -109,18 +110,39 @@ export class SmartBinService {
     return applications;
   }
   // For Agent
-  async getAgentBinApplication(agentId: Types.ObjectId) {
-    const [applications] = await Promise.all([
+  async getAgentBinApplication(filter: AgentBinApplicationFilter) {
+    if (!filter.page) {
+      filter.page = 1;
+    }
+
+    if (!filter.limit) {
+      filter.limit = 10;
+    }
+
+    const { page, limit, agentId } = filter;
+    const skip = (page - 1) * limit;
+    const query = {
+      agentId: new Types.ObjectId(agentId),
+    };
+    const [applications, total] = await Promise.all([
       this.smartbinModel
-        .find({
-          userId: new Types.ObjectId(agentId),
-          customerType: UserRole.Agent,
-        })
+        .find(query)
         .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
         .lean(),
+      this.smartbinModel.countDocuments(query),
     ]);
 
-    return applications;
+    return {
+      data: applications,
+      paging: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        size: limit,
+      },
+    };
   }
   // For Corporate
   // async getCorporateBinApplication(corporateId: string) {

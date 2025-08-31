@@ -9,6 +9,7 @@ import {
   IsBoolean,
   IsOptional,
   IsEnum,
+  IsMongoId,
 } from 'class-validator';
 
 export class CreateResidentAccountDto {
@@ -137,6 +138,27 @@ export class CreateApplicationDto {
   @ApiProperty()
   @IsString()
   buildingName?: string;
+
+  @ApiProperty({
+    required: false,
+  })
+  @IsMongoId()
+  @IsOptional()
+  corporateId: string;
+
+  @ApiProperty({
+    required: false,
+  })
+  @IsMongoId()
+  @IsOptional()
+  residentId: string;
+
+  @ApiProperty({
+    required: false,
+  })
+  @IsMongoId()
+  @IsOptional()
+  agentId: string;
 }
 
 export class VerifyResidentLogin {

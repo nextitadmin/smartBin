@@ -33,6 +33,7 @@ export enum BinAssignmentStatus {
 export const DEFAULT_SMART_BIN_AMOUNT = 100000;
 export interface SmartBinAttributes {
   _id?: string;
+  agentId?: string;
   userId: Types.ObjectId;
   facilityId?: Types.ObjectId;
   payerId: string;
@@ -50,7 +51,7 @@ export interface SmartBinAttributes {
   phoneNumber?: string;
   amount?: number;
   branch?: string;
-  binId?:string;
+  binId?: string;
   branchId: string;
   closestLandmark?: string;
   useYourAddress?: boolean;
@@ -104,12 +105,17 @@ const ApplicationHistoryItemSchema = SchemaFactory.createForClass(
 export class SmartBin extends Document {
   @Prop({
     type: SchemaTypes.ObjectId,
+  })
+  agentId: Types.ObjectId;
+
+  @Prop({
+    type: SchemaTypes.ObjectId,
     required: true,
   })
   userId: Types.ObjectId;
 
-  @Prop({ type: SchemaTypes.String, required: false})
-  binId?: string
+  @Prop({ type: SchemaTypes.String, required: false })
+  binId?: string;
 
   @Prop({
     type: SchemaTypes.ObjectId,
@@ -123,17 +129,17 @@ export class SmartBin extends Document {
   })
   payerId: string;
 
-   @Prop({
+  @Prop({
     type: SchemaTypes.String,
     required: false,
   })
   assignedTo?: string;
 
-   @Prop({
+  @Prop({
     type: String,
     required: false,
     enum: Object.values(BinAssignmentStatus),
-    default: BinAssignmentStatus.Unassigned
+    default: BinAssignmentStatus.Unassigned,
   })
   assignmentStatus?: BinAssignmentStatus;
 
