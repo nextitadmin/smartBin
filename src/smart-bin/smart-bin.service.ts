@@ -222,6 +222,7 @@ export class SmartBinService {
 
     const records = recentlyDeliveredRecords.map((app, index) => ({
       sn: index + 1,
+      id: String(app._id),
       name: app?.assignedTo,
       date: app.deliveredOn,
       address: app.address,
@@ -253,6 +254,7 @@ export class SmartBinService {
     const records = applications.map((app, index) => {
       return {
         sn: index + 1,
+        id: String(app._id),
         name: app?.assignedTo,
         customerType: app?.customerType,
         date: app.deliveredOn,

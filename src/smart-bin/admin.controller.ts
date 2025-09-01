@@ -22,7 +22,7 @@ export class AdminSmartBinController {
     );
   }
 
-  @MessagePattern({ cmd: AdminMessagePatternCommands.Smartbin.GetOverview })
+  @MessagePattern({ cmd: AdminMessagePatternCommands.Smartbin.GetApplications })
   async getAllApplications(payload: { page?: string; limit?: string }) {
     const page = parseInt(payload.page ?? '1', 10);
     const limit = parseInt(payload.limit ?? '10', 10);
@@ -47,10 +47,12 @@ export class AdminSmartBinController {
     );
   }
 
-  @MessagePattern({ cmd: 'APPLICATION_DETAILS' })
-  async applicationDetails(payload: { id: string }) {
+  @MessagePattern({
+    cmd: AdminMessagePatternCommands.Smartbin.GetApplicationDetails,
+  })
+  async applicationDetails(payload: { applicationId: string }) {
     const details = await this.smartBinService.getBinApplicationById(
-      payload.id,
+      payload.applicationId,
     );
     return new SuccessResponse(
       'Application details retrieved successfully',

@@ -9,5 +9,6 @@ export const AdminMessagePatternCommands = Object.freeze({
   Smartbin: {
     GetOverview: 'GET_OVERVIEW',
     GetApplications: 'GET_ALL_APPLICATIONS',
+    GetApplicationDetails: 'APPLICATION_DETAILS',
   },
 });
