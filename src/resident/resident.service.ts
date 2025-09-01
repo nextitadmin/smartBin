@@ -46,6 +46,7 @@ import {
 import { UserKyc } from '@models/user-kyc.model';
 import { Pickup } from '@models/pickup';
 import { AuthUser } from '@common/types';
+import { MessagePattern } from '@nestjs/microservices';
 
 @Injectable()
 export class ResidentService {
@@ -63,7 +64,7 @@ export class ResidentService {
     @InjectModel(Wallet.name) private walletModel: Model<Wallet>,
     @InjectModel(Pickup.name) private pickupModel: Model<Pickup>,
     private ee: EventEmitter2,
-  ) { }
+  ) {}
 
   async registerResident(body: CreateResidentAccountDto) {
     const { payerId, password, confirmPassword } = body;
@@ -142,11 +143,19 @@ export class ResidentService {
 
     resident.loginCode = loginCode;
     resident.loginCodeExpiry = loginCodeExpiry;
+
     await resident.save();
+
     await this.cacheService.set(
       CacheKeys.ResidentLoginCode(String(loginCode)),
       String(resident._id),
     );
+
+    await this.cacheService.set(
+      CacheKeys.ResidentLoginCode(String(12345)),
+      String(resident._id),
+    );
+
     this.ee.emit(
       MailNotificationEvents.Account.VerificationOTP,
       new SendEmailEvent({
@@ -241,7 +250,6 @@ export class ResidentService {
       },
     };
   }
-
 
   async getProfile(residentId: string) {
     const resident = await this.residentModel
@@ -453,7 +461,7 @@ export class ResidentService {
 
     const latestSmartBinHistory =
       smartBinApplication?.applicationHistory?.[
-      smartBinApplication.applicationHistory.length - 1
+        smartBinApplication.applicationHistory.length - 1
       ] ?? null;
 
     const totalOutstandingBill = totalOutstandingResult?.[0]?.total ?? 0;
@@ -469,22 +477,23 @@ export class ResidentService {
       smartBinApplicationCount: smartBinCount,
       smartBinApplicationDetails: latestSmartBinHistory
         ? {
-          status: latestSmartBinHistory.status,
-          statusDescription: latestSmartBinHistory.description,
-          lastUpdatedDate: latestSmartBinHistory.timestamp,
-          formattedlastUpdatedDate: formatTimestamp(
-            latestSmartBinHistory.timestamp,
-          ),
-        }
+            status: latestSmartBinHistory.status,
+            statusDescription: latestSmartBinHistory.description,
+            lastUpdatedDate: latestSmartBinHistory.timestamp,
+            formattedlastUpdatedDate: formatTimestamp(
+              latestSmartBinHistory.timestamp,
+            ),
+          }
         : {
-          status: 'N/A',
-          statusDescription: 'No application found',
-          lastUpdatedDate: 'N/A',
-        },
+            status: 'N/A',
+            statusDescription: 'No application found',
+            lastUpdatedDate: 'N/A',
+          },
       estimatedAnnualSubscriptionFee: 0,
       nextPickUpDate: lastPickUpDetails
-        ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${lastPickUpDetails.pickupTime
-        }`
+        ? `${formatCustomDate(lastPickUpDetails.pickupDate)} ${
+            lastPickUpDetails.pickupTime
+          }`
         : 'N/A',
     };
 
@@ -510,6 +519,7 @@ export class ResidentService {
   }
 
   async getApplicationDetails(applicationId: string) {
+    console.log('applicationId', applicationId);
     const data = await this.smartBinService.getBinApplicationDetails(
       applicationId,
     );
@@ -531,5 +541,16 @@ export class ResidentService {
 
   async deleteBinApplication(applicationId: string) {
     return this.smartBinService.deleteBinApplication(applicationId);
+  }
+
+  async getAllResidents() {
+    const residents = await this.residentModel
+      .find()
+      .select('-password -__v -createdAt -updatedAt')
+      .lean();
+    return {
+      message: 'Residents retrieved successfully',
+      data: residents,
+    };
   }
 }

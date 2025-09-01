@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { SchemaTypes, Types } from 'mongoose';
-import { P } from 'pino';
 
 export const DefaultSubscriptionPlan = [
   {

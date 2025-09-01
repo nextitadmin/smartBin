@@ -10,8 +10,9 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { ResidentsManagementService } from './residents-management.service';
 import { SuccessResponse } from '@common/http';
-import { AgentAuth } from '@common/decorators/auth.decorator';
+import { AgentAuth, AuthenticatedAgent } from '@common/decorators/auth.decorator';
 import { CreateAgentResidentAccountDto } from './dto/resident-management.dto';
+import { AgentUser } from '@common/types';
 
 @ApiTags('Agent - Residents Management')
 @Controller({
@@ -37,8 +38,8 @@ export class ResidentsManagementController {
   }
 
   @Post()
-  async createResident(@Body() body: CreateAgentResidentAccountDto) {
-    const resident = await this.residentsManagementService.createResident(body);
+  async createResident(@AuthenticatedAgent() agent: AgentUser, @Body() body: CreateAgentResidentAccountDto) {
+    const resident = await this.residentsManagementService.createResident({...body, registeredBy: agent.id });
     return new SuccessResponse('resident created', resident);
   }
 

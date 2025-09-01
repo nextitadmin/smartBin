@@ -45,6 +45,7 @@ import { Public } from '@common/guards/public.guard';
 import { UpdateSmartBinStatusDto } from '@src/smart-bin/dto/binAppDto';
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 import { SmartBinApplicationStatus } from '@models/types';
+import { MessagePattern } from '@nestjs/microservices';
 
 @ApiTags('Residents')
 @Controller({
@@ -52,7 +53,7 @@ import { SmartBinApplicationStatus } from '@models/types';
   version: '1',
 })
 export class ResidentController {
-  constructor(private readonly residentService: ResidentService) { }
+  constructor(private readonly residentService: ResidentService) {}
 
   @Public()
   @Post('register')
@@ -219,6 +220,7 @@ export class ResidentController {
     @AuthenticatedResident() resident: AuthUser,
     @Param() params: GetApplicationParamDto,
   ) {
+    console.log('params', params);
     const { applicationId } = params;
     const response = await this.residentService.getApplicationDetails(
       applicationId,

@@ -1,19 +1,15 @@
 import {
   BinType,
   LAWMACustomerType,
-  PaymentMethod,
-  SmartbinStatus,
 } from '@models/smart-bin.model';
-import { UserRole } from '@models/types';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
-  IsMongoId,
   IsString,
   MinLength,
   IsNotEmpty,
   IsOptional,
-  IsNumber,
+  IsEnum,
 } from 'class-validator';
 
 export class CreateCorporateAccountDto {
@@ -62,7 +58,6 @@ export class UpdateProfileDto {
   @IsOptional()
   phoneNumber?: string;
 }
-
 
 export class CorporateLoginDto {
   @ApiProperty()
@@ -184,28 +179,34 @@ export class GetApplicationParamDto {
 
 export class AddCorporateBranchDto {
   @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: 'Branch name must be a string' })
+  @IsNotEmpty({ message: 'Branch name is required' })
   branchName: string;
 
   @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: 'Branch address must be a string' })
+  @IsNotEmpty({ message: 'Branch address is required' })
   branchAddress: string;
 
   @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: 'Local Government Area must be a string' })
+  @IsNotEmpty({ message: 'Local Government Area is required' })
   localGovernmentArea: string;
 
   @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: 'Closest landmark must be a string' })
+  @IsNotEmpty({ message: 'Closest landmark is required' })
   closestLandmark: string;
 
   @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
+  @IsString({ message: 'State must be a string' })
+  @IsOptional()
   state: string;
-}
 
+  @ApiProperty({ enum: LAWMACustomerType, required: false })
+  @IsOptional()
+  @IsEnum(LAWMACustomerType, {
+    message: `Lawma Customer Type must be either be '${LAWMACustomerType.New}' or '${LAWMACustomerType.Returning}'`,
+  })
+  lawmaCustomerType?: LAWMACustomerType;
+}

@@ -5,7 +5,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Report, ReportType } from '@models/report.model';
-import { CreateReportDto, GetReportsDto } from './dtos/report.dto';
+import { CreateReportDto, CustomerType, GetReportsDto } from './dtos/report.dto';
 import { SuccessResponse } from '@common/http';
 import { AuthUser } from '@common/types';
 import {
@@ -16,6 +16,8 @@ import {
 import { SmartBin } from '@models/smart-bin.model';
 import { Pickup, PickupDocument } from '@models/pickup';
 import moment from 'moment';
+import { Resident } from '@models/users/resident.model';
+import { Corporate } from '@models/users/corporate.model';
 
 @Injectable()
 export class ReportService {
@@ -24,6 +26,8 @@ export class ReportService {
         @InjectModel(Transaction.name) private readonly transactionModel: Model<Transaction>,
         @InjectModel(SmartBin.name) private readonly smartBinModel: Model<SmartBin>,
         @InjectModel(Pickup.name) private readonly pickupModel: Model<PickupDocument>,
+        @InjectModel(Resident.name) private readonly residentModel: Model<Resident>,
+        @InjectModel(Corporate.name) private readonly corporateModel: Model<Corporate>,
     ) { }
 
     // generte report
@@ -31,7 +35,29 @@ export class ReportService {
         dto: CreateReportDto,
         user: AuthUser,
     ): Promise<SuccessResponse> {
-        const { type } = dto;
+        const { type, customerType, customerName } = dto;
+        if (customerType && customerName) {
+            const [firstName, lastName] = customerName.trim().split(' ');
+
+            let customerRecord = null;
+
+            if (customerType === CustomerType.Resident) {
+                customerRecord = await this.residentModel
+                    .findOne({ firstName, lastName })
+                    .lean();
+            } else if (customerType === CustomerType.Corporate) {
+                customerRecord = await this.corporateModel
+                    .findOne({ firstName, lastName })
+                    .lean();
+            }
+
+            if (!customerRecord) {
+                throw new NotFoundException(
+                    `No ${customerType} found with name ${customerName}`
+                );
+            }
+        }
+
 
         let data: any;
         if (type === ReportType.PaymentHistory) {
@@ -46,6 +72,8 @@ export class ReportService {
             reportName: dto.reportName,
             type,
             filters: dto.filters,
+            customerType: dto.customerType,
+            customerName: dto.customerName,
             data,
             period: {
                 from: moment(dto.startDate).format('DD/MM'),
@@ -60,6 +88,9 @@ export class ReportService {
             data: {
                 id: report._id,
                 reportName: report.reportName,
+                customerName: report?.customerName,
+                reportFor: `Report for ${report?.customerName}`,
+                customerType: report?.customerType,
                 type: report.type,
                 generatedBy: user.email || user.id,
                 generatedAt: report.createdAt,
@@ -294,6 +325,8 @@ export class ReportService {
             period: report.period,
             tenantName: report?.tenantName,
             businessName: report?.businessName,
+            customerName: report?.customerName,
+            customerType: report?.customerType,
             generatedAt: report.createdAt,
             filters: report.filters,
             data: report.data,
