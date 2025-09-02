@@ -11,6 +11,8 @@ export interface CorporateAttributes {
   firstName: string;
   lastName: string;
   email: string;
+  companyEmail?: string;
+  companyPhoneNumber?: string;
   profilePicture?: string;
   phoneNumber?: string;
   password: string;
@@ -57,6 +59,12 @@ export class Corporate implements CorporateAttributes {
 
   @Prop()
   phoneNumber?: string;
+
+  @Prop({ required: false })
+  companyEmail?: string;
+
+  @Prop({ required: false })
+  companyPhoneNumber?: string;
 
   @Prop({
     required: true,
