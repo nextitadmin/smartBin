@@ -8,6 +8,8 @@ import { Corporate, CorporateSchema } from '@models/users/corporate.model';
 import { Branch, BranchSchema } from '@models/branch.model';
 import { Resident, ResidentSchema } from '@models/users/resident.model';
 import { AgentModule } from '../agent.module';
+import { ManagementController } from './managements.controller';
+import { ManagementService } from './managements.service';
 
 @Module({
   imports: [
@@ -27,8 +29,8 @@ import { AgentModule } from '../agent.module';
       },
     ]),
   ],
-  controllers: [CorporatesManagementController, ResidentsManagementController],
-  providers: [CorporatesManagementService, ResidentsManagementService],
-  exports: [CorporatesManagementService, ResidentsManagementService],
+  controllers: [CorporatesManagementController, ResidentsManagementController, ManagementController],
+  providers: [CorporatesManagementService, ResidentsManagementService, ManagementService ],
+  exports: [CorporatesManagementService, ResidentsManagementService, ManagementService ],
 })
 export class ManagementsModule {}

@@ -7,7 +7,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { CorporatesManagementService } from './corporates-management.service';
 import {
   AgentAuth,
@@ -15,7 +15,7 @@ import {
 } from '@common/decorators/auth.decorator';
 import { AgentUser } from '@common/types';
 import { SuccessResponse } from '@common/http';
-import { CreateAgentCorporateAccountDto } from './dto/corporates-management.dto';
+import { CreateAgentCorporateAccountDto, UpdateAgentCorporateAccountDto } from './dto/corporates-management.dto';
 
 @ApiTags('Agent - Corporates Management')
 @Controller({
@@ -62,7 +62,7 @@ export class CorporatesManagementController {
   @AgentAuth()
   async updateCorporate(
     @AuthenticatedAgent() agent: AgentUser,
-    @Body() body: Partial<CreateAgentCorporateAccountDto>,
+    @Body() body: UpdateAgentCorporateAccountDto,
     @Param('corporateId') corporateId: string,
   ) {
     const response = await this.corporatesManagementService.updateCorporate(

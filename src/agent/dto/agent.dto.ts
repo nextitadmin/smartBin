@@ -90,3 +90,20 @@ export class IdParamDTO {
   @IsMongoId()
   id: string;
 }
+
+
+export class UploadUserDto {
+  customerType: 'resident' | 'corporate';
+  payerId: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  profilePicture?: string;
+  phoneNumber?: string;
+  password: string;
+  // ... add more fields as needed
+}
+
+export class UploadUsersRequestDto {
+  users: UploadUserDto[];
+}
