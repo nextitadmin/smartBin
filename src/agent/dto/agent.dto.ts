@@ -93,17 +93,50 @@ export class IdParamDTO {
 
 
 export class UploadUserDto {
+  @ApiProperty({ enum: ['resident', 'corporate'] })
   customerType: 'resident' | 'corporate';
+
+  @ApiProperty({ required: true})
+  @IsString()
   payerId: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  businessName?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
   firstName?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
   lastName?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsEmail()
   email?: string;
-  profilePicture?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
   phoneNumber?: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsEmail()
+  companyEmail?: string;
+
+  @ApiProperty()
+  @IsString()
+  companyPhoneNumber?: string;
+
+  @ApiProperty()
+  @IsString()
   password: string;
-  // ... add more fields as needed
 }
 
 export class UploadUsersRequestDto {
+  @ApiProperty({ type: [UploadUserDto] })
   users: UploadUserDto[];
 }
