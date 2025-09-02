@@ -25,6 +25,8 @@ export class ManagementController {
     @Body() body: UploadUsersRequestDto,
   ) {
     await this.managementService.uploadUser(body.users, agent.id);
-    return new SuccessResponse('User data uploaded', {});
+    return new SuccessResponse('User data uploaded successfully', {
+        message: 'User data uploaded successfully',
+    });
   }
 }
