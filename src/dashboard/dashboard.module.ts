@@ -20,6 +20,8 @@ import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { CorporateService } from '@src/corporate/corporate.service';
 import { Pickup, PickupSchema } from '@models/pickup';
 import { TeamMember, TeamMemberSchema } from '@models/team.model';
+import { AdminDashboardService } from './adminDashboard.service';
+import { AdmindashboardController } from './admindashboard.controller';
 
 @Module({
   imports: [
@@ -39,8 +41,8 @@ import { TeamMember, TeamMemberSchema } from '@models/team.model';
     ]),
     SmartBinModule
   ],
-  controllers: [],
-  providers: [DashboardService],
+  controllers: [AdmindashboardController],
+  providers: [DashboardService, AdminDashboardService],
   exports: [DashboardService]
 })
 export class DashboardModule { }
