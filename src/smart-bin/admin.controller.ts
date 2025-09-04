@@ -11,7 +11,7 @@ import { AdminMessagePatternCommands } from '@src/shared/constants';
   version: '1',
 })
 export class AdminSmartBinController {
-  constructor(private readonly smartBinService: SmartBinService) {}
+  constructor(private readonly smartBinService: SmartBinService) { }
 
   @MessagePattern({ cmd: AdminMessagePatternCommands.Smartbin.GetOverview })
   async getSmartBinOverview() {
@@ -33,7 +33,7 @@ export class AdminSmartBinController {
     );
   }
 
-  @MessagePattern({ cmd: 'GET_DELIVERED_BINS' })
+  @MessagePattern({ cmd: AdminMessagePatternCommands.Smartbin.GetDelivered })
   async getDeliveredBins(payload: { page?: string; limit?: string }) {
     const page = parseInt(payload.page ?? '1', 10);
     const limit = parseInt(payload.limit ?? '10', 10);

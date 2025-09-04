@@ -67,7 +67,7 @@ export class SmartBinService {
     @InjectModel(Transaction.name)
     private readonly transactionModel: Model<Transaction>,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   async getResidentBinApplication(residentId: string, page = 1, limit = 10) {
     const skip = (page - 1) * limit;
@@ -270,7 +270,7 @@ export class SmartBinService {
         .skip(skip)
         .limit(limit)
         .lean(),
-      this.smartbinModel.countDocuments({ status: SmartbinStatus.Approved }),
+      this.smartbinModel.countDocuments({ status: SmartbinStatus.Delivered }),
     ]);
 
     const records = applications.map((app, index) => {
@@ -300,25 +300,28 @@ export class SmartBinService {
     };
   }
 
-  // app bins
+
+
+
   async getAllApplications(page: number, limit: number) {
     const skip = (page - 1) * limit;
-    const query: any = {};
-
-    const applications = await this.smartbinModel
-      .find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .lean();
+    const [applications, total] = await Promise.all([
+      this.smartbinModel
+        .find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      this.smartbinModel.countDocuments(),
+    ]);
 
     const records = applications.map((app, index) => {
-      const firstHistory = app.applicationHistory?.[0];
       return {
         sn: index + 1,
+        id: String(app._id),
         name: app?.assignedTo,
         customerType: app?.customerType,
-        date: firstHistory?.timestamp,
+        date: app.deliveredOn,
         address: app.address,
         binType: app.binType,
         binId: app.binId,
@@ -331,13 +334,14 @@ export class SmartBinService {
       records,
       totalApplications: applications.length,
       paging: {
-        total: applications.length,
+        total,
         page,
-        pages: Math.ceil(applications.length / limit),
+        pages: Math.ceil(total / limit),
         size: limit,
       },
     };
   }
+
 
   // Get bin application by ID
   async getBinApplicationById(id: string) {
@@ -574,8 +578,8 @@ export class SmartBinService {
     const smartBin:
       | (SmartbinDocument & { payment: TransactionAttributes })
       | any = await this.smartbinModel
-      .findById(applicationId)
-      .populate('payment');
+        .findById(applicationId)
+        .populate('payment');
 
     if (!smartBin) {
       throw new NotFoundException('Bin application not found');
