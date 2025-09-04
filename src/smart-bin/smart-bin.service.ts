@@ -67,7 +67,7 @@ export class SmartBinService {
     @InjectModel(Transaction.name)
     private readonly transactionModel: Model<Transaction>,
     private readonly eventEmitter: EventEmitter2,
-  ) { }
+  ) {}
 
   async getResidentBinApplication(residentId: string, page = 1, limit = 10) {
     const skip = (page - 1) * limit;
@@ -228,7 +228,6 @@ export class SmartBinService {
     return total * 12; // Assuming the bills are monthly
   }
 
-
   // overview
   async getSmartBinOverview() {
     const totalApplications = await this.smartbinModel.countDocuments();
@@ -245,6 +244,7 @@ export class SmartBinService {
 
     const records = recentlyDeliveredRecords.map((app, index) => ({
       sn: index + 1,
+      id: String(app._id),
       name: app?.assignedTo,
       date: app.deliveredOn,
       address: app.address,
@@ -276,6 +276,7 @@ export class SmartBinService {
     const records = applications.map((app, index) => {
       return {
         sn: index + 1,
+        id: String(app._id),
         name: app?.assignedTo,
         customerType: app?.customerType,
         date: app.deliveredOn,
@@ -295,14 +296,9 @@ export class SmartBinService {
         page,
         pages: Math.ceil(total / limit),
         size: limit,
-
-      }
-
-
-    }
-
+      },
+    };
   }
-
 
   // app bins
   async getAllApplications(page: number, limit: number) {
@@ -313,8 +309,8 @@ export class SmartBinService {
       .find(query)
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(limit).
-      lean();
+      .limit(limit)
+      .lean();
 
     const records = applications.map((app, index) => {
       const firstHistory = app.applicationHistory?.[0];
@@ -340,15 +336,11 @@ export class SmartBinService {
         pages: Math.ceil(applications.length / limit),
         size: limit,
       },
-
     };
   }
 
-
-
   // Get bin application by ID
   async getBinApplicationById(id: string) {
-
     const smartbin = await this.smartbinModel
       .findById(id)
       .populate('payment')
@@ -582,8 +574,8 @@ export class SmartBinService {
     const smartBin:
       | (SmartbinDocument & { payment: TransactionAttributes })
       | any = await this.smartbinModel
-        .findById(applicationId)
-        .populate('payment');
+      .findById(applicationId)
+      .populate('payment');
 
     if (!smartBin) {
       throw new NotFoundException('Bin application not found');
