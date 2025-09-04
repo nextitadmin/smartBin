@@ -402,7 +402,7 @@ export class KycService {
         .limit(limit)
         .populate({
           path: 'userId',
-          select: '-password',
+          select: '-password -createdAt -updatedAt -__v',
         })
         .lean(),
 
@@ -428,7 +428,7 @@ export class KycService {
       .findById(applicationId)
       .populate({
         path: 'userId',
-        select: '-password',
+        select: '-password -createdAt -updatedAt -__v',
       })
       .lean();
 
