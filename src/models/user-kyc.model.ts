@@ -5,24 +5,28 @@ import { UserRole } from './types';
 export enum IdVerificationStatus {
   PENDING = 'pending',
   SUBMITTED = 'submitted',
+  APPROVED = 'approved',
   REJECTED = 'rejected',
 }
 
 export enum AddressVerificationStatus {
   PENDING = 'pending',
   SUBMITTED = 'submitted',
+  APPROVED = 'approved',
   REJECTED = 'rejected',
 }
 
 export enum AgencyInformationStatus {
   PENDING = 'pending',
   SUBMITTED = 'submitted',
+  APPROVED = 'approved',
   REJECTED = 'rejected',
 }
 
 export enum SignatoryVerificationStatus {
   PENDING = 'pending',
   SUBMITTED = 'submitted',
+  APPROVED = 'approved',
   REJECTED = 'rejected',
 }
 
@@ -71,6 +75,7 @@ export class UserKyc extends Document {
   @Prop({
     type: SchemaTypes.ObjectId,
     required: true,
+    refPath: 'userType',
   })
   userId: Types.ObjectId;
 

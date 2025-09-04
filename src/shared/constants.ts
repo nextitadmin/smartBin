@@ -17,5 +17,33 @@ export const AdminMessagePatternCommands = Object.freeze({
     GetApplicationDetails: 'KYC_APPLICATION_DETAILS',
     ApproveApplication: 'APPROVE_KYC_APPLICATION',
     RejectApplication: 'REJECT_KYC_APPLICATION',
-  }
+  },
 });
+
+export enum IdVerificationStatus {
+  PENDING = 'pending',
+  SUBMITTED = 'submitted',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+}
+
+export enum AddressVerificationStatus {
+  PENDING = 'pending',
+  SUBMITTED = 'submitted',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+}
+
+export enum AgencyInformationStatus {
+  PENDING = 'pending',
+  SUBMITTED = 'submitted',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+}
+
+export enum SignatoryVerificationStatus {
+  PENDING = 'pending',
+  SUBMITTED = 'submitted',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+}
