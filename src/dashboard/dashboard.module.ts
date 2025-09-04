@@ -21,7 +21,7 @@ import { CorporateService } from '@src/corporate/corporate.service';
 import { Pickup, PickupSchema } from '@models/pickup';
 import { TeamMember, TeamMemberSchema } from '@models/team.model';
 import { AdminDashboardService } from './adminDashboard.service';
-import { AdmindashboardController } from './admindashboard.controller';
+import { AdminDashboardController } from './admindashboard.controller';
 
 @Module({
   imports: [
@@ -41,7 +41,7 @@ import { AdmindashboardController } from './admindashboard.controller';
     ]),
     SmartBinModule
   ],
-  controllers: [AdmindashboardController],
+  controllers: [AdminDashboardController],
   providers: [DashboardService, AdminDashboardService],
   exports: [DashboardService]
 })
