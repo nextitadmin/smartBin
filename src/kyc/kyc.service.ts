@@ -392,12 +392,14 @@ export class KycService {
 
   //For Admins
 
-  async getAllApplications(page: number, limit: number) {
+  async getAllApplications(page: number, limit: number, status?: IdVerificationStatus) {
     const skip = (page - 1) * limit;
+
+    const statusType = status === "pending" ? IdVerificationStatus.SUBMITTED : status
 
     const [kycRecords, total] = await Promise.all([
       this.userKycModel
-        .find()
+        .find({identityVerificationStatus: statusType})
         .skip(skip)
         .limit(limit)
         .populate({
