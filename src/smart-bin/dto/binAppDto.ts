@@ -12,7 +12,8 @@ import {
 
 } from 'class-validator';
 import { SmartbinStatus } from '@models/smart-bin.model';
-import { SmartBinApplicationStatus } from '@models/types/index';
+import { SmartBinApplicationStatus, UserRole } from '@models/types/index';
+import { Types } from 'mongoose';
 
 export class BinAppDto {
   userId: string;
@@ -263,6 +264,13 @@ export class UpdateSmartBinStatusDto {
   @IsEnum(SmartBinApplicationStatus)
   @IsNotEmpty()
   status: SmartBinApplicationStatus;
+}
+
+export interface AgentBinApplicationFilter {
+  agentId: string;
+  page: number;
+  limit: number;
+  userType?: UserRole;
 }
 
 
