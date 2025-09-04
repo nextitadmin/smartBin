@@ -171,19 +171,17 @@ export class ResidentService {
   }
 
   async verifyLoginCode(loginCode: string) {
-    const verificationCode = await this.cacheService.get(
+    const residentId = await this.cacheService.get(
       CacheKeys.ResidentLoginCode(loginCode),
     );
 
-    if (!verificationCode) {
+    if (!residentId) {
       throw new UnauthorizedException('Session expired. Please log in again.');
     }
 
     const resident = await this.residentModel
       .findOne({
-        _id: verificationCode,
-        loginCode,
-        loginCodeExpiry: { $gt: Date.now() },
+        _id: residentId,
       })
       .select('-password')
       .lean();
