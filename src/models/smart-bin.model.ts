@@ -58,7 +58,6 @@ export interface SmartBinAttributes {
   amount?: number;
   branch?: string;
   binId?: string;
-  binId?: string;
   branchId: string;
   closestLandmark?: string;
   useYourAddress?: boolean;
