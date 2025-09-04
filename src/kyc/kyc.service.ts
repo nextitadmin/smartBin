@@ -394,4 +394,11 @@ export class KycService {
       data: null,
     };
   }
+
+  //For Admins
+
+  async getAllApplications(page: number, limit: number) {
+    const skip = (page - 1) * limit; 
+    // const applications = await this.userKycModel
+  }
 }

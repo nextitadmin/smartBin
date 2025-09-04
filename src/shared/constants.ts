@@ -4,3 +4,18 @@ export const CacheKeys = {
   FacilityManagerLoginCode: (code: string) => `SMTBIN_FM_${code}`,
   CorporateLoginCode: (code: string) => `SMTBIN_CM_${code}`,
 };
+
+export const AdminMessagePatternCommands = Object.freeze({
+  Smartbin: {
+    GetOverview: 'GET_OVERVIEW',
+    GetApplications: 'GET_ALL_APPLICATIONS',
+    GetApplicationDetails: 'APPLICATION_DETAILS',
+  },
+
+  KycFlow: {
+    GetApplications: 'GET_ALL_KYC_APPLICATIONS',
+    GetApplicationDetails: 'KYC_APPLICATION_DETAILS',
+    ApproveApplication: 'APPROVE_KYC_APPLICATION',
+    RejectApplication: 'REJECT_KYC_APPLICATION',
+  }
+});
