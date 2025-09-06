@@ -1,8 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaTypes, Types } from 'mongoose';
-import { UserRole } from '@models/types'; // Adjust this path as needed
+import { AccountStatus, UserRole } from '@models/types'; // Adjust this path as needed
 import { getHashedPassword } from '@common/utils'; // Adjust if needed
 import { Agent } from './agent.model';
+import { P } from 'pino';
 
 export interface CorporateAttributes {
   agentId?: Types.ObjectId;
@@ -13,16 +14,20 @@ export interface CorporateAttributes {
   email: string;
   companyEmail?: string;
   companyPhoneNumber?: string;
+  localGovernmentArea?: string;
+  pspCompany?: string;
   profilePicture?: string;
   phoneNumber?: string;
   password: string;
   role: UserRole.Corporate;
   registeredBy?: Types.ObjectId;
   registeredByModel?: 'Agent';
+  status: AccountStatus;
   loginCode?: string;
   loginCodeExpiry?: Date;
   resetToken?: string;
   resetTokenExpiry?: Date;
+
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -66,6 +71,13 @@ export class Corporate implements CorporateAttributes {
   @Prop({ required: false })
   companyPhoneNumber?: string;
 
+  @Prop({ required: false })
+  localGovernmentArea?: string;
+
+  @Prop({ required: false })
+  pspCompany?: string;
+
+
   @Prop({
     required: true,
     set: (val: string) => getHashedPassword(val),
@@ -80,6 +92,9 @@ export class Corporate implements CorporateAttributes {
 
   @Prop({ type: String, enum: ['Agent'], default: null })
   registeredByModel?: 'Agent';
+
+  @Prop({ enum: AccountStatus, default: AccountStatus.Active })
+  status: AccountStatus;
 
   @Prop()
   loginCode?: string;

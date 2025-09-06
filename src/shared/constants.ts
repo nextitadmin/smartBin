@@ -6,6 +6,13 @@ export const CacheKeys = {
 };
 
 export const AdminMessagePatternCommands = Object.freeze({
+  Users: {
+    GetUsers: 'GET_USERS',
+    GetUser: 'GET_USER',
+    GetFacilityUsers: 'GET_FACILITY_USERS',
+    GetAgentRegisteredUsers: 'GET_AGENT_REGISTERED_USERS',
+
+  },
   Smartbin: {
     GetOverview: 'GET_OVERVIEW',
     GetDelivered: "GET_DELIVERED_BINS",

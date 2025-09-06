@@ -1,5 +1,5 @@
 import { getHashedPassword } from '@common/utils';
-import { Gender, UserRole } from '@models/types';
+import { AccountStatus, Gender, UserRole } from '@models/types';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaTypes, Types } from 'mongoose';
 
@@ -46,6 +46,10 @@ export interface AgentAtributes {
   loginCode: string;
   loginCodeExpiry: Date;
   deleted_at?: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
+  localGovernmentArea?: string;
+  pspCompany?: string;
 }
 
 @Schema({
@@ -130,6 +134,16 @@ export class Agent implements AgentAtributes {
   })
   status: AgentStatus;
 
+  @Prop({ type: SchemaTypes.String })
+  localGovernmentArea: string;
+
+  @Prop({ type: SchemaTypes.String })
+  pspCompany: string;
+
+  @Prop()
+  createdAt?: Date;
+  @Prop()
+  updatedAt?: Date;
   @Prop({ type: Date, default: null })
   deleted_at?: Date;
 }
