@@ -42,6 +42,7 @@
     "@nestjs/schedule": "^6.0.0",
     "@nestjs/swagger": "^7.4.2",
     "@nestjs/throttler": "^6.4.0",
+    "@redis/client": "^1.6.0",
     "@types/cache-manager-redis-store": "^3.0.0",
     "@types/mailgun-js": "^0.22.18",
     "@types/multer": "^2.0.0",
