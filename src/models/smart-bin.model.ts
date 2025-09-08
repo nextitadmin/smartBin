@@ -6,8 +6,14 @@ import { Type } from 'class-transformer';
 
 export enum SmartbinStatus {
   Pending = 'pending',
+  Inventory = 'inventory',
+  ScheduledForDelivery = 'scheduledForDelivery',
+  Delivered = 'delivered',
+  Activated = 'activated',
+  Cancelled = 'cancelled',
   Approved = 'approved',
-  Diclined = 'declined',
+  Declined = 'declined',
+
 }
 
 export enum BinType {
@@ -241,6 +247,10 @@ export class SmartBin extends Document {
 
   @Prop({ type: SchemaTypes.String, required: false })
   localGovernmentArea?: string;
+
+  @Prop({ type: Date, required: false })
+  deliveredOn?: Date;
+
 
   @Prop({ type: [ApplicationHistoryItemSchema], default: [] })
   applicationHistory: ApplicationHistoryItem[];

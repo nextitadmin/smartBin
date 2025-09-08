@@ -10,7 +10,7 @@ export class ResidentsManagementService {
   constructor(
     @InjectModel(Resident.name)
     private readonly residentModel: Model<Resident>,
-  ) {}
+  ) { }
 
   async getResidents({ agentId }: { agentId?: string } = {}) {
     return this.residentModel.find({
@@ -23,7 +23,7 @@ export class ResidentsManagementService {
   }
 
   async createResident(
-    data: CreateAgentResidentAccountDto & { registeredBy: string },
+    data: CreateAgentResidentAccountDto & { agentId: string },
   ) {
     const [existingCorporate, existingEmail] = await Promise.all([
       this.residentModel.findOne({ payerId: data.payerId }),
@@ -39,8 +39,7 @@ export class ResidentsManagementService {
 
     return this.residentModel.create({
       ...data,
-      agentId: data.registeredBy,
-      registeredByModel: 'Agent',
+      agentId: data.agentId,
     });
   }
 
