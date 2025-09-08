@@ -13,11 +13,9 @@ export class ResidentsManagementService {
   ) {}
 
   async getResidents({ agentId }: { agentId?: string } = {}) {
-    const filter: any = {};
-    if (agentId) {
-      filter.registeredBy = agentId;
-    }
-    return this.residentModel.find(filter);
+    return this.residentModel.find({
+      agentId,
+    });
   }
 
   async getResident(id: string) {
@@ -39,7 +37,11 @@ export class ResidentsManagementService {
       throw new ConflictException('Email already exists');
     }
 
-    return this.residentModel.create({ ...data, registeredByModel: 'Agent' });
+    return this.residentModel.create({
+      ...data,
+      agentId: data.registeredBy,
+      registeredByModel: 'Agent',
+    });
   }
 
   async updateResident(
