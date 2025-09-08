@@ -5,10 +5,7 @@ import { MessagePattern } from '@nestjs/microservices';
 import { AdminMessagePatternCommands } from '@src/shared/constants';
 import { SuccessResponse } from '@common/http';
 
-@Controller({
-    path: 'admin/users',
-    version: '1',
-})
+@Controller()
 export class UsersController {
     constructor(private readonly usersService: UsersService) { }
 
@@ -33,9 +30,9 @@ export class UsersController {
     }
 
     @MessagePattern({ cmd: AdminMessagePatternCommands.Users.GetFacilityUsers })
-    async getFacilityUsers(payload: { facilityMgrId: string, page: number, limit: number }) {
+    async getFacilityUsers(payload: { accountId: string, page: number, limit: number }) {
 
-        const response = await this.usersService.getFacilityUsers(payload.facilityMgrId, payload.page, payload.limit);
+        const response = await this.usersService.getFacilityUsers(payload.accountId, payload.page, payload.limit);
         return new SuccessResponse(
             'Facility users retrieved successfully',
             response,

@@ -87,11 +87,11 @@ export class Corporate implements CorporateAttributes {
   @Prop({ enum: [UserRole.Corporate], default: UserRole.Corporate })
   role: UserRole.Corporate;
 
-  @Prop({ type: Types.ObjectId, refPath: 'registeredByModel', default: null })
-  registeredBy?: Types.ObjectId;
+  // @Prop({ type: Types.ObjectId, refPath: 'registeredByModel', default: null })
+  // registeredBy?: Types.ObjectId;
 
-  @Prop({ type: String, enum: ['Agent'], default: null })
-  registeredByModel?: 'Agent';
+  // @Prop({ type: String, enum: ['Agent'], default: null })
+  // registeredByModel?: 'Agent';
 
   @Prop({ enum: AccountStatus, default: AccountStatus.Active })
   status: AccountStatus;

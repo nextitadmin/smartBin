@@ -6,10 +6,7 @@ import { ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { SuccessResponse } from '@common/http';
 import { AdminMessagePatternCommands } from '@src/shared/constants';
 
-@Controller({
-  path: 'admin/smartbin',
-  version: '1',
-})
+@Controller()
 export class AdminSmartBinController {
   constructor(private readonly smartBinService: SmartBinService) { }
 

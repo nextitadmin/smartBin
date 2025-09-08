@@ -27,7 +27,7 @@ export class ResidentsManagementController {
 
   @Get()
   async getResidents(@AuthenticatedAgent() agent: AgentUser) {
-    const residents = await this.residentsManagementService.getResidents(agent.id);
+    const residents = await this.residentsManagementService.getResidents({ agentId: agent.id });
     return new SuccessResponse('residents fetched', residents);
   }
 
@@ -39,7 +39,7 @@ export class ResidentsManagementController {
 
   @Post()
   async createResident(@AuthenticatedAgent() agent: AgentUser, @Body() body: CreateAgentResidentAccountDto) {
-    const resident = await this.residentsManagementService.createResident({ ...body, registeredBy: agent.id });
+    const resident = await this.residentsManagementService.createResident({ ...body, agentId: agent.id });
     return new SuccessResponse('resident created', resident);
   }
 

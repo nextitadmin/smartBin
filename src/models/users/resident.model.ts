@@ -123,11 +123,6 @@ export class Resident implements ResidentAttributes {
   @Prop()
   buildingType?: string;
 
-  @Prop({ type: Types.ObjectId })
-  registeredBy?: Types.ObjectId;
-
-  @Prop({ enum: ['Agent', 'FacilityManager'], required: false })
-  registeredByModel?: 'Agent' | 'FacilityManager';
 
   @Prop({
     required: true,

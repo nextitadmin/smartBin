@@ -242,8 +242,7 @@ export class SmartBinService {
       .limit(5)
       .lean();
 
-    const records = recentlyDeliveredRecords.map((app, index) => ({
-      sn: index + 1,
+    const records = recentlyDeliveredRecords.map((app) => ({
       id: String(app._id),
       name: app?.assignedTo,
       date: app.deliveredOn,
@@ -273,9 +272,8 @@ export class SmartBinService {
       this.smartbinModel.countDocuments({ status: SmartbinStatus.Delivered }),
     ]);
 
-    const records = applications.map((app, index) => {
+    const records = applications.map((app) => {
       return {
-        sn: index + 1,
         id: String(app._id),
         name: app?.assignedTo,
         customerType: app?.customerType,
@@ -315,9 +313,8 @@ export class SmartBinService {
       this.smartbinModel.countDocuments(),
     ]);
 
-    const records = applications.map((app, index) => {
+    const records = applications.map((app) => {
       return {
-        sn: index + 1,
         id: String(app._id),
         name: app?.assignedTo,
         customerType: app?.customerType,

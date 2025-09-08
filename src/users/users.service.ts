@@ -116,20 +116,20 @@ export class UsersService {
 
 
     // facility users
-    async getFacilityUsers(facilityMgrId: string, page = 1, limit = 10) {
+    async getFacilityUsers(accountId: string, page = 1, limit = 10) {
         const skip = (page - 1) * limit;
 
         const [users, total] = await Promise.all([
             this.facilityUsersModel
                 .find({
-                    accountId: facilityMgrId,
+                    accountId: accountId,
                 })
                 .sort({ createdAt: -1 })
                 .skip(skip)
                 .limit(limit)
                 .lean(),
             this.facilityUsersModel.countDocuments({
-                accountId: facilityMgrId,
+                accountId: accountId,
             }),
         ]);
 
@@ -146,15 +146,14 @@ export class UsersService {
 
 
 
-    async getAgentRegisteredUsers(agentId: string, page = 1, limit = 10) {
+    async getAgentRegisteredUsers(agentId?: string, page: number = 1, limit: number = 10) {
         const skip = (page - 1) * limit;
 
-        // Fetch data + counts
         const [residents, corporates, totalResidents, totalCorporates] = await Promise.all([
-            this.residentModel.find({ registeredBy: agentId, registeredByModel: 'Agent' }).lean(),
-            this.corporateModel.find({ registeredBy: agentId, registeredByModel: 'Agent' }).lean(),
-            this.residentModel.countDocuments({ registeredBy: agentId, registeredByModel: 'Agent' }),
-            this.corporateModel.countDocuments({ registeredBy: agentId, registeredByModel: 'Agent' }),
+            this.residentModel.find({ agentId }).sort({ createdAt: -1 }).lean(),
+            this.corporateModel.find({ agentId }).sort({ createdAt: -1 }).lean(),
+            this.residentModel.countDocuments({ agentId }),
+            this.corporateModel.countDocuments({ agentId }),
         ]);
 
         const mapUser = (user: any, type: UserRole) => ({
@@ -168,12 +167,12 @@ export class UsersService {
         });
 
         const allRegisteredUsers = [
-            ...residents.map(u => mapUser(u, UserRole.Resident)),
-            ...corporates.map(u => mapUser(u, UserRole.Corporate)),
+            ...residents.map(user => mapUser(user, UserRole.Resident)),
+            ...corporates.map(user => mapUser(user, UserRole.Corporate)),
         ];
         allRegisteredUsers.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-        const paginatedUsers = allRegisteredUsers.slice(skip, skip + limit);
+        const paginatedUsers = allRegisteredUsers.slice(0, limit);
 
         const total = totalResidents + totalCorporates;
 
@@ -189,5 +188,3 @@ export class UsersService {
     }
 
 }
-
-
