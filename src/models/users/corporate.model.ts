@@ -3,7 +3,6 @@ import { Document, SchemaTypes, Types } from 'mongoose';
 import { AccountStatus, UserRole } from '@models/types'; // Adjust this path as needed
 import { getHashedPassword } from '@common/utils'; // Adjust if needed
 import { Agent } from './agent.model';
-import { P } from 'pino';
 
 export interface CorporateAttributes {
   agentId?: Types.ObjectId;
@@ -76,7 +75,6 @@ export class Corporate implements CorporateAttributes {
 
   @Prop({ required: false })
   pspCompany?: string;
-
 
   @Prop({
     required: true,
