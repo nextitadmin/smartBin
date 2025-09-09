@@ -8,15 +8,22 @@ export const CacheKeys = {
 export const AdminMessagePatternCommands = Object.freeze({
   Smartbin: {
     GetOverview: 'GET_OVERVIEW',
+    GetDelivered: 'GET_DELIVERED_BINS',
     GetApplications: 'GET_ALL_APPLICATIONS',
     GetApplicationDetails: 'APPLICATION_DETAILS',
   },
-
   KycFlow: {
     GetApplications: 'GET_ALL_KYC_APPLICATIONS',
     GetApplicationDetails: 'KYC_APPLICATION_DETAILS',
     ApproveApplication: 'APPROVE_KYC_APPLICATION',
     RejectApplication: 'REJECT_KYC_APPLICATION',
+  },
+
+  Users: {
+    GetUsers: 'GET_USERS',
+    GetUser: 'GET_USER',
+    GetFacilityUsers: 'GET_FACILITY_USERS',
+    GetAgentRegisteredUsers: 'GET_AGENT_REGISTERED_USERS',
   },
 });
 

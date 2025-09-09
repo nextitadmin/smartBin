@@ -5,7 +5,7 @@ import { KycService } from './kyc.service';
 import { AdminMessagePatternCommands } from '@src/shared/constants';
 
 @Controller({
-  path: 'admin/kyc',
+  path: 'kyc',
   version: '1',
 })
 export class AdminKycController {

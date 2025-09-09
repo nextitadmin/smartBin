@@ -1,13 +1,14 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaTypes, Types } from 'mongoose';
 import { getHashedPassword } from '@common/utils';
-import { Gender, UserRole } from '@models/types';
+import { Gender, UserRole, AccountStatus } from '@models/types';
 import { Agent } from './agent.model';
 
 export enum LawmaCustomerType {
   Returning = 'Returning',
   New = 'New',
 }
+
 
 export interface ResidentAttributes {
   agentId: Types.ObjectId;
@@ -20,6 +21,7 @@ export interface ResidentAttributes {
   nationality?: string;
   gender?: Gender;
   lawmaCustomerType?: LawmaCustomerType;
+  pspCompany?: string;
   role: UserRole.Resident;
   address?: string;
   landmark?: string;
@@ -34,6 +36,7 @@ export interface ResidentAttributes {
   loginCodeExpiry?: Date;
   resetToken?: string;
   resetTokenExpiry?: Date;
+  status?: AccountStatus;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -78,6 +81,9 @@ export class Resident implements ResidentAttributes {
   @Prop()
   nationality?: string;
 
+  @Prop()
+  pspCompany?: string;
+
   @Prop({
     type: String,
     enum: Object.values(Gender),
@@ -117,11 +123,6 @@ export class Resident implements ResidentAttributes {
   @Prop()
   buildingType?: string;
 
-  @Prop({ type: Types.ObjectId })
-  registeredBy?: Types.ObjectId;
-
-  @Prop({ enum: ['Agent', 'FacilityManager'], required: false })
-  registeredByModel?: 'Agent' | 'FacilityManager';
 
   @Prop({
     required: true,
@@ -140,6 +141,13 @@ export class Resident implements ResidentAttributes {
 
   @Prop()
   resetTokenExpiry?: Date;
+
+  @Prop({
+    type: String,
+    enum: Object.values(AccountStatus),
+    default: AccountStatus.Active,
+  })
+  status?: AccountStatus;
 
   createdAt?: Date;
   updatedAt?: Date;

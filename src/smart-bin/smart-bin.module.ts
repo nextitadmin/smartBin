@@ -14,6 +14,7 @@ import { Transaction, TransactionSchema } from '@models/transaction.model';
 import { SmartBinService } from './smart-bin.service';
 import { AgentModule } from '@src/agent/agent.module';
 import { Facility, FacilitySchema } from '@models/facilities';
+import { AdminSmartBinController } from './admin.controller';
 
 @Module({
   imports: [
@@ -30,8 +31,8 @@ import { Facility, FacilitySchema } from '@models/facilities';
     ]),
     AgentModule,
   ],
-  controllers: [],
+  controllers: [AdminSmartBinController],
   providers: [SmartBinService],
   exports: [SmartBinService],
 })
-export class SmartBinModule {}
+export class SmartBinModule { }

@@ -30,7 +30,7 @@ import { ManagementService } from './managements.service';
     ]),
   ],
   controllers: [CorporatesManagementController, ResidentsManagementController, ManagementController],
-  providers: [CorporatesManagementService, ResidentsManagementService, ManagementService ],
-  exports: [CorporatesManagementService, ResidentsManagementService, ManagementService ],
+  providers: [CorporatesManagementService, ResidentsManagementService, ManagementService],
+  exports: [CorporatesManagementService, ResidentsManagementService, ManagementService],
 })
-export class ManagementsModule {}
+export class ManagementsModule { }
