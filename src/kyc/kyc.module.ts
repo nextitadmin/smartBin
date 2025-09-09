@@ -8,6 +8,7 @@ import {
   FacilityManagerSchema,
 } from '@models/users/facility-manager.model';
 import { CorporateTeam, CorporateTeamSchema } from '@models/corporate-team.model';
+import { AdminKycController } from './admin.controller';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { CorporateTeam, CorporateTeamSchema } from '@models/corporate-team.model
       { name: CorporateTeam.name, schema: CorporateTeamSchema },
     ]),
   ],
-  controllers: [],
+  controllers: [AdminKycController],
   providers: [KycService],
   exports: [KycService],
 })
