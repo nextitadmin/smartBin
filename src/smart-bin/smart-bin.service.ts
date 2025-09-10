@@ -112,24 +112,19 @@ export class SmartBinService {
     ]);
     return applications;
   }
-  // For Agent
+
+
   async getAgentBinApplication(filter: AgentBinApplicationFilter) {
-    if (!filter.page) {
-      filter.page = 1;
-    }
-
-    if (!filter.limit) {
-      filter.limit = 10;
-    }
-
-    const { page, limit, agentId } = filter;
+    const page = filter.page ?? 1;
+    const limit = filter.limit ?? 10;
     const skip = (page - 1) * limit;
-    const query = {
-      agentId: new Types.ObjectId(agentId),
-    };
+
+    const query = { agentId: new Types.ObjectId(filter.agentId) };
+
     const [applications, total] = await Promise.all([
       this.smartbinModel
         .find(query)
+        .populate('payment')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -137,8 +132,29 @@ export class SmartBinService {
       this.smartbinModel.countDocuments(query),
     ]);
 
+    const data = await Promise.all(
+      applications.map(async (app) => {
+        let customerName = app.name || app.businessName;
+        if (!customerName && app.userId) {
+
+          if (app.customerType === 'Resident') {
+            const user = await this.residentModel.findById(app.userId, 'firstName lastName').lean();
+            customerName = `${user.firstName} ${user.lastName}`;
+          } else if (app.customerType === 'Corporate') {
+            const corp = await this.corporateModel.findById(app.userId, 'businessName').lean();
+            customerName = corp?.businessName;
+          }
+        }
+
+        return {
+          customerName,
+          ...app,
+        };
+      })
+    )
+
     return {
-      data: applications,
+      data,
       paging: {
         total,
         page,
@@ -147,20 +163,7 @@ export class SmartBinService {
       },
     };
   }
-  // For Corporate
-  // async getCorporateBinApplication(corporateId: string) {
-  //   const [applications] = await Promise.all([
-  //     this.smartbinModel
-  //       .find({
-  //         userId: new Types.ObjectId(corporateId),
-  //         customerType: UserRole.Corporate,
-  //       })
-  //       .sort({ createdAt: -1 })
-  //       .lean(),
-  //   ]);
 
-  //   return applications;
-  // }
 
   async getCorporateBinApplication(corporateId: string, page = 1, limit = 10) {
     const skip = (page - 1) * limit;
