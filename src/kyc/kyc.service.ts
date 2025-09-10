@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Resident } from '@models/users/resident.model';
@@ -37,14 +37,12 @@ export class KycService {
     private readonly corporateTeamModel: Model<CorporateTeam>,
   ) {}
 
-
-   async createAgentKyc(dto:{
-    userId:string;
-    accountType:UserRole;
-    applicationData:CreateAgentKycDto;
-  }){
-
-     const userKyc = await this.userKycModel.findOneAndUpdate(
+  async createAgentKyc(dto: {
+    userId: string;
+    accountType: UserRole;
+    applicationData: CreateAgentKycDto;
+  }) {
+    const userKyc = await this.userKycModel.findOneAndUpdate(
       { userId: new Types.ObjectId(dto.userId), userType: dto.accountType },
       {
         $set: {
@@ -55,9 +53,9 @@ export class KycService {
           hasSubmittedIdentity: true,
           hasSubmittedAgencyDocument: true,
           hasSubmittedAgencyInformation: true,
-          hasCompletedKyc:true,
+          hasCompletedKyc: true,
           identityVerificationStatus: IdVerificationStatus.SUBMITTED,
-          agencyInformationStatus: AgencyInformationStatus.SUBMITTED
+          agencyInformationStatus: AgencyInformationStatus.SUBMITTED,
         },
       },
       { upsert: true, new: true },
@@ -67,19 +65,17 @@ export class KycService {
       hasSubmittedPersonalInformation: userKyc.hasSubmittedPersonalInformation,
       hasSubmittedidentity: userKyc.hasSubmittedIdentity,
       identityVerificationStatus: userKyc.identityVerificationStatus,
-      addressVerificationStatus: userKyc.addressVerificationStatus
+      addressVerificationStatus: userKyc.addressVerificationStatus,
     };
-
   }
 
   // for both resident and facility manager
-  async createKyc(dto:{
-    userId:string;
-    accountType:UserRole;
-    applicationData:CreateResidentKycDto | CreateFacilityManagerKycDto;
-  }){
-
-     const userKyc = await this.userKycModel.findOneAndUpdate(
+  async createKyc(dto: {
+    userId: string;
+    accountType: UserRole;
+    applicationData: CreateResidentKycDto | CreateFacilityManagerKycDto;
+  }) {
+    const userKyc = await this.userKycModel.findOneAndUpdate(
       { userId: new Types.ObjectId(dto.userId), userType: dto.accountType },
       {
         $set: {
@@ -87,9 +83,9 @@ export class KycService {
           ...dto.applicationData.identityInformation,
           hasSubmittedPersonalInformation: true,
           hasSubmittedIdentity: true,
-          hasCompletedKyc:true,
+          hasCompletedKyc: true,
           identityVerificationStatus: IdVerificationStatus.SUBMITTED,
-          addressVerificationStatus: AddressVerificationStatus.SUBMITTED
+          addressVerificationStatus: AddressVerificationStatus.SUBMITTED,
         },
       },
       { upsert: true, new: true },
@@ -99,9 +95,8 @@ export class KycService {
       hasSubmittedPersonalInformation: userKyc.hasSubmittedPersonalInformation,
       hasSubmittedidentity: userKyc.hasSubmittedIdentity,
       identityVerificationStatus: userKyc.identityVerificationStatus,
-      addressVerificationStatus: userKyc.addressVerificationStatus
+      addressVerificationStatus: userKyc.addressVerificationStatus,
     };
-
   }
 
   async createCorporateKyc(dto: {
@@ -128,7 +123,7 @@ export class KycService {
           hasSubmittedPersonalInformation: true,
           hasSubmittedIdentity: true,
           hasSubmittedSignatories: true,
-          hasCompletedKyc:true,
+          hasCompletedKyc: true,
           identityVerificationStatus: IdVerificationStatus.SUBMITTED,
           signatoryVerificationStatus: SignatoryVerificationStatus.SUBMITTED,
         },
@@ -393,5 +388,150 @@ export class KycService {
       message: 'corporate team member removed successfully',
       data: null,
     };
+  }
+
+  //For Admins
+
+  async getAllApplications(page: number, limit: number, status?: IdVerificationStatus) {
+    const skip = (page - 1) * limit;
+
+    const statusType = status === "pending" ? IdVerificationStatus.SUBMITTED : status
+
+    const [kycRecords, total] = await Promise.all([
+      this.userKycModel
+        .find({identityVerificationStatus: statusType})
+        .skip(skip)
+        .limit(limit)
+        .populate({
+          path: 'userId',
+          select: '-password -createdAt -updatedAt -__v',
+        })
+        .lean(),
+
+      this.userKycModel.countDocuments(),
+    ]);
+
+    return {
+      data: kycRecords,
+      paging: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        size: limit,
+      },
+    };
+  }
+
+  async getKycApplicationDetails(applicationId: string): Promise<{
+    data: Record<string, any>;
+    message: string;
+  }> {
+    const application = await this.userKycModel
+      .findById(applicationId)
+      .populate({
+        path: 'userId',
+        select: '-password -createdAt -updatedAt -__v',
+      })
+      .lean();
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    // If corporate, fetch signatories
+    let signatories = [];
+    if (application.userType === UserRole.Corporate && Array.isArray(application.signatories)) {
+      signatories = await this.corporateTeamModel
+        .find({ _id: { $in: application.signatories }, deletedAt: null })
+        .lean();
+    }
+
+    return {
+      data: {
+        ...application,
+        signatories,
+      },
+      message: 'Application details fetched successfully',
+    };
+  }
+
+  async approveApplication(applicationId: string) {
+    const application = await this.userKycModel.findById(applicationId).lean();
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    let update: any = {};
+
+    switch (application.userType) {
+      case UserRole.Resident:
+      case UserRole.Facility:
+        update = {
+          identityVerificationStatus: IdVerificationStatus.APPROVED,
+          addressVerificationStatus: AddressVerificationStatus.APPROVED,
+        };
+        break;
+      case UserRole.Agent:
+        update = {
+          identityVerificationStatus: IdVerificationStatus.APPROVED,
+          agencyInformationStatus: AgencyInformationStatus.APPROVED,
+        };
+        break;
+      case UserRole.Corporate:
+        update = {
+          identityVerificationStatus: IdVerificationStatus.APPROVED,
+          signatoryVerificationStatus: SignatoryVerificationStatus.APPROVED,
+        };
+        break;
+      default:
+        throw new NotFoundException('Unknown user type');
+    }
+
+    await this.userKycModel.findByIdAndUpdate(
+      applicationId,
+      { $set: update },
+      { new: true },
+    );
+    return { data: null, message: 'Kyc application approved' };
+  }
+
+  async rejectApplication(applicationId: string) {
+    const application = await this.userKycModel.findById(applicationId).lean();
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    let update: any = {};
+
+    switch (application.userType) {
+      case UserRole.Resident:
+      case UserRole.Facility:
+        update = {
+          identityVerificationStatus: IdVerificationStatus.REJECTED,
+          addressVerificationStatus: AddressVerificationStatus.REJECTED,
+        };
+        break;
+      case UserRole.Agent:
+        update = {
+          identityVerificationStatus: IdVerificationStatus.REJECTED,
+          agencyInformationStatus: AgencyInformationStatus.REJECTED,
+        };
+        break;
+      case UserRole.Corporate:
+        update = {
+          identityVerificationStatus: IdVerificationStatus.REJECTED,
+          signatoryVerificationStatus: SignatoryVerificationStatus.REJECTED,
+        };
+        break;
+      default:
+        throw new NotFoundException('Unknown user type');
+    }
+
+    await this.userKycModel.findByIdAndUpdate(
+      applicationId,
+      { $set: update },
+      { new: true },
+    );
+    return { data: null, message: 'Kyc application rejected' };
   }
 }

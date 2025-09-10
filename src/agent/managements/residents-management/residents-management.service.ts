@@ -10,14 +10,12 @@ export class ResidentsManagementService {
   constructor(
     @InjectModel(Resident.name)
     private readonly residentModel: Model<Resident>,
-  ) {}
+  ) { }
 
   async getResidents({ agentId }: { agentId?: string } = {}) {
-    const filter: any = {};
-    if (agentId) {
-      filter.registeredBy = agentId;
-    }
-    return this.residentModel.find(filter);
+    return this.residentModel.find({
+      agentId,
+    });
   }
 
   async getResident(id: string) {
@@ -25,7 +23,7 @@ export class ResidentsManagementService {
   }
 
   async createResident(
-    data: CreateAgentResidentAccountDto & { registeredBy: string },
+    data: CreateAgentResidentAccountDto & { agentId: string },
   ) {
     const [existingCorporate, existingEmail] = await Promise.all([
       this.residentModel.findOne({ payerId: data.payerId }),
@@ -39,7 +37,10 @@ export class ResidentsManagementService {
       throw new ConflictException('Email already exists');
     }
 
-    return this.residentModel.create({ ...data, registeredByModel: 'Agent' });
+    return this.residentModel.create({
+      ...data,
+      agentId: data.agentId,
+    });
   }
 
   async updateResident(

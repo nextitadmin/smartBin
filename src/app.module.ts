@@ -43,6 +43,7 @@ import { ReportModule } from './report/report.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { WasteManagementModule } from './waste-management/waste-management.module';
 import { TeamModule } from './team/team.module';
+import { UsersModule } from './users/users.module';
 // import { AppService } from './app.service';
 
 @Module({
@@ -66,6 +67,7 @@ import { TeamModule } from './team/team.module';
     DashboardModule,
     SmartBinModule,
     MediaModule,
+    UsersModule,
     UtilityModule,
     IntegrationsModule,
     PickupModule,

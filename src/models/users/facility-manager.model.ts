@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
-import { UserRole } from '@models/types'; // adjust if needed
+import { AccountStatus, UserRole } from '@models/types'; // adjust if needed
 import { getHashedPassword } from '@common/utils'; // adjust if needed
 
 export interface FacilityManagerAttributes {
@@ -54,6 +54,15 @@ export class FacilityManager implements FacilityManagerAttributes {
     set: (val: string) => getHashedPassword(val),
   })
   password: string;
+
+  @Prop()
+  pspCompany?: string;
+
+  @Prop()
+  localGovernmentArea?: string;
+
+  @Prop({ enum: AccountStatus, default: AccountStatus.Active })
+  status: AccountStatus
 
   @Prop({ enum: [UserRole.Facility], default: UserRole.Facility })
   role: UserRole.Facility;
