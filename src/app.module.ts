@@ -45,6 +45,8 @@ import { WasteManagementModule } from './waste-management/waste-management.modul
 import { TeamModule } from './team/team.module';
 import { UsersModule } from './users/users.module';
 // import { AppService } from './app.service';
+import { SuperAdminController } from './super-admin/super-admin.controller';
+import { SuperAdminModule } from './super-admin/super-admin.module';
 
 @Module({
   imports: [
@@ -77,8 +79,9 @@ import { UsersModule } from './users/users.module';
     SubscriptionModule,
     WasteManagementModule,
     TeamModule,
+    SuperAdminModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, SuperAdminController],
   providers: [
     {
       provide: APP_GUARD,

@@ -1,9 +1,4 @@
-// dashboard.service.ts
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Resident } from '@models/users/resident.model';
@@ -15,41 +10,38 @@ import { Wallet } from '@models/wallet.model';
 import { SmartBin } from '@models/smart-bin.model';
 import { Transaction } from '@models/transaction.model';
 import { Pickup, Status } from '@models/pickup';
-import { PickupStatus, UserRole } from '@models/types';
-import { formatCustomDate, formatTimestamp } from '@common/utils';
 import { TeamMember } from '@models/team.model';
 
 @Injectable()
-export class AdminDashboardService {
-  constructor(
-    @InjectModel(Resident.name) private readonly residentModel: Model<Resident>,
-    @InjectModel(Agent.name) private readonly agentModel: Model<Agent>,
-    @InjectModel(Corporate.name)
-    private readonly corporateModel: Model<Corporate>,
-    @InjectModel(FacilityManager.name)
-    private readonly facilityModel: Model<FacilityManager>,
-    @InjectModel(Bill.name) private readonly billModel: Model<Bill>,
-    @InjectModel(Wallet.name) private readonly walletModel: Model<Wallet>,
-    @InjectModel(SmartBin.name) private readonly smartbinModel: Model<SmartBin>,
-    @InjectModel(Pickup.name) private readonly pickupModel: Model<Pickup>,
-    @InjectModel(Transaction.name) private readonly transactionModel: Model<Transaction>,
-    @InjectModel(TeamMember.name) private readonly teamMemberModel: Model<TeamMember>
-  ) { }
+export class SuperAdminService {
+    constructor(
+        @InjectModel(Resident.name) private readonly residentModel: Model<Resident>,
+        @InjectModel(Agent.name) private readonly agentModel: Model<Agent>,
+        @InjectModel(Corporate.name)
+        private readonly corporateModel: Model<Corporate>,
+        @InjectModel(FacilityManager.name)
+        private readonly facilityModel: Model<FacilityManager>,
+        @InjectModel(Bill.name) private readonly billModel: Model<Bill>,
+        @InjectModel(Wallet.name) private readonly walletModel: Model<Wallet>,
+        @InjectModel(SmartBin.name) private readonly smartbinModel: Model<SmartBin>,
+        @InjectModel(Pickup.name) private readonly pickupModel: Model<Pickup>,
+        @InjectModel(Transaction.name) private readonly transactionModel: Model<Transaction>,
+        @InjectModel(TeamMember.name) private readonly teamMemberModel: Model<TeamMember>
+    ) { }
 
-    async getAdminDashboard(queryYear: number) {
+    async getSuperAdminDashboard(queryYear: number) {
         const [residentCount, agentCount, corporateCount, facilityManagerCount, totalTeamMembers] = await Promise.all([
-                this.residentModel.countDocuments().exec(),
-                this.agentModel.countDocuments().exec(),
-                this.corporateModel.countDocuments().exec(),
-                this.facilityModel.countDocuments().exec(),
-                this.smartbinModel.countDocuments().exec(),
-                this.teamMemberModel.countDocuments().exec()
-            ]);
-        
-            const pendingBinrequests = await this.smartbinModel.countDocuments({ status: 'pending' }).exec();
-            const completedBinrequests = await this.smartbinModel.countDocuments({ status: 'completed' }).exec();
-            const totalBinRequests = await this.smartbinModel.countDocuments().exec();
-            const totalRegisteredUsers = residentCount + agentCount + corporateCount + facilityManagerCount + totalTeamMembers;
+            this.residentModel.countDocuments().exec(),
+            this.agentModel.countDocuments().exec(),
+            this.corporateModel.countDocuments().exec(),
+            this.facilityModel.countDocuments().exec(),
+            this.teamMemberModel.countDocuments().exec()
+        ]);
+
+        const pendingBinrequests = await this.smartbinModel.countDocuments({ status: 'pending' }).exec();
+        const completedBinrequests = await this.smartbinModel.countDocuments({ status: 'completed' }).exec();
+        const totalBinRequests = await this.smartbinModel.countDocuments().exec();
+        const totalRegisteredUsers = residentCount + agentCount + corporateCount + facilityManagerCount + totalTeamMembers;
 
         return {
             registeredUsers: {
@@ -60,13 +52,14 @@ export class AdminDashboardService {
                 totalRegisteredUsers: totalRegisteredUsers,
             },
             binRequests: {
-                pending: pendingBinrequests,
-                completed: completedBinrequests,
-                totalBinRequest: totalBinRequests
+                pendingBinrequests: pendingBinrequests,
+                completedBinrequests: completedBinrequests,
+                totalBinRequests: totalBinRequests,
             },
+            totalTeamMembers: totalTeamMembers,
             pspCompanies: {
-                registeredPSPs: 0 ,
-                topPspCompanies: [],
+                registeredPSPs: 0,
+                topPSPcompanies: [],
             }
         };
     }
@@ -127,6 +120,4 @@ export class AdminDashboardService {
             paymentDetails
         };
     }
-
-
 }
