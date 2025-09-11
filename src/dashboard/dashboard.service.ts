@@ -187,7 +187,7 @@ export class DashboardService {
 
   // get agent dashboard
   async getAgentDashboard(agentId: string, year: number) {
-    const [agent, residents, corporates, wallet, bills, smartbin, disposals] =
+    const [agent, residents, corporates, wallet, agentBills, smartbin, disposals] =
       await Promise.all([
         this.agentModel.findById(agentId),
         this.residentModel.find({
@@ -216,23 +216,26 @@ export class DashboardService {
     );
     const binDisposalAnalytics = this.groupDisposalsByMonth(filteredDisposals);
 
-  const outstandingBills = bills.filter((b) => b.status !== 'completed');
+  // 🔹 Outstanding bills for Agent itself
+  const outstandingBills = agentBills.filter((b) => b.status !== 'completed');
   const totalOutstanding = outstandingBills.reduce((sum, b) => sum + b.amount, 0);
 
-  const completedBills = bills.filter((b) => b.status === 'completed');
-  const agentPayments = completedBills.reduce((sum, b) => sum + b.amount, 0);
+  // 🔹 Completed Agent bills
+  const completedAgentBills = agentBills.filter((b) => b.status === 'completed');
+  const agentPayments = completedAgentBills.reduce((sum, b) => sum + b.amount, 0);
 
   const residentPayments = residentBills
     .filter((b) => b.status === 'completed')
     .reduce((sum, b) => sum + b.amount, 0);
 
+  // 🔹 Corporate payments
   const corporatePayments = corporateBills
     .filter((b) => b.status === 'completed')
     .reduce((sum, b) => sum + b.amount, 0);
     
   const totalPayments = agentPayments + residentPayments + corporatePayments;
 
-    const annualEstimate = this.estimateAnnualSubscription(bills);
+    const annualEstimate = this.estimateAnnualSubscription(agentBills);
 
     return {
       id: agent?._id,
