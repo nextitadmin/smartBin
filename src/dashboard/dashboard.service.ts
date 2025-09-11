@@ -206,13 +206,9 @@ export class DashboardService {
         this.pickupModel.find({ accountId: agentId, accountType: 'Agent', status: Status.Completed }).lean(),
       ]);
 
-     // 🔹 Fetch resident & corporate bills separately
-    const residentIds = residents.map((r) => r._id);
-    const corporateIds = corporates.map((c) => c._id);
-
     const [residentBills, corporateBills] = await Promise.all([
-      this.billModel.find({ userId: { $in: residentIds }, userType: 'Resident' }).lean(),
-      this.billModel.find({ userId: { $in: corporateIds }, userType: 'Corporate' }).lean(),
+      this.billModel.find({ registeredBy: agentId, registeredByModel: 'Agent', userType: 'Resident' }).lean(),
+      this.billModel.find({ registeredBy: agentId, registeredByModel: 'Agent', userType: 'Corporate' }).lean(),
     ]);
 
     const filteredDisposals = disposals.filter(
@@ -220,25 +216,20 @@ export class DashboardService {
     );
     const binDisposalAnalytics = this.groupDisposalsByMonth(filteredDisposals);
 
-  // 🔹 Outstanding bills for Agent itself
   const outstandingBills = bills.filter((b) => b.status !== 'completed');
   const totalOutstanding = outstandingBills.reduce((sum, b) => sum + b.amount, 0);
 
-  // 🔹 Completed Agent bills
   const completedBills = bills.filter((b) => b.status === 'completed');
   const agentPayments = completedBills.reduce((sum, b) => sum + b.amount, 0);
 
-  // 🔹 Resident payments
   const residentPayments = residentBills
     .filter((b) => b.status === 'completed')
     .reduce((sum, b) => sum + b.amount, 0);
 
-  // 🔹 Corporate payments
   const corporatePayments = corporateBills
     .filter((b) => b.status === 'completed')
     .reduce((sum, b) => sum + b.amount, 0);
     
-  // 🔹 Total payments (Agent + Resident + Corporate)
   const totalPayments = agentPayments + residentPayments + corporatePayments;
 
     const annualEstimate = this.estimateAnnualSubscription(bills);
