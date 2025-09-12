@@ -585,7 +585,7 @@ export class SmartBinService {
       throw new NotFoundException('Bin application not found');
     }
 
-    if (smartBin.payment.status === TransactionStatus.Successful) {
+    if (smartBin.payment && smartBin.payment.status === TransactionStatus.Successful) {
       throw new BadRequestException('Application already paid!');
     }
 

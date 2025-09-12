@@ -3,7 +3,7 @@ import {
   AuthenticatedAgent,
 } from '@common/decorators/auth.decorator';
 import { AgentUser } from '@common/types';
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Delete } from '@nestjs/common';
 import { CreateApplicationDto } from '@src/resident/dto/resident.dto';
 import { AgentSmartbinService } from './bin-management.service';
 import { PaginatedSuccessResponse, SuccessResponse } from '@common/http';
@@ -17,7 +17,7 @@ import { IdParamDTO } from '../dto/agent.dto';
 @ApiTags('Agent - Bin Management')
 @AgentAuth()
 export class AgentSmartbinController {
-  constructor(private readonly agentSmartbinService: AgentSmartbinService) {}
+  constructor(private readonly agentSmartbinService: AgentSmartbinService) { }
 
   @Get()
   async getAgentSmartbins(
@@ -67,5 +67,12 @@ export class AgentSmartbinController {
   async getBinApplicationById(@Param() { id }: IdParamDTO) {
     const response = await this.agentSmartbinService.getApplicationById(id);
     return new SuccessResponse('fetched', response);
+  }
+
+
+  @Delete(':id')
+  async deleteBinApplication(@Param() { id }: IdParamDTO) {
+    const response = await this.agentSmartbinService.deleteBinApplication(id);
+    return new SuccessResponse('deleted', response);
   }
 }

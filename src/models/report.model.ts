@@ -19,10 +19,11 @@ export interface ReportAttributes {
     reportName: string;
     filters: Record<string, any>;
     data: Record<string, any>;
-    userId: Types.ObjectId;
+    userId?: Types.ObjectId;
+    adminId?: Types.ObjectId;
+    lga?: string;
     tenantName?: string;
     businessName?: string;
-
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -30,11 +31,12 @@ export interface ReportAttributes {
 
 @Schema({ timestamps: true })
 export class Report implements ReportAttributes {
-    @Prop({
-        required: true,
-        type: SchemaTypes.ObjectId,
-    })
-    userId: Types.ObjectId;
+
+    @Prop({ type: Types.ObjectId, required: false })
+    userId?: Types.ObjectId;
+
+    @Prop({ type: Types.ObjectId, required: false })
+    adminId?: Types.ObjectId;
 
     @Prop({ required: true })
     reportName: string;
@@ -50,6 +52,8 @@ export class Report implements ReportAttributes {
     })
     type: ReportType;
 
+    @Prop()
+    lga?: string;
 
     @Prop()
     startDate: Date;

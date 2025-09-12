@@ -25,6 +25,11 @@ export const AdminMessagePatternCommands = Object.freeze({
     GetFacilityUsers: 'GET_FACILITY_USERS',
     GetAgentRegisteredUsers: 'GET_AGENT_REGISTERED_USERS',
   },
+  Report: {
+    CreateReport: 'CREATE_REPORT',
+    GetReports: 'GET_REPORTS',
+    GetReport: 'GET_REPORT',
+  }
 });
 
 export enum IdVerificationStatus {

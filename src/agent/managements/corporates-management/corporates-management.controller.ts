@@ -25,7 +25,7 @@ import { CreateAgentCorporateAccountDto, UpdateAgentCorporateAccountDto } from '
 export class CorporatesManagementController {
   constructor(
     private readonly corporatesManagementService: CorporatesManagementService,
-  ) {}
+  ) { }
 
   @Post()
   @AgentAuth()
@@ -43,8 +43,7 @@ export class CorporatesManagementController {
   @Get()
   @AgentAuth()
   async getCorporates(@AuthenticatedAgent() agent: AgentUser) {
-    const response = await this.corporatesManagementService.getCorporates(
-      agent.id,
+    const response = await this.corporatesManagementService.getCorporates({ agentId: agent.id }
     );
     return new SuccessResponse('corporates fetched', response);
   }
