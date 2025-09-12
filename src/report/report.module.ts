@@ -10,6 +10,7 @@ import { SmartBin, SmartBinSchema } from '@models/smart-bin.model';
 import { Pickup, PickupSchema } from '@models/pickup';
 import { Transaction, TransactionSchema } from '@models/transaction.model';
 import { Resident, ResidentSchema } from '@models/users/resident.model';
+import { AdminReportController } from './admin.controller';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { Resident, ResidentSchema } from '@models/users/resident.model';
     ]),
     CorporateModule,
   ],
-  controllers: [CorporateReportController],
+  controllers: [CorporateReportController, AdminReportController],
   providers: [ReportService],
   exports: [ReportService],
 })

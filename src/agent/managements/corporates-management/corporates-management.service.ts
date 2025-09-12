@@ -12,7 +12,7 @@ export class CorporatesManagementService {
     @InjectModel(Corporate.name)
     private readonly corporateModel: Model<Corporate>,
     @InjectModel(Branch.name) private readonly branchModel: Model<Branch>, // private readonly corporateService: CorporateService
-  ) {}
+  ) { }
 
   async createCorporate(
     payload: CreateAgentCorporateAccountDto & { agentId: string },
@@ -36,8 +36,7 @@ export class CorporatesManagementService {
 
     const corporate = await this.corporateModel.create({
       ...payload,
-      registeredBy: payload.agentId,
-      registeredByModel: 'Agent',
+      agentId: payload.agentId,
     });
 
     if (payload.branches.length) {
@@ -48,27 +47,10 @@ export class CorporatesManagementService {
     }
   }
 
-  async getCorporates(agentId: string) {
-    return this.corporateModel
-      .aggregate([
-        { $match: { registeredBy: agentId } },
-        { $sort: { createdAt: -1 } },
-        {
-          $lookup: {
-            from: this.branchModel.collection.name,
-            localField: '_id',
-            foreignField: 'userId',
-            as: 'branches',
-          },
-        },
-        {
-          $project: {
-            __v: 0,
-            password: 0,
-          },
-        },
-      ])
-      .exec();
+  async getCorporates({ agentId }: { agentId?: string } = {}) {
+    return this.corporateModel.find({
+      agentId,
+    });
   }
 
   async getCorporate(corporateId: string) {
