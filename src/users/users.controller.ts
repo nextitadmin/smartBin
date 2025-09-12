@@ -41,8 +41,8 @@ export class UsersController {
 
 
     @MessagePattern({ cmd: AdminMessagePatternCommands.Users.GetAgentRegisteredUsers })
-    async getAgentRegisteredUsers(payload: { agentId: string, page: number, limit: number }) {
-        const response = await this.usersService.getAgentRegisteredUsers(payload.agentId, payload.page, payload.limit);
+    async getAgentRegisteredUsers({ agentId, page, limit }: { agentId: string, page?: number, limit?: number }) {
+        const response = await this.usersService.getAgentRegisteredUsers({ agentId }, page, limit);
         return new SuccessResponse(
             'Agent registered users retrieved successfully',
             response,
