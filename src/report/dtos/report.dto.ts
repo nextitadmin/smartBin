@@ -9,6 +9,42 @@ export enum CustomerType {
     Resident = 'Resident',
 }
 
+export enum AdminReportType {
+    Revenue = 'revenue',
+    WastePickup = 'waste-pickup',
+    SmartBinRequest = 'smartbin-request',
+}
+
+export class CreateAdminReportDto {
+    @ApiProperty()
+    @IsString()
+    reportName: string;
+
+    @ApiProperty({ enum: ReportType, enumName: 'ReportType', description: 'Type of report to generate' })
+    type: AdminReportType;
+
+    @ApiPropertyOptional()
+    @IsOptional()
+    @IsString()
+    lga?: string;
+
+    @ApiProperty({ type: String, format: 'date-time' })
+    @IsOptional()
+    @IsDateString()
+    startDate?: string;
+
+    @ApiProperty({ type: String, format: 'date-time' })
+    @IsOptional()
+    @IsDateString()
+    endDate?: string;
+
+    @IsOptional()
+    @IsObject()
+    filters?: Record<string, any>;
+
+}
+
+
 
 export class CreateReportDto {
 

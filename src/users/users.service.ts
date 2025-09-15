@@ -146,7 +146,7 @@ export class UsersService {
 
 
 
-    async getAgentRegisteredUsers(agentId?: string, page: number = 1, limit: number = 10) {
+    async getAgentRegisteredUsers({ agentId }: { agentId?: string } = {}, page: number = 1, limit: number = 10) {
         const skip = (page - 1) * limit;
 
         const [residents, corporates, totalResidents, totalCorporates] = await Promise.all([

@@ -5,7 +5,7 @@ import {
 import { PaginationQueryDto } from '@common/dto';
 import { PaginatedSuccessResponse, SuccessResponse } from '@common/http';
 import { FacilityManagerUser } from '@common/types';
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Delete } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import {
   CreateApplicationDto,
@@ -20,7 +20,7 @@ import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 })
 @FacilityManagerAuth()
 export class SmartBinController {
-  constructor(private readonly smartBinService: SmartBinService) {}
+  constructor(private readonly smartBinService: SmartBinService) { }
 
   @Get('applications')
   async getSmartBinApplications(
@@ -73,5 +73,15 @@ export class SmartBinController {
       'Smart Bin application retrieved successfully',
       response,
     );
+  }
+
+  @Delete('applications/:id')
+  async deleteBinApplication(
+    @AuthenticatedFacilityManager() facilityManager: FacilityManagerUser,
+    @Param('id') id: string,
+  ) {
+    const response = await this.smartBinService.deleteBinApplication(id);
+
+    return new SuccessResponse('Smart Bin application deleted successfully', response);
   }
 }

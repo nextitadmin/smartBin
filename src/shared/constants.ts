@@ -30,6 +30,11 @@ export const AdminMessagePatternCommands = Object.freeze({
     GetRevenueOverview: 'GET_REVENUE_OVERVIEW',
   },
   
+  Report: {
+    CreateReport: 'CREATE_REPORT',
+    GetReports: 'GET_REPORTS',
+    GetReport: 'GET_REPORT',
+  }
 });
 
 export enum IdVerificationStatus {
