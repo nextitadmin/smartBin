@@ -18,8 +18,6 @@ import { SuccessResponse } from '@common/http';
 
 
 @ApiTags('Admin-Report')
-// @ApiBearerAuth('access-token')
-// @UseGuards(AuthGuard)
 @Controller()
 export class AdminReportController {
     constructor(private readonly reportService: ReportService) { }
@@ -28,21 +26,25 @@ export class AdminReportController {
     @MessagePattern({ cmd: AdminMessagePatternCommands.Report.CreateReport })
     async createReport(payload: { adminId: string } & CreateAdminReportDto) {
         const data = await this.reportService.generateAdminReport(payload.adminId, payload);
-        return new SuccessResponse(
-            'Report generated successfully',
-            data,
-        );
+        return data;
     }
 
     @MessagePattern({ cmd: AdminMessagePatternCommands.Report.GetReports })
-    getReports(payload: { adminId: string; filters: GetReportsDto }) {
-        return this.reportService.getAdminReports(payload.adminId, payload.filters);
+    async getReports(payload: { adminId: string } & GetReportsDto) {
+        const reports = await this.reportService.getAdminReports(payload.adminId, payload);
+        return new SuccessResponse(
+            'Reports retrieved successfully',
+            reports,
+        );
     }
 
     @MessagePattern({ cmd: AdminMessagePatternCommands.Report.GetReport })
-    getReportById(payload: { reportId: string }) {
-        return this.reportService.getAdminReportById(payload.reportId);
+    async getReportById(payload: { id: string, adminId: string }) {
+        const report = await this.reportService.getAdminReportById(payload.id, payload.adminId);
+        return new SuccessResponse(
+            'Report retrieved successfully',
+            report,
+        );
     }
-
 
 }

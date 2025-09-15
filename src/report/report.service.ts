@@ -5,7 +5,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Report, ReportType } from '@models/report.model';
-import { CreateReportDto, CustomerType, GetReportsDto, CreateAdminReportDto, AdminReportType } from './dtos/report.dto';
+import { CreateReportDto, CustomerType, GetReportsDto, CreateAdminReportDto } from './dtos/report.dto';
 import { SuccessResponse } from '@common/http';
 import { AuthUser } from '@common/types';
 import {
@@ -18,6 +18,10 @@ import { Pickup, PickupDocument } from '@models/pickup';
 import moment from 'moment';
 import { Resident } from '@models/users/resident.model';
 import { Corporate } from '@models/users/corporate.model';
+import { UserRole } from '@models/types';
+import { Agent } from '@models/users/agent.model';
+import { FacilityManager } from '@models/users/facility-manager.model';
+import { FacilityUsers } from '@models/facility-users.model';
 
 @Injectable()
 export class ReportService {
@@ -27,6 +31,9 @@ export class ReportService {
         @InjectModel(SmartBin.name) private readonly smartBinModel: Model<SmartBin>,
         @InjectModel(Pickup.name) private readonly pickupModel: Model<PickupDocument>,
         @InjectModel(Resident.name) private readonly residentModel: Model<Resident>,
+        @InjectModel(Agent.name) private readonly agentModel: Model<Agent>,
+        @InjectModel(FacilityManager.name) private readonly facilityManagerModel: Model<FacilityManager>,
+        // @InjectModel(FacilityUsers.name) private readonly facilityModel: Model<FacilityUsers>,
         @InjectModel(Corporate.name) private readonly corporateModel: Model<Corporate>,
     ) { }
 
@@ -387,11 +394,11 @@ export class ReportService {
         const { type } = dto;
 
         let data: any;
-        if (type === AdminReportType.Revenue) {
+        if (type === ReportType.Revenue) {
             data = await this.adminRevenueReport(dto);
-        } else if (type === AdminReportType.WastePickup) {
+        } else if (type === ReportType.WastePickup) {
             data = await this.adminWasteDisposalReport(dto);
-        } else if (type === AdminReportType.SmartBinRequest) {
+        } else if (type === ReportType.SmartBinRequest) {
             data = await this.adminSmartbinReport(dto);
         }
 
@@ -492,12 +499,12 @@ export class ReportService {
         let totalWeight = 0;
 
         const pickups = records.map((item) => {
+            
             const weight = item.weight || 0;
 
             totalWeight += weight;
 
             return {
-
                 pickupDate: item.pickupDate,
                 pickupTime: item.pickupTime,
                 customerName: item?.customerName,
@@ -505,7 +512,7 @@ export class ReportService {
                 address: item.address,
                 status: item.status,
                 weight,
-                orderId: item.wasteId,
+                wasteId: item.id,
                 branch: item?.branch,
                 tenantName: item?.customerName,
                 businessName: item?.representative,
@@ -521,83 +528,81 @@ export class ReportService {
         };
     }
 
+
+
     async adminRevenueReport(dto: CreateAdminReportDto) {
-        const { filters, startDate, endDate } = dto;
+    const { filters, startDate, endDate } = dto;
 
-        const query: any = {
-            status: TransactionStatus.Successful,
+    const query: any = {
+        status: TransactionStatus.Successful,
+    };
+
+    if (startDate && endDate) {
+        query.createdAt = {
+            $gte: new Date(startDate),
+            $lte: new Date(endDate),
         };
-
-        if (startDate && endDate) {
-            query.createdAt = {
-                $gte: new Date(startDate),
-                $lte: new Date(endDate),
-            };
-        }
-
-        if (filters?.branch) {
-            query['meta.branch'] = filters.branch;
-        }
-
-        const transactions = await this.transactionModel.find(query).lean();
-
-        const summaryMap: Record<string, { totalAmount: number }> = {
-            [ServiceType.SmartBinPurchase]: { totalAmount: 0 },
-            [ServiceType.WasteDisposal]: { totalAmount: 0 },
-            [ServiceType.Subscription]: { totalAmount: 0 },
-            [ServiceType.WalletTopUp]: { totalAmount: 0 },
-        };
-
-        let totalRevenue = 0;
-
-        const records = transactions.map((txn) => {
-            const { service, amount } = txn;
-            if (summaryMap[service]) {
-                summaryMap[service].totalAmount += amount;
-            }
-            totalRevenue += amount;
-
-            return {
-                transactionId: txn.transactionReference,
-                receiptId: txn._id,
-                service,
-                branch: txn.meta?.branch,
-                tenantName: txn.meta?.tenantName,
-                businessName: txn.meta?.businessName,
-                amount,
-                paymentMethod: txn.paymentMethod,
-                paidAt: txn.createdAt,
-            };
-        });
-
-
-        const chartSummary = {
-            totalRevenue,
-            breakdown: {} as Record<
-                string,
-                { totalAmount: number; percentage: number }
-            >,
-        };
-
-        for (const service in summaryMap) {
-            const serviceTotal = summaryMap[service].totalAmount;
-            chartSummary.breakdown[service] = {
-                totalAmount: serviceTotal,
-                percentage: totalRevenue > 0 ? Math.round((serviceTotal / totalRevenue) * 100) : 0,
-            };
-        }
-
-        return {
-            records,
-            chartSummary,
-        }
     }
 
+    if (filters?.branch) {
+        query['meta.branch'] = filters.branch;
+    }
 
-    async getAdminReports(adminId: string, filters: GetReportsDto) {
-        const query: any = {
-            adminId: new Types.ObjectId(adminId),
+    const transactions = await this.transactionModel.find(query).lean();
+
+    const serviceSummary: Record<string, number> = {
+        [ServiceType.SmartBinPurchase]: 0,
+        [ServiceType.WasteDisposal]: 0,
+        [ServiceType.Subscription]: 0,
+        [ServiceType.WalletTopUp]: 0,
+    };
+
+    const userTypeSummary: Record<string, number> = {
+        [UserRole.Resident]: 0,
+        [UserRole.Corporate]: 0,
+        [UserRole.Agent]: 0,
+        [UserRole.Facility]: 0,
+    };
+
+    let totalRevenue = 0;
+
+    const records = transactions.map((txn) => {
+        const { service, amount, userType } = txn;
+
+        if (serviceSummary.hasOwnProperty(service)) {
+            serviceSummary[service] += amount;
+        }
+
+        if (userTypeSummary.hasOwnProperty(userType)) {
+            userTypeSummary[userType] += amount;
+        }
+
+        totalRevenue += amount;
+
+        return {
+            txn
         };
+    });
+
+    return {
+        records,
+        chartSummary: {
+            totalRevenue,
+            byServiceType: Object.entries(serviceSummary).map(([service, totalAmount]) => ({
+                service,
+                totalAmount,
+            })),
+            byUserType: Object.entries(userTypeSummary).map(([type, totalAmount]) => ({
+                userType: type,
+                totalAmount,    
+            })),
+        },
+    };
+}
+
+
+    async getAdminReports(adminId: string, filters: GetReportsDto ) {
+        const query: any = { adminId };
 
         if (filters.type) {
             query.type = filters.type;
@@ -627,15 +632,15 @@ export class ReportService {
                 from: moment(report.startDate).format('DD/MM'),
                 to: moment(report.endDate).format('DD/MM'),
             },
-            ...report,
         }));
     }
 
 
-    async getAdminReportById(reportId: string) {
+    async getAdminReportById(reportId: string,adminId: string) {
         const report = await this.reportModel
             .findOne({
-                _id: new Types.ObjectId(reportId),
+                _id: reportId,
+                adminId: adminId,
             })
             .lean();
 
@@ -646,17 +651,18 @@ export class ReportService {
         }
 
         return {
-            id: report._id,
-            type: report.type,
-            reportName: report.reportName,
-            period: report.period,
-            tenantName: report?.tenantName,
-            businessName: report?.businessName,
-            customerName: report?.customerName,
-            customerType: report?.customerType,
-            generatedAt: report.createdAt,
-            filters: report.filters,
-            data: report.data,
+            report
+            // id: report._id,
+            // type: report.type,
+            // reportName: report.reportName,
+            // period: report.period,
+            // tenantName: report?.tenantName,
+            // businessName: report?.businessName,
+            // customerName: report?.customerName,
+            // customerType: report?.customerType,
+            // generatedAt: report.createdAt,
+            // filters: report.filters,
+            // data: report.data,
         };
     }
 

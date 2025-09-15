@@ -12,6 +12,7 @@ import { FacilityManager } from '@models/users/facility-manager.model';
 import { UserRole } from '@models/types';
 import { Subscription } from '@models/subscription.model';
 import { FacilityUsers } from '@models/facility-users.model';
+import { log } from 'console';
 
 
 @Injectable()
@@ -116,13 +117,16 @@ export class UsersService {
 
 
     // facility users
-    async getFacilityUsers(accountId: string, page = 1, limit = 10) {
+    async getFacilityUsers({ accountId }: { accountId?: string } = {}, page = 1, limit = 10) {
+        console.log(accountId)
         const skip = (page - 1) * limit;
+
+        
 
         const [users, total] = await Promise.all([
             this.facilityUsersModel
                 .find({
-                    accountId: accountId,
+                    accountId: accountId
                 })
                 .sort({ createdAt: -1 })
                 .skip(skip)
@@ -148,6 +152,7 @@ export class UsersService {
 
     async getAgentRegisteredUsers({ agentId }: { agentId?: string } = {}, page: number = 1, limit: number = 10) {
         const skip = (page - 1) * limit;
+        console.log(agentId);
 
         const [residents, corporates, totalResidents, totalCorporates] = await Promise.all([
             this.residentModel.find({ agentId }).sort({ createdAt: -1 }).lean(),
