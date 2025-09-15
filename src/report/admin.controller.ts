@@ -1,12 +1,4 @@
-import {
-    Controller,
-    Get,
-    Post,
-    Body,
-    Query,
-    Param,
-    UseGuards,
-} from '@nestjs/common';
+import { Controller} from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Types } from 'mongoose';
 import { ReportService } from './report.service';
@@ -30,8 +22,10 @@ export class AdminReportController {
     }
 
     @MessagePattern({ cmd: AdminMessagePatternCommands.Report.GetReports })
-    async getReports(payload: { adminId: string } & GetReportsDto) {
-        const reports = await this.reportService.getAdminReports(payload.adminId, payload);
+    async getReports(payload: { adminId: string, page: string, limit: string } & GetReportsDto) {
+        const page = parseInt(payload.page ?? '1', 10);
+        const limit = parseInt(payload.limit ?? '10', 10);
+        const reports = await this.reportService.getAdminReports(payload.adminId, payload, page, limit);
         return new SuccessResponse(
             'Reports retrieved successfully',
             reports,

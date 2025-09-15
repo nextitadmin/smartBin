@@ -476,7 +476,25 @@ export class ReportService {
     }
 
 
-    async adminWasteDisposalReport(dto: CreateAdminReportDto) {
+      private groupDisposalsByMonth(disposals: any[]) {
+    const months = Array.from({ length: 12 }, (_, i) => ({
+      month: new Date(0, i).toLocaleString('default', { month: 'short' }),
+      count: 0,
+      totalWeight: 0,
+    }));
+
+    for (const disposal of disposals) {
+      const date = new Date(disposal.createdAt);
+      const monthIndex = date.getMonth();
+
+      months[monthIndex].count += 1;
+      months[monthIndex].totalWeight += disposal.weight || 0;
+    }
+
+    return months;
+  }
+
+    async adminWasteDisposalReport(dto: CreateAdminReportDto,year?: number) {
         const { startDate, endDate, filters } = dto;
 
         const query: any = {};
@@ -497,6 +515,11 @@ export class ReportService {
             .sort({ createdAt: -1 })
             .lean();
         let totalWeight = 0;
+
+        const filteredDisposals = records.filter(
+      (d) => new Date(d.pickupDate).getFullYear() === year,
+    );
+    const binDisposalAnalytics = this.groupDisposalsByMonth(filteredDisposals);
 
         const pickups = records.map((item) => {
             
@@ -524,6 +547,7 @@ export class ReportService {
             summary: {
                 totalPickups: records.length,
                 totalWeight,
+                binDisposalAnalytics,
             },
         };
     }
@@ -601,7 +625,8 @@ export class ReportService {
 }
 
 
-    async getAdminReports(adminId: string, filters: GetReportsDto ) {
+    async getAdminReports(adminId: string, filters: GetReportsDto ,page: number, limit: number) {
+        const skip = (page - 1) * limit;
         const query: any = { adminId };
 
         if (filters.type) {
@@ -619,12 +644,19 @@ export class ReportService {
             query.reportName = { $regex: filters.search, $options: 'i' };
         }
 
-        const reports = await this.reportModel
+        const [reports, totalReports] = await  Promise.all ([this.reportModel
             .find(query)
             .sort({ createdAt: -1 })
-            .lean();
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+            this.reportModel.countDocuments(query),
 
-        return reports.map((report) => ({
+        ])
+        const totalPages = Math.ceil(totalReports / limit);
+
+       const data= reports.map((report) => ({
+            reportId: report._id,
             title: report.reportName,
             reportType: report.type,
             generationDate: report.createdAt,
@@ -633,6 +665,16 @@ export class ReportService {
                 to: moment(report.endDate).format('DD/MM'),
             },
         }));
+        return {
+            reports: data,
+            paging:{
+            totalReports,
+            page,
+            pages:totalPages,
+            size: limit,
+            }
+        }
+
     }
 
 

@@ -12,13 +12,11 @@ import { FacilityManager } from '@models/users/facility-manager.model';
 import { UserRole } from '@models/types';
 import { Subscription } from '@models/subscription.model';
 import { FacilityUsers } from '@models/facility-users.model';
-import { log } from 'console';
 
 
 @Injectable()
 export class UsersService {
     constructor(
-
         @InjectModel(Resident.name) private readonly residentModel: Model<Resident>,
         @InjectModel(Agent.name) private readonly agentModel: Model<Agent>,
         @InjectModel(Corporate.name)
@@ -118,11 +116,7 @@ export class UsersService {
 
     // facility users
     async getFacilityUsers({ accountId }: { accountId?: string } = {}, page = 1, limit = 10) {
-        console.log(accountId)
         const skip = (page - 1) * limit;
-
-        
-
         const [users, total] = await Promise.all([
             this.facilityUsersModel
                 .find({
@@ -152,7 +146,6 @@ export class UsersService {
 
     async getAgentRegisteredUsers({ agentId }: { agentId?: string } = {}, page: number = 1, limit: number = 10) {
         const skip = (page - 1) * limit;
-        console.log(agentId);
 
         const [residents, corporates, totalResidents, totalCorporates] = await Promise.all([
             this.residentModel.find({ agentId }).sort({ createdAt: -1 }).lean(),
@@ -177,7 +170,7 @@ export class UsersService {
         ];
         allRegisteredUsers.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-        const paginatedUsers = allRegisteredUsers.slice(0, limit);
+        const paginatedUsers = allRegisteredUsers.slice(skip, skip + limit);
 
         const total = totalResidents + totalCorporates;
 

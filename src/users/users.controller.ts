@@ -31,7 +31,7 @@ export class UsersController {
 
     @MessagePattern({ cmd: AdminMessagePatternCommands.Users.GetFacilityUsers })
     async getFacilityUsers({ accountId, page, limit }: { accountId: string, page: number, limit: number }) {
-
+ 
         const response = await this.usersService.getFacilityUsers({ accountId: accountId }, page, limit);
         return new SuccessResponse(
             'Facility users retrieved successfully',
