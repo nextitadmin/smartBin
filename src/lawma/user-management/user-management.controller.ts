@@ -11,14 +11,14 @@ export class UsersController {
   @Get()
   @ApiQuery({ name: 'page', required: false, type: String })
   @ApiQuery({ name: 'limit', required: false, type: String })
-  getUsers(@Query('page') page = '1', @Query('limit') limit = '10') {
+  getUsers(@Query('page') page = 1, @Query('limit') limit = 10) {
     return this.usersService.getAllUsers(page, limit);
   }
 
   @Get(':id')
   @ApiQuery({ name: 'role', type: String, required: true })
   getUserDetails(@Param('id') userId: string, @Query('role') role: UserRole) {
-    return this.usersService.getUserDetails(userId, role);
+    return this.usersService.getUserById(userId, role);
   }
 
   @Get('facility/:id')
@@ -29,7 +29,7 @@ export class UsersController {
     @Query('page') page = 1,
     @Query('limit') limit = 10,
   ) {
-    return this.usersService.getFacilityUsers(accountId, page, limit);
+    return this.usersService.getFacilityUsers({accountId}, page, limit);
   }
 
   @Get('agent/:id')
@@ -40,6 +40,6 @@ export class UsersController {
     @Query('page') page = 1,
     @Query('limit') limit = 10,
   ) {
-    return this.usersService.getAgentUsers(agentId, page, limit);
+    return this.usersService.getAgentRegisteredUsers({agentId}, page, limit);
   }
 }

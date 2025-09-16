@@ -43,7 +43,6 @@ import { ReportModule } from './report/report.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { WasteManagementModule } from './waste-management/waste-management.module';
 import { TeamModule } from './team/team.module';
-import { UsersModule } from './users/users.module';
 import { LawmaModule } from './lawma/lawma.module';
 
 @Module({
@@ -67,7 +66,6 @@ import { LawmaModule } from './lawma/lawma.module';
     DashboardModule,
     SmartBinModule,
     MediaModule,
-    UsersModule,
     UtilityModule,
     IntegrationsModule,
     PickupModule,
