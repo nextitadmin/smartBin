@@ -10,6 +10,9 @@ import { SmartBin, SmartBinSchema } from '@models/smart-bin.model';
 import { Pickup, PickupSchema } from '@models/pickup';
 import { Transaction, TransactionSchema } from '@models/transaction.model';
 import { Resident, ResidentSchema } from '@models/users/resident.model';
+import { Agent, AgentSchema } from '@models/users/agent.model';
+import { FacilityManager, FacilityManagerSchema } from '@models/users/facility-manager.model';
+import { FacilityUsers, FacilityUserSchema } from '@models/facility-users.model';
 import { AdminReportController } from './admin.controller';
 
 @Module({
@@ -18,6 +21,9 @@ import { AdminReportController } from './admin.controller';
       { name: Report.name, schema: ReportSchema },
       { name: Corporate.name, schema: CorporateSchema },
       { name: Resident.name, schema: ResidentSchema },
+      {name:Agent.name,schema:AgentSchema},
+      {name:FacilityManager.name,schema:FacilityManagerSchema},
+      // {name:FacilityUsers.name,schema:FacilityUserSchema}
       { name: Bill.name, schema: BillSchema },
       { name: Transaction.name, schema: TransactionSchema },
       { name: SmartBin.name, schema: SmartBinSchema },

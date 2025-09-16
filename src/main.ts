@@ -15,17 +15,17 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     bufferLogs: true,
   });
+  const config = app.get(ConfigService<ConfigAttributes>);
 
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.TCP,
     options: {
-      host: 'localhost',
-      port: 4002,
+      host: '0.0.0.0',
+      port: 8081,
     },
   });
 
   app.useLogger(app.get(Logger));
-  const config = app.get(ConfigService<ConfigAttributes>);
 
   app.enableCors({
     origin: '*',

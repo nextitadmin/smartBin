@@ -17,7 +17,6 @@ import { FacilityUsers } from '@models/facility-users.model';
 @Injectable()
 export class UsersService {
     constructor(
-
         @InjectModel(Resident.name) private readonly residentModel: Model<Resident>,
         @InjectModel(Agent.name) private readonly agentModel: Model<Agent>,
         @InjectModel(Corporate.name)
@@ -116,13 +115,12 @@ export class UsersService {
 
 
     // facility users
-    async getFacilityUsers(accountId: string, page = 1, limit = 10) {
+    async getFacilityUsers({ accountId }: { accountId?: string } = {}, page = 1, limit = 10) {
         const skip = (page - 1) * limit;
-
         const [users, total] = await Promise.all([
             this.facilityUsersModel
                 .find({
-                    accountId: accountId,
+                    accountId: accountId
                 })
                 .sort({ createdAt: -1 })
                 .skip(skip)
@@ -172,7 +170,7 @@ export class UsersService {
         ];
         allRegisteredUsers.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-        const paginatedUsers = allRegisteredUsers.slice(0, limit);
+        const paginatedUsers = allRegisteredUsers.slice(skip, skip + limit);
 
         const total = totalResidents + totalCorporates;
 

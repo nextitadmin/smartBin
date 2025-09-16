@@ -9,19 +9,13 @@ export enum CustomerType {
     Resident = 'Resident',
 }
 
-export enum AdminReportType {
-    Revenue = 'revenue',
-    WastePickup = 'waste-pickup',
-    SmartBinRequest = 'smartbin-request',
-}
-
 export class CreateAdminReportDto {
     @ApiProperty()
     @IsString()
     reportName: string;
 
     @ApiProperty({ enum: ReportType, enumName: 'ReportType', description: 'Type of report to generate' })
-    type: AdminReportType;
+    type: ReportType;
 
     @ApiPropertyOptional()
     @IsOptional()

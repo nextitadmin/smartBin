@@ -30,9 +30,9 @@ export class UsersController {
     }
 
     @MessagePattern({ cmd: AdminMessagePatternCommands.Users.GetFacilityUsers })
-    async getFacilityUsers(payload: { accountId: string, page: number, limit: number }) {
-
-        const response = await this.usersService.getFacilityUsers(payload.accountId, payload.page, payload.limit);
+    async getFacilityUsers({ accountId, page, limit }: { accountId: string, page: number, limit: number }) {
+ 
+        const response = await this.usersService.getFacilityUsers({ accountId: accountId }, page, limit);
         return new SuccessResponse(
             'Facility users retrieved successfully',
             response,
@@ -42,7 +42,7 @@ export class UsersController {
 
     @MessagePattern({ cmd: AdminMessagePatternCommands.Users.GetAgentRegisteredUsers })
     async getAgentRegisteredUsers({ agentId, page, limit }: { agentId: string, page?: number, limit?: number }) {
-        const response = await this.usersService.getAgentRegisteredUsers({ agentId }, page, limit);
+        const response = await this.usersService.getAgentRegisteredUsers({ agentId: agentId }, page, limit);
         return new SuccessResponse(
             'Agent registered users retrieved successfully',
             response,

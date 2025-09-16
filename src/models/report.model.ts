@@ -3,6 +3,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
 export enum ReportType {
+    Revenue = 'revenue',
     PaymentHistory = 'payment-history',
     WastePickup = 'waste-pickup',
     SmartBinRequest = 'smartbin-request',
