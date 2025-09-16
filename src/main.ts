@@ -21,7 +21,7 @@ async function bootstrap() {
     transport: Transport.TCP,
     options: {
       host: '0.0.0.0',
-      port: parseInt(process.env.RAILWAY_TCP_APPLICATION_PORT, 10), // Railway-assigned port
+      port: 8082,
     },
   });
 
