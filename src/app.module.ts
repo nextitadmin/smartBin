@@ -44,7 +44,7 @@ import { SubscriptionModule } from './subscription/subscription.module';
 import { WasteManagementModule } from './waste-management/waste-management.module';
 import { TeamModule } from './team/team.module';
 import { UsersModule } from './users/users.module';
-// import { AppService } from './app.service';
+import { LawmaModule } from './lawma/lawma.module';
 
 @Module({
   imports: [
@@ -77,6 +77,7 @@ import { UsersModule } from './users/users.module';
     SubscriptionModule,
     WasteManagementModule,
     TeamModule,
+    LawmaModule,
   ],
   controllers: [AppController],
   providers: [

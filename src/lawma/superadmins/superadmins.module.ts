@@ -1,0 +1,27 @@
+import { CacheModule } from '@nestjs/cache-manager';
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { MongooseModule } from '@nestjs/mongoose';
+import { configModuleOpts } from '@src/config';
+import { cacheModuleConfigOpts } from '@src/config/cache.config';
+import { jwtConfigOpts } from '@src/config/jwt.config';
+import { loggerModuleOpts } from '@src/config/logger.config';
+import { mongodbConfigOptions } from '@src/config/mongo.config';
+import { PspModule } from '@src/lawma/psp/psp.module';
+import { LoggerModule } from 'nestjs-pino';
+import { SuperadminsController } from './superadmins.controller';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot(configModuleOpts),
+    LoggerModule.forRootAsync(loggerModuleOpts),
+    MongooseModule.forRootAsync(mongodbConfigOptions),
+    JwtModule.registerAsync(jwtConfigOpts),
+    CacheModule.registerAsync(cacheModuleConfigOpts),
+    SuperadminsModule,
+    PspModule,
+  ],
+  controllers: [SuperadminsController],
+})
+export class SuperadminsModule {}
