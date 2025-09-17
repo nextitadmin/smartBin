@@ -1,0 +1,68 @@
+import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { PspService } from './psp.service';
+import { CreatePspDTO, CreatePspMembersDTO } from './dto/psp.dto';
+import { SuccessResponse } from '@common/http';
+import {
+  IdDTO,
+  UpdatePspMembersStatusBodyDTO,
+  UpdatePspMembersStatusParamDTO,
+} from './dto/psp.dto';
+
+@ApiTags('PSPs')
+@Controller({
+  path: 'psps',
+  version: '1',
+})
+export class PspController {
+  constructor(private readonly pspService: PspService) {}
+
+  @Post()
+  async createPsp(@Body() psp: CreatePspDTO) {
+    const response = await this.pspService.createPsp(psp);
+    return new SuccessResponse('psp created', response);
+  }
+
+  @Post('/:id/members')
+  async createPspMembers(
+    @Param() param: IdDTO,
+    @Body() pspMembers: CreatePspMembersDTO,
+  ) {
+    const response = await this.pspService.createPspMembers({
+      psp_id: param.id,
+      ...pspMembers,
+    });
+    return new SuccessResponse('psp members created', response);
+  }
+
+  @Get()
+  async getPsps() {
+    const response = await this.pspService.getPsps();
+    return new SuccessResponse('psps fetched', response);
+  }
+
+  @Get(':id')
+  async getPsp(@Param() param: IdDTO) {
+    const response = await this.pspService.getPsp(param.id);
+    return new SuccessResponse('psp fetched', response);
+  }
+
+  @Get(':id/members')
+  async getPspMembers(@Param() param: IdDTO) {
+    const response = await this.pspService.getPspMembers(param.id);
+    return new SuccessResponse('psp members fetched', response);
+  }
+
+  @Put(':id/members/:memberId')
+  async updatePspMembersStatus(
+    @Param() param: UpdatePspMembersStatusParamDTO,
+    @Body() body: UpdatePspMembersStatusBodyDTO,
+  ) {
+    const response = await this.pspService.updatePspMembersStatus({
+      pspId: param.pspId,
+      memberId: param.memberId,
+      status: body.status,
+    });
+    return new SuccessResponse('psp members updated', response);
+  }
+}

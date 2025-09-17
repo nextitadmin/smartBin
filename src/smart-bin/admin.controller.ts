@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { MessagePattern } from '@nestjs/microservices';
 import { SmartBinService } from './smart-bin.service';
 import { AuthUser } from '@common/types';
@@ -6,11 +6,14 @@ import { ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { SuccessResponse } from '@common/http';
 import { AdminMessagePatternCommands } from '@src/shared/constants';
 
-@Controller()
+@Controller({
+  path: 'smart-bins',
+  version: '1',
+})
 export class AdminSmartBinController {
-  constructor(private readonly smartBinService: SmartBinService) { }
+  constructor(private readonly smartBinService: SmartBinService) {}
 
-  @MessagePattern({ cmd: AdminMessagePatternCommands.Smartbin.GetOverview })
+  @Get('overview')
   async getSmartBinOverview() {
     const response = await this.smartBinService.getSmartBinOverview();
     return new SuccessResponse(
@@ -19,24 +22,34 @@ export class AdminSmartBinController {
     );
   }
 
-  @MessagePattern({ cmd: AdminMessagePatternCommands.Smartbin.GetApplications })
-  async getAllApplications(payload: { page?: string; limit?: string }) {
-    const page = parseInt(payload.page ?? '1', 10);
-    const limit = parseInt(payload.limit ?? '10', 10);
-    const records = await this.smartBinService.getAllApplications(page, limit);
+  @Get()
+  @ApiQuery({ name: 'page', required: false, type: String })
+  @ApiQuery({ name: 'limit', required: false, type: String })
+  async getApplications(
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+  ) {
+    const records = await this.smartBinService.getAllApplications(
+      Number(page),
+      Number(limit),
+    );
     return new SuccessResponse(
       'Smartbin applications retrieved successfully',
       records,
     );
   }
 
-  @MessagePattern({ cmd: AdminMessagePatternCommands.Smartbin.GetDelivered })
-  async getDeliveredBins(payload: { page?: string; limit?: string }) {
-    const page = parseInt(payload.page ?? '1', 10);
-    const limit = parseInt(payload.limit ?? '10', 10);
+  @Get('delivered')
+  @ApiQuery({ name: 'page', required: false, type: String })
+  @ApiQuery({ name: 'limit', required: false, type: String })
+  async getDeliveredApplications(
+    @Param() param: { status: string },
+    @Query('page') page = '1',
+    @Query('limit') limit = '10',
+  ) {
     const response = await this.smartBinService.getDeliveredSmartBins(
-      page,
-      limit,
+      Number(page),
+      Number(limit),
     );
     return new SuccessResponse(
       'Delivered bins retrieved successfully',
@@ -44,13 +57,11 @@ export class AdminSmartBinController {
     );
   }
 
-  @MessagePattern({
-    cmd: AdminMessagePatternCommands.Smartbin.GetApplicationDetails,
-  })
-  async applicationDetails(payload: { applicationId: string }) {
-    const details = await this.smartBinService.getBinApplicationById(
-      payload.applicationId,
-    );
+  @Get('application-details')
+  @ApiQuery({ name: 'applicationId', type: String, required: true })
+  async getApplicationDetails(@Query('applicationId') applicationId: string) {
+    const details =
+      await this.smartBinService.getBinApplicationById(applicationId);
     return new SuccessResponse(
       'Application details retrieved successfully',
       details,

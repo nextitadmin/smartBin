@@ -10,6 +10,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import session from 'express-session';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+// import { setupLawmaModule } from './setup-lawma';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
@@ -17,13 +18,13 @@ async function bootstrap() {
   });
   const config = app.get(ConfigService<ConfigAttributes>);
 
-  app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.TCP,
-    options: {
-      host: '0.0.0.0',
-      port: 8081,
-    },
-  });
+  // app.connectMicroservice<MicroserviceOptions>({
+  //   transport: Transport.TCP,
+  //   options: {
+  //     host: '0.0.0.0',
+  //     port: 46147,
+  //   },
+  // });
 
   app.useLogger(app.get(Logger));
 
@@ -77,7 +78,7 @@ async function bootstrap() {
   });
 
   const port = config.get('port', { infer: true });
-  await app.startAllMicroservices();
+
   await app.listen(port);
 }
 bootstrap();
