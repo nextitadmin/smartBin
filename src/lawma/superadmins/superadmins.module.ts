@@ -11,6 +11,8 @@ import { mongodbConfigOptions } from '@src/config/mongo.config';
 import { PspModule } from '@src/lawma/psp/psp.module';
 import { LoggerModule } from 'nestjs-pino';
 import { SuperadminsController } from './superadmins.controller';
+import { SuperAdminModule } from '@src/super-admin/super-admin.module';
+import { LawmaSuperadminsService } from './superadmins.service';
 
 @Module({
   imports: [
@@ -20,8 +22,10 @@ import { SuperadminsController } from './superadmins.controller';
     JwtModule.registerAsync(jwtConfigOpts),
     CacheModule.registerAsync(cacheModuleConfigOpts),
     SuperadminsModule,
+    SuperAdminModule,
     PspModule,
   ],
   controllers: [SuperadminsController],
+  providers: [LawmaSuperadminsService],
 })
 export class SuperadminsModule {}
