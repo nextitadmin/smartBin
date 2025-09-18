@@ -11,7 +11,9 @@ import { SmartBin } from '@models/smart-bin.model';
 import { Transaction } from '@models/transaction.model';
 import { Pickup, Status } from '@models/pickup';
 import { TeamMember } from '@models/team.model';
-
+import { UserRole } from '@models/types';
+import { Paging } from '@common/http';
+import { PSP } from '@models/psp.model';
 @Injectable()
 export class SuperAdminService {
     constructor(
@@ -26,9 +28,11 @@ export class SuperAdminService {
         @InjectModel(SmartBin.name) private readonly smartbinModel: Model<SmartBin>,
         @InjectModel(Pickup.name) private readonly pickupModel: Model<Pickup>,
         @InjectModel(Transaction.name) private readonly transactionModel: Model<Transaction>,
-        @InjectModel(TeamMember.name) private readonly teamMemberModel: Model<TeamMember>
+        @InjectModel(TeamMember.name) private readonly teamMemberModel: Model<TeamMember>,
+        @InjectModel(PSP.name) private readonly pspModel: Model<PSP>,
     ) { }
 
+    // get super admin dashboard
     async getSuperAdminDashboard(queryYear: number) {
         const [residentCount, agentCount, corporateCount, facilityManagerCount, totalTeamMembers] = await Promise.all([
             this.residentModel.countDocuments().exec(),
@@ -42,6 +46,9 @@ export class SuperAdminService {
         const completedBinrequests = await this.smartbinModel.countDocuments({ status: 'completed' }).exec();
         const totalBinRequests = await this.smartbinModel.countDocuments().exec();
         const totalRegisteredUsers = residentCount + agentCount + corporateCount + facilityManagerCount + totalTeamMembers;
+
+        const totalPSPCompanies = await this.pspModel.countDocuments().exec();
+        const topPSPcompanies = await this.pspModel.find().sort({ createdAt: -1 }).limit(5).lean();
 
         return {
             registeredUsers: {
@@ -58,66 +65,57 @@ export class SuperAdminService {
             },
             totalTeamMembers: totalTeamMembers,
             pspCompanies: {
-                registeredPSPs: 0,
-                topPSPcompanies: [],
+                registeredPSPs: totalPSPCompanies,
+                topPSPcompanies: topPSPcompanies,
             }
         };
     }
 
-    async getRevenueOverview(queryYear: number):Promise<{
-        totalAmountGeneratedOvertime: number;
-        totalRevenuePerYear: any[];
-        smartbinApp: { revenue: number; totalTransactions: number };
-        pickupApp: { revenue: number; totalTransactions: number };
-        paymentDetails: any[];
-        }> {
-        const [
-            [amountResult],
-            totalRevenuePerYear,
-            [smartbinRevenue],
-            [pickupRevenue],
-            paymentDetails
-        ] = await Promise.all([
-            this.transactionModel.aggregate([
-            { $group: { _id: null, totalAmount: { $sum: "$amount" } } }
-            ]),
-            this.transactionModel.aggregate([
+    // get Revenue Overview
+    async getRevenueOverview(queryYear: number) {
+        const totalAmount = await this.transactionModel.find().lean();
+        // get the total amount in all transactions from 
+        const totalAmountGeneratedOvertime = totalAmount.reduce((sum, transaction) => sum + transaction.amount, 0);
+        // get total amount in transactions per year
+        const currentYear = new Date().getFullYear();
+        const totalRevenuePerYear = await this.transactionModel.aggregate([
             {
-                $group: {
-                _id: { year: { $year: "$createdAt" }, month: { $month: "$createdAt" } },
-                total: { $sum: "$amount" }
+                $match: {
+                    createdAt: {
+                        $gte: new Date(`${currentYear}-01-01`),
+                        $lt: new Date(`${currentYear + 1}-01-01`)
+                    }
                 }
             },
-            { $sort: { "_id.year": 1, "_id.month": 1 } }
-            ]),
-            this.transactionModel.aggregate([
-            { $match: { revenueSource: "Smart Bin" } },
-            { $group: { _id: null, total: { $sum: "$amount" }, count: { $sum: 1 } } }
-            ]),
-            this.transactionModel.aggregate([
-            { $match: { revenueSource: "Waste Collection" } },
-            { $group: { _id: null, total: { $sum: "$amount" }, count: { $sum: 1 } } }
-            ]),
-            this.transactionModel.find({},  { paymentId: 1, revenueSource: 1, amount: 1, createdAt: 1, paymentMethod: 1, status: 1 })
+            {
+                $group: {
+                    _id: { month: { $month: "$createdAt" } },
+                    total: { $sum: "$amount" }
+                }
+            },
+            { $sort: { "_id.month": 1 } }
+        ]);
+        const smartbinTransactions = await this.transactionModel.find({ service: 'SmartBinPurchase' }).lean();
+        const pickupTransactions = await this.transactionModel.find({ service: 'WasteDisposal' }).lean();
+        const smartbinRevenue = smartbinTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+        const pickupRevenue = pickupTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
+        const paymentDetails = await this.transactionModel.find({}, { transactionReference: 1, service: 1, amount: 1, createdAt: 1, paymentMethod: 1, status: 1 })
             .sort({ createdAt: -1 })
             .limit(20)
-            .lean()
-        ]);
-
-        const totalAmountGeneratedOvertime = amountResult?.totalAmount || 0;
-
+            .lean();
         return {
             totalAmountGeneratedOvertime,
             totalRevenuePerYear,
             smartbinApp: {
-            revenue: smartbinRevenue?.total || 0,
-            totalTransactions: smartbinRevenue?.count || 0,
+                revenue: smartbinRevenue,
+                totalTransactions: smartbinTransactions.length,
             },
             pickupApp: {
-            revenue: pickupRevenue?.total || 0,
-            totalTransactions: pickupRevenue?.count || 0,
+                revenue: pickupRevenue,
+                totalTransactions: pickupTransactions.length,
             },
             paymentDetails
         };
+
     }
 }

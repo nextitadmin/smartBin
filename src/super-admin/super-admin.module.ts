@@ -14,6 +14,7 @@ import { Transaction, TransactionSchema } from '@models/transaction.model';
 import { Payer, PayerSchema } from '@models/users/payer.model';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { TeamMember, TeamMemberSchema } from '@models/team.model';
+import { PSP, PSPSchema } from '@models/psp.model';
 
 @Module({
   imports: [
@@ -29,7 +30,8 @@ import { TeamMember, TeamMemberSchema } from '@models/team.model';
         { name: SmartBin.name, schema: SmartBinSchema },
         { name: Payer.name, schema: PayerSchema },
         { name: UserKyc.name, schema: UserKycSchema },
-        { name: TeamMember.name, schema: TeamMemberSchema }
+        { name: TeamMember.name, schema: TeamMemberSchema },
+        { name: PSP.name, schema: PSPSchema },
       ]),
     ],
   providers: [SuperAdminService],
