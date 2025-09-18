@@ -19,6 +19,7 @@ import { Agent } from '@models/users/agent.model';
 import { Corporate } from '@models/users/corporate.model';
 import { FacilityManager } from '@models/users/facility-manager.model';
 import { Wallet } from '@models/wallet.model';
+import { UserRole } from '@models/types';
 
 @Injectable()
 export class BillService {
@@ -31,13 +32,13 @@ export class BillService {
     // private readonly facilityModel: Model<FacilityManager>,
     @InjectModel(Bill.name) private readonly billModel: Model<Bill>,
     @InjectModel(Wallet.name) private readonly walletModel: Model<Wallet>,
-  ) { }
+  ) {}
 
   async getResidentBills(
     userId: string,
   ): Promise<SuccessResponse<BillResponseDto[]>> {
     const bills = await this.billModel
-      .find({ userId, userType: 'Resident' })
+      .find({ userId, userType: UserRole.Resident })
       .sort({ dueDate: -1 })
       .lean();
 
@@ -110,13 +111,11 @@ export class BillService {
     throw new BadRequestException('Unsupported payment method');
   }
 
-
-
   async getFacilityBills(
     userId: string,
   ): Promise<SuccessResponse<FacilityBillResponseDto[]>> {
     const bills = await this.billModel
-      .find({ userId, userType: 'FacilityManager' })
+      .find({ userId, userType: UserRole.Facility })
       .sort({ dueDate: -1 })
       .lean();
 
@@ -194,7 +193,10 @@ export class BillService {
   ): Promise<SuccessResponse<CorporateBillResponseDto[]>> {
     const bills = await this.billModel
 
-      .find({ userId: new Types.ObjectId(userId) })
+      .find({
+        userId: new Types.ObjectId(userId),
+        userType: UserRole.Corporate,
+      })
       .sort({ dueDate: -1 })
       .lean();
 
@@ -262,7 +264,6 @@ export class BillService {
         response,
       );
     }
-
 
     throw new BadRequestException('Invalid payment method');
   }
