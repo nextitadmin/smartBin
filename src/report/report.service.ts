@@ -625,7 +625,7 @@ export class ReportService {
 }
 
 
-    async getAdminReports(adminId: string, filters: GetReportsDto ,page: number, limit: number) {
+    async getAdminReports(adminId: string, filters?: GetReportsDto ,page?: number, limit?: number) {
         const skip = (page - 1) * limit;
         const query: any = { adminId };
 
