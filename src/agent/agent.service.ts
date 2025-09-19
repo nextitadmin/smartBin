@@ -20,10 +20,9 @@ import { ConfigService } from '@nestjs/config';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { CacheKeys } from '@src/shared/constants';
-import { getSeconds } from 'date-fns';
 import { UserRole } from '@models/types';
 import { JwtService } from '@nestjs/jwt';
-import { CreateAgentAccountDto, LoginAgentAccountDto, UpdateProfileDto } from './dto/agent.dto';
+import { CreateAgentAccountDto, LoginAgentAccountDto, UpdateAgencyProfileDto } from './dto/agent.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   MailNotificationEvents,
@@ -195,7 +194,7 @@ export class AgentService {
   }
 
 
-  async updateProfile(userId: string, updateData: UpdateProfileDto) {
+  async updateProfile(userId: string, updateData: UpdateAgencyProfileDto) {
     const agent = await this.agentModel.findById(userId);
     if (!agent) {
       throw new NotFoundException('Agent not found');

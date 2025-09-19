@@ -22,7 +22,7 @@ import {
   LoginAgentAccountDto,
   ProfileDto,
   ResetPasswordDto,
-  UpdateProfileDto,
+  UpdateAgencyProfileDto,
   VerifyAgentLogin,
 } from './dto/agent.dto';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
@@ -122,7 +122,7 @@ export class AgentController {
   @Put('profile')
   @AgentAuth()
   async updateProfile(
-    @Body() body: UpdateProfileDto,
+    @Body() body: UpdateAgencyProfileDto,
     @AuthenticatedAgent() agent: AuthUser,
   ) {
     const response = await this.agentService.updateProfile(agent.id, body);

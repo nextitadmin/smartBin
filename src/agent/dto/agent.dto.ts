@@ -34,7 +34,7 @@ export class ProfileDto {
   imageUrl: string;
 }
 
-export class UpdateProfileDto {
+export class UpdateAgencyProfileDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
