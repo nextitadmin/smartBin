@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
 import { KycFlowController } from './kycFlow.controller';
 import { KycFlowService } from './kycFlow.service';
-import { ClientsModule, Transport } from '@nestjs/microservices';
+import { KycModule } from '@src/kyc/kyc.module';
 
 @Module({
-  imports: [],
+  imports: [
+    KycModule,
+  ],
   controllers: [KycFlowController],
   providers: [KycFlowService],
 })

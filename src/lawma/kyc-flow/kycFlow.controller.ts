@@ -2,8 +2,12 @@ import { Controller, Get, Param, Patch, Query } from '@nestjs/common';
 import { KycFlowService } from './kycFlow.service';
 import { ApiTags, ApiQuery } from '@nestjs/swagger';
 
-@ApiTags('Kyc Applications')
-@Controller('kycs')
+
+@ApiTags('Admin/Kyc Applications')
+@Controller({
+  path: 'lawma/kycs',
+  version: '1',
+})
 export class KycFlowController {
   constructor(private readonly kycService: KycFlowService) {}
 
@@ -17,11 +21,11 @@ export class KycFlowController {
     enum: ['pending', 'approved', 'rejected'],
   })
   getApplications(
-    @Query('page') page = '1',
+    @Query('page') page = '1', 
     @Query('limit') limit = '10',
-    @Query('status') status = 'pending',
+    @Query('status') status: string,
   ) {
-    return this.kycService.getAllApplications(page, limit);
+    return this.kycService.getAllApplications(Number(page), Number(limit), status);
   }
 
   @Get(':id')

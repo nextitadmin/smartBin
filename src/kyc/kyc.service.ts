@@ -392,7 +392,7 @@ export class KycService {
 
   //For Admins
 
-  async getAllApplications(page: number, limit: number, status?: IdVerificationStatus) {
+  async getAllApplications(page: number, limit: number, status?: string) {
     const skip = (page - 1) * limit;
 
     const statusType = status === "pending" ? IdVerificationStatus.SUBMITTED : status
