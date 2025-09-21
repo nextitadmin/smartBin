@@ -1,3 +1,4 @@
+import { AdministratorRole } from '@models/administrator.model';
 import { UserRole } from '@models/types';
 import { Types } from 'mongoose';
 
@@ -18,6 +19,7 @@ export type AuthUser = {
   email: string;
   role: UserRole;
   token?: string;
+  name?: string;
   firstName?: string;
   lastName?: string;
   phoneNumber?: string;
@@ -27,3 +29,10 @@ export type CorporateUser = AuthUser;
 export type FacilityManagerUser = AuthUser;
 export type AgentUser = AuthUser;
 export type ResidentUser = AuthUser;
+
+export type AdminUser = {
+  id: string;
+  email: string;
+  role: AdministratorRole;
+  name: string;
+};

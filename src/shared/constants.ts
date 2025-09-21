@@ -3,6 +3,10 @@ export const CacheKeys = {
   ResidentLoginCode: (code: string) => `SMTBIN_RS_${code}`,
   FacilityManagerLoginCode: (code: string) => `SMTBIN_FM_${code}`,
   CorporateLoginCode: (code: string) => `SMTBIN_CM_${code}`,
+
+  // Administrator
+  AdministratorLoginCode: (code: string) => `SMTBIN_AD_${code}`,
+  AdministratorResetPasswordCode: (code: string) => `SMTBIN_AD_RESET_${code}`,
 };
 
 export const AdminMessagePatternCommands = Object.freeze({
@@ -29,7 +33,7 @@ export const AdminMessagePatternCommands = Object.freeze({
     CreateReport: 'CREATE_REPORT',
     GetReports: 'GET_REPORTS',
     GetReport: 'GET_REPORT',
-  }
+  },
 });
 
 export enum IdVerificationStatus {

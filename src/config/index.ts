@@ -5,7 +5,7 @@ import { ApplicationEnvironment } from '@common/constants';
 
 export interface ConfigAttributes {
   port: number;
-  nodeEnv: string;
+  applicationEnvironment: string;
   logging: {
     level: string;
     disableRequestLogging: boolean;
@@ -49,7 +49,7 @@ export interface ConfigAttributes {
 
 const config = (): ConfigAttributes => ({
   port: +process.env.PORT,
-  nodeEnv: process.env.APPLICATION_ENV || 'development',
+  applicationEnvironment: process.env.APPLICATION_ENV || 'development',
   logging: {
     level: process.env.LOG_LEVEL,
     disableRequestLogging: Boolean(+process.env.DISABLE_REQUEST_LOGGING),

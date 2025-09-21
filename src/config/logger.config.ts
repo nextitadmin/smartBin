@@ -42,7 +42,7 @@ export const getPinoConfig = (
       serializers: {
         req: (req: SerializedRequest & { query: Record<string, string> }) => {
           const headers = req.headers || {};
-          const appEnvironment = config.get('nodeEnv');
+          const appEnvironment = config.get('applicationEnvironment');
           const isProduction =
             appEnvironment === ApplicationEnvironment.Production;
           return {

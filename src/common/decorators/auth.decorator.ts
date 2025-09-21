@@ -10,8 +10,9 @@ import { ResidentAuthGuard } from '../guards/resident.guard';
 import { FacilityManagerAuthGuard } from '../guards/facility-manager.guard';
 import { CorporateAuthGuard } from '../guards/corporate.guard';
 import { Request } from 'express';
-import { AuthUser } from '../types';
+import { AdminUser, AuthUser } from '../types';
 import { AuthGuard } from '@common/guards/actor.guard';
+import { AdminAuthGuard } from '@common/guards/admin.guard';
 
 export function AgentAuth() {
   return applyDecorators(UseGuards(AgentAuthGuard));
@@ -31,6 +32,10 @@ export function CorporateAuth() {
 
 export function Auth() {
   return applyDecorators(UseGuards(AuthGuard));
+}
+
+export function AdminAuth() {
+  return applyDecorators(UseGuards(AdminAuthGuard));
 }
 
 export const AuthenticatedAgent = createParamDecorator(
@@ -69,5 +74,12 @@ export const AuthenticatedUser = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
     const req: Request & { user: AuthUser } = ctx.switchToHttp().getRequest();
     return req.user;
+  },
+);
+
+export const AuthenticatedAdmin = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext) => {
+    const req: Request & { admin: AdminUser } = ctx.switchToHttp().getRequest();
+    return req.admin;
   },
 );

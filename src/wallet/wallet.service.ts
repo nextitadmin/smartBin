@@ -26,10 +26,12 @@ import { generateRandomChars } from '@common/utils';
 import { AuthUser } from '@common/types';
 import { ConfigService } from '@nestjs/config';
 import { ConfigAttributes } from '@src/config';
-import {  MailNotificationEvents, SendEmailEvent,
+import {
+  MailNotificationEvents,
+  SendEmailEvent,
 } from '@src/notification/dto/event';
 import { NotificationType } from '@models/notification.model';
-import { events } from '@common/constants';
+import { ApplicationEnvironment, events } from '@common/constants';
 import { NotificationEvent } from '@src/notification/dto/notification.event';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
@@ -166,14 +168,14 @@ export class WalletService {
       }
 
       reference = transaction.reference;
-      return transaction = newTransaction.data;
+      return (transaction = newTransaction.data);
     } else {
       await this.transactionService.updateTransaction({
         reference,
         walletId: wallet._id,
         status: TransactionStatus.Successful,
       });
-    };
+    }
     // 1️⃣ Email notification
     this.eventEmitter.emit(
       MailNotificationEvents.Application.PickupUpdate,
@@ -269,13 +271,15 @@ export class WalletService {
   }
 
   async mockWalletCallback(reference: string) {
-    if (this.configService.get('nodeEnv') === 'production') {
-      throw new UnprocessableEntityException('Where you from come?');
+    if (
+      this.configService.get('applicationEnvironment') ===
+      ApplicationEnvironment.Development
+    ) {
+      throw new NotFoundException('Request not found');
     }
 
-    const transaction = await this.transactionService.mockTransactionPaid(
-      reference,
-    );
+    const transaction =
+      await this.transactionService.mockTransactionPaid(reference);
     if (transaction.data.walletId) {
       await this.walletModel.findByIdAndUpdate(transaction.data.walletId, {
         $inc: {

@@ -27,13 +27,9 @@ import {
   CorporateLoginDto,
   CreateCorporateAccountDto,
   UpdateProfileDto,
-  VerifyCorporateLogin,
   CorporateForgotPasswordDto,
   CorporateVerifyResetCodeDto,
   ResetPasswordDto,
-  ProfileDto,
-  CreateApplicationDto,
-  GetApplicationParamDto,
   AddCorporateBranchDto,
 } from './dto/corporate.dto';
 import { Payer, PayerDocument } from '@models/users/payer.model';
