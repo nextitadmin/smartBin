@@ -1,8 +1,14 @@
-import { Administrator, AdministratorRole } from '@models/administrator.model';
+import {
+  Administrator,
+  AdministratorRole,
+  AdministratorStatus,
+} from '@models/administrator.model';
 import {
   BadRequestException,
   Inject,
   Injectable,
+  Logger,
+  OnModuleInit,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -24,7 +30,8 @@ import { ConfigAttributes } from '@src/config';
 import { ApplicationEnvironment } from '@common/constants';
 
 @Injectable()
-export class AuthService {
+export class AuthService implements OnModuleInit {
+  private readonly logger = new Logger(AuthService.name);
   constructor(
     @InjectModel(Administrator.name)
     private administratorModel: Model<Administrator>,
@@ -33,6 +40,25 @@ export class AuthService {
     private readonly configService: ConfigService<ConfigAttributes>,
     private ee: EventEmitter2,
   ) {}
+
+  async onModuleInit() {
+    const usersCreated = await this.administratorModel.exists({
+      email: 'superadmin@lawma.co',
+    });
+
+    if (!usersCreated) {
+      await this.administratorModel.create({
+        name: `Lawma Super Admin`,
+        email: 'superadmin@lawma.co',
+        phoneNumber: '08123456789',
+        password: 'password',
+        role: AdministratorRole.SuperAdmin,
+        status: AdministratorStatus.Active,
+      });
+
+      this.logger.log('admins created');
+    }
+  }
 
   get isProduction() {
     const environment = this.configService.get('applicationEnvironment');
@@ -51,7 +77,9 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const loginCode = Math.floor(10000 + Math.random() * 90000).toString();
+    const loginCode = !this.isProduction
+      ? '12345'
+      : Math.floor(10000 + Math.random() * 90000).toString();
     const loginCodeExpiry = 600000; // 10mins
 
     await this.cacheService.set(
@@ -59,14 +87,6 @@ export class AuthService {
       String(administrator._id),
       loginCodeExpiry,
     );
-
-    await this.cacheService.set(
-      CacheKeys.AdministratorLoginCode(String(12345)),
-      String(administrator._id),
-      loginCodeExpiry,
-    );
-
-    return { loginCode };
   }
 
   async verifyLoginCode(code: string) {

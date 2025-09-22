@@ -13,6 +13,7 @@ import {
   AuthenticatedAdmin,
 } from '@common/decorators/auth.decorator';
 import { ApiTags } from '@nestjs/swagger';
+import { Public } from '@common/guards/public.guard';
 
 @ApiTags('Lawma - Administrator Auth')
 @Controller({
@@ -23,24 +24,28 @@ import { ApiTags } from '@nestjs/swagger';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('login')
   async login(@Body() body: LawmaAuthLoginDto) {
     const response = await this.authService.login(body);
     return new SuccessResponse('Login successful', response);
   }
 
+  @Public()
   @Post('verify-login')
   async verifyLogin(@Body() body: LawmaAuthVerifyDto) {
     const response = await this.authService.verifyLoginCode(body.code);
     return new SuccessResponse('Login verified', response);
   }
 
+  @Public()
   @Post('passwords/reset')
   async passwordReset(@Body() body: LawmaAuthPasswordResetDto) {
     const response = await this.authService.initiateResetPassword(body.email);
     return new SuccessResponse('Password reset successful', response);
   }
 
+  @Public()
   @Post('password/reset/verify')
   async verifyPasswordReset(@Body() body: LawmaAuthVerifyDto) {
     const response = await this.authService.verifyResetPasswordCode(body.code);
