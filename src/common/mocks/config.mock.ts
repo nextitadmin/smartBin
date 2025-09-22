@@ -2,7 +2,7 @@ import { ConfigAttributes } from '@src/config';
 
 export const mockConfig: Partial<ConfigAttributes> = {
   database: { uri: 'mysql://void/' },
-  nodeEnv: 'test',
+  applicationEnvironment: 'test',
   port: 0,
 };
 

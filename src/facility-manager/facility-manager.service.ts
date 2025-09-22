@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import * as bcrypt from 'bcrypt';
 import * as jwt from 'jsonwebtoken';
 import {
   defaultManagerFields,
@@ -23,7 +22,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   CreateManagerAccountDto,
   LoginManagerAccountDto,
-  UpdateProfileDto,
+  UpdateFacilityManagerProfileDto,
 } from './dto/facility-manager.dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
@@ -47,7 +46,7 @@ export class FacilityManagerService {
     private readonly configService: ConfigService<ConfigAttributes>,
     private readonly jwtService: JwtService,
     private ee: EventEmitter2,
-  ) { }
+  ) {}
 
   async register(dto: CreateManagerAccountDto) {
     const {
@@ -189,7 +188,10 @@ export class FacilityManagerService {
     return { message: 'Profile picture updated', profilePicture: fileUrl };
   }
 
-  async updateProfile(userId: string, updateData: UpdateProfileDto) {
+  async updateProfile(
+    userId: string,
+    updateData: UpdateFacilityManagerProfileDto,
+  ) {
     const manager = await this.facilityModel.findById(userId);
     if (!manager) {
       throw new NotFoundException('Manager not found');
@@ -219,13 +221,16 @@ export class FacilityManagerService {
     };
   }
 
-
   async getProfile(userId: string) {
     const manager = await this.facilityModel
       .findById(userId)
-      .select('_id firstName lastName profilePicture email profilePicture payerId phoneNumber nationality gender lawmaCustomerType role');
+      .select(
+        '_id firstName lastName profilePicture email profilePicture payerId phoneNumber nationality gender lawmaCustomerType role',
+      );
 
-    const userKyc = await this.userKycModel.findOne({ userId: new Types.ObjectId(userId) }).lean();
+    const userKyc = await this.userKycModel
+      .findOne({ userId: new Types.ObjectId(userId) })
+      .lean();
     if (!manager) throw new NotFoundException('Manager not found');
 
     return {

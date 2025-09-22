@@ -1,58 +1,52 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-import { AdminMessagePatternCommands } from 'src/shared/constants';
+import { CorporateTeam } from '@models/corporate-team.model';
+import { UserRole } from '@models/types';
+import {
+  AddressVerificationStatus,
+  AgencyInformationStatus,
+  SignatoryVerificationStatus,
+  UserKyc,
+} from '@models/user-kyc.model';
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { KycService } from '@src/kyc/kyc.service';
+import { Model } from 'mongoose';
+import { IdVerificationStatus } from 'src/shared/constants';
 
 @Injectable()
 export class KycFlowService {
-  constructor() {}
+  constructor(
+    private readonly kycService: KycService
+  ) {}
 
-  async getAllApplications(page: string, limit: string) {
-    // const response = await this.client
-    //   .send(
-    //     { cmd: AdminMessagePatternCommands.KycFlow.GetApplications },
-    //     {
-    //       page,
-    //       limit,
-    //       status,
-    //     },
-    //   )
-    //   .toPromise();
-    // return response;
+  async getAllApplications(
+    page: number,
+    limit: number,
+    status: string = 'pending',
+  ) {
+
+    const statusType = status === "pending" ? IdVerificationStatus.SUBMITTED : status
+    
+    return this.kycService.getAllApplications(page, limit, statusType);
   }
 
-  async getApplicationDetails(applicationId: string) {
-    // const response = await this.client
-    //   .send(
-    //     { cmd: AdminMessagePatternCommands.KycFlow.GetApplicationDetails },
-    //     {
-    //       applicationId: applicationId,
-    //     },
-    //   )
-    //   .toPromise();
-    // return response;
+  async getApplicationDetails(applicationId: string): Promise<{
+    data: Record<string, any>;
+    message: string;
+  }> {
+
+    return this.kycService.getKycApplicationDetails(applicationId);
+
   }
 
   async approveApplication(applicationId: string) {
-    // const response = await this.client
-    //   .send(
-    //     { cmd: AdminMessagePatternCommands.KycFlow.ApproveApplication },
-    //     {
-    //       applicationId: applicationId,
-    //     },
-    //   )
-    //   .toPromise();
-    // return response;
+
+    return this.kycService.approveApplication(applicationId);
+
   }
 
   async rejectApplication(applicationId: string) {
-    // const response = await this.client
-    //   .send(
-    //     { cmd: AdminMessagePatternCommands.KycFlow.RejectApplication },
-    //     {
-    //       applicationId: applicationId,
-    //     },
-    //   )
-    //   .toPromise();
-    // return response;
+
+    return this.kycService.rejectApplication(applicationId);
+
   }
 }

@@ -49,7 +49,7 @@ export class UpdatePictureDto {
   profilePicture: string;
 }
 
-export class UpdateProfileDto {
+export class UpdateFacilityManagerProfileDto {
   @ApiProperty({ required: false })
   @IsString()
   @IsOptional()
@@ -64,7 +64,6 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsEmail()
   email?: string;
-
 
   @ApiProperty({ required: false })
   @IsString()
@@ -81,5 +80,3 @@ export class UpdatePasswordDto {
   @IsString()
   confirmPassword: string;
 }
-
-
