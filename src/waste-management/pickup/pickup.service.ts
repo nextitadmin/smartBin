@@ -263,4 +263,44 @@ export class PickupService {
       transactionReference: generateTransactionRef,
     };
   }
+
+  // SuperAdmin pickups with dashboard
+  async getPickupsForSuperAdmin(admin, status: Status) {
+    // 1. Fetch all pickups
+    const pickups = await this.pickupModel
+      .find({})
+      .select('wasteId createdAt address representative status')// only needed fields
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // 2. Count pickups by status
+    const wastePickedUp = await this.pickupModel.countDocuments({
+      status: Status.Completed,
+    });
+    const pendingPickups = await this.pickupModel.countDocuments({
+      status: Status.Pending,
+    });
+
+    // 3. Calculate total amount generated from successful transactions
+    const result = await this.transactionModel.aggregate([
+      { $match: { status: TransactionStatus.Successful } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]);
+    const amountGenerated = result.length > 0 ? result[0].total : 0;
+
+    // 4. Return dashboard + pickup list
+    return {
+      adminInfo: {
+          username: admin.firstName + ' ' + admin.lastName,
+          adminId: admin._id,
+          status: admin.status,
+        },
+      dashboard: {
+        wastePickedUp,
+        pendingPickups,
+        amountGenerated,
+      },
+      pickups,
+    };
+  }
 }
