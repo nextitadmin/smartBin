@@ -14,6 +14,7 @@ import { TeamMember } from '@models/team.model';
 import { UserRole } from '@models/types';
 import { Paging } from '@common/http';
 import { PSP } from '@models/psp.model';
+import { AdministratorRole } from '@models/administrator.model';
 @Injectable()
 export class SuperAdminService {
     constructor(
@@ -33,7 +34,7 @@ export class SuperAdminService {
     ) { }
 
     // get super admin dashboard
-    async getSuperAdminDashboard(queryYear: number) {
+    async getSuperAdminDashboard() {
         const [residentCount, agentCount, corporateCount, facilityManagerCount, totalTeamMembers] = await Promise.all([
             this.residentModel.countDocuments().exec(),
             this.agentModel.countDocuments().exec(),
@@ -72,11 +73,10 @@ export class SuperAdminService {
     }
 
     // get Revenue Overview
-    async getRevenueOverview(queryYear: number) {
+    async getRevenueOverview() {
         const totalAmount = await this.transactionModel.find().lean();
-        // get the total amount in all transactions from 
         const totalAmountGeneratedOvertime = totalAmount.reduce((sum, transaction) => sum + transaction.amount, 0);
-        // get total amount in transactions per year
+
         const currentYear = new Date().getFullYear();
         const totalRevenuePerYear = await this.transactionModel.aggregate([
             {
@@ -95,25 +95,42 @@ export class SuperAdminService {
             },
             { $sort: { "_id.month": 1 } }
         ]);
-        const smartbinTransactions = await this.transactionModel.find({ service: 'SmartBinPurchase' }).lean();
-        const pickupTransactions = await this.transactionModel.find({ service: 'WasteDisposal' }).lean();
-        const smartbinRevenue = smartbinTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
-        const pickupRevenue = pickupTransactions.reduce((sum, transaction) => sum + transaction.amount, 0);
-        const paymentDetails = await this.transactionModel.find({}, { transactionReference: 1, service: 1, amount: 1, createdAt: 1, paymentMethod: 1, status: 1 })
-            .sort({ createdAt: -1 })
-            .limit(20)
-            .lean();
+        const [smartbinStats] = await this.transactionModel.aggregate([
+            { $match: { service: 'SmartBinPurchase' } },
+            {
+            $group: {
+                _id: null,
+                revenue: { $sum: '$amount' },
+                totalTransactions: { $sum: 1 },
+            },
+            },
+        ]);
+        const [pickupStats] = await this.transactionModel.aggregate([
+            { $match: { service: 'WasteDisposal' } },
+            {
+            $group: {
+                _id: null,
+                revenue: { $sum: '$amount' },
+                totalTransactions: { $sum: 1 },
+            },
+            },
+        ]);
+        const paymentDetails = await this.transactionModel
+            .find({},{transactionReference: 1,service: 1,amount: 1,createdAt: 1,paymentMethod: 1,status: 1, },
+        )
+        .sort({ createdAt: -1 })
+        .lean();
         return {
             totalAmountGeneratedOvertime,
             totalRevenuePerYear,
             smartbinApp: {
-                revenue: smartbinRevenue,
-                totalTransactions: smartbinTransactions.length,
-            },
+                revenue: smartbinStats?.revenue,
+                totalTransactions: smartbinStats?.totalTransactions,
+                },
             pickupApp: {
-                revenue: pickupRevenue,
-                totalTransactions: pickupTransactions.length,
-            },
+                revenue: pickupStats?.revenue,
+                totalTransactions: pickupStats?.totalTransactions,
+                },
             paymentDetails
         };
 
