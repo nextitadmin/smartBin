@@ -13,7 +13,7 @@ import { Resident, ResidentSchema } from '@models/users/resident.model';
 import { Agent, AgentSchema } from '@models/users/agent.model';
 import { FacilityManager, FacilityManagerSchema } from '@models/users/facility-manager.model';
 import { FacilityUsers, FacilityUserSchema } from '@models/facility-users.model';
-import { AdminReportController } from './admin.controller';
+import { AdminReportController } from '../lawma/admin.controller';
 
 @Module({
   imports: [
@@ -21,8 +21,8 @@ import { AdminReportController } from './admin.controller';
       { name: Report.name, schema: ReportSchema },
       { name: Corporate.name, schema: CorporateSchema },
       { name: Resident.name, schema: ResidentSchema },
-      {name:Agent.name,schema:AgentSchema},
-      {name:FacilityManager.name,schema:FacilityManagerSchema},
+      { name: Agent.name, schema: AgentSchema },
+      { name: FacilityManager.name, schema: FacilityManagerSchema },
       // {name:FacilityUsers.name,schema:FacilityUserSchema}
       { name: Bill.name, schema: BillSchema },
       { name: Transaction.name, schema: TransactionSchema },
@@ -31,7 +31,7 @@ import { AdminReportController } from './admin.controller';
     ]),
     CorporateModule,
   ],
-  controllers: [CorporateReportController, AdminReportController],
+  controllers: [CorporateReportController],
   providers: [ReportService],
   exports: [ReportService],
 })

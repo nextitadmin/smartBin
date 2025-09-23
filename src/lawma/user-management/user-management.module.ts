@@ -20,6 +20,7 @@ import { FacilityManagerModule } from '@src/facility-manager/facility-manager.mo
 import { SubscriptionModule } from '@src/subscription/subscription.module';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { FacilityUsers, FacilityUserSchema } from '@models/facility-users.model';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
     imports: [
@@ -32,6 +33,7 @@ import { FacilityUsers, FacilityUserSchema } from '@models/facility-users.model'
             { name: Subscription.name, schema: SubscriptionSchema },
             { name: UserKyc.name, schema: UserKycSchema }
         ]),
+        AuthModule,
         ResidentModule,
         AgentModule,
         CorporateModule,

@@ -8,13 +8,14 @@ import { Report, ReportType } from '@models/report.model';
 import { CreateReportDto, CustomerType, GetReportsDto, CreateAdminReportDto } from './dtos/report.dto';
 import { SuccessResponse } from '@common/http';
 import { AuthUser } from '@common/types';
+import { AdminUser } from '@common/types';
 import {
     Transaction,
     ServiceType,
     TransactionStatus,
 } from '@models/transaction.model';
-import { SmartBin } from '@models/smart-bin.model';
-import { Pickup, PickupDocument } from '@models/pickup';
+import { SmartBin,SmartbinStatus } from '@models/smart-bin.model';
+import { Pickup, PickupDocument,Status } from '@models/pickup';
 import moment from 'moment';
 import { Resident } from '@models/users/resident.model';
 import { Corporate } from '@models/users/corporate.model';
@@ -388,7 +389,7 @@ export class ReportService {
 
     // admin report
     async generateAdminReport(
-        adminId: string,
+        admin: AdminUser,
         dto: CreateAdminReportDto,
     ): Promise<SuccessResponse> {
         const { type } = dto;
@@ -400,10 +401,14 @@ export class ReportService {
             data = await this.adminWasteDisposalReport(dto);
         } else if (type === ReportType.SmartBinRequest) {
             data = await this.adminSmartbinReport(dto);
+        }else if (type === ReportType.SmartbinDelivered) {
+            data = await this.adminDeliveredSmartbinReport(dto);
+        }else if (type === ReportType.WasteDisposed) {
+            data = await this.adminWasteDisposedReport(dto);
         }
 
         const report = await this.reportModel.create({
-            adminId,
+            adminId:admin.id,
             reportName: dto.reportName,
             type,
             lga: dto.lga,
@@ -454,24 +459,34 @@ export class ReportService {
             query.branch = filters.branch;
         }
 
-        const applications = await this.smartBinModel.find(query).lean();
-
-        const records = applications.map((app) => {
-            const firstHistory = app.applicationHistory?.[0];
-            return {
-                orderId: app.transactionReference,
-                dateRequested: firstHistory?.timestamp,
-                address: app.address,
-                branch: app?.branch,
-                tenantName: app?.name,
-                businessName: app?.businessName,
-                status: app.status,
-            };
-        });
+        const applications = await this.smartBinModel.find(query).populate('payment').lean();
+        const totalAmount = applications.reduce((sum, app) => sum + (app.amount || 0), 0);
 
         return {
-            records,
+           applications,
             totalApplications: applications.length,
+            orderValue:totalAmount
+        };
+    }
+
+
+    async adminDeliveredSmartbinReport(dto: CreateAdminReportDto) {
+        const { startDate, endDate} = dto;
+
+        const query: any = {
+            status: SmartbinStatus.Delivered,
+        };
+
+        if (startDate && endDate) {
+            query.deliveredOn = {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate),
+            };
+        }
+        const applications = await this.smartBinModel.find(query).lean();
+        return {
+            applications,
+            totalDeliveredBins: applications.length,
         };
     }
 
@@ -484,7 +499,7 @@ export class ReportService {
     }));
 
     for (const disposal of disposals) {
-      const date = new Date(disposal.createdAt);
+      const date = new Date(disposal.pickupDate);
       const monthIndex = date.getMonth();
 
       months[monthIndex].count += 1;
@@ -517,7 +532,7 @@ export class ReportService {
         let totalWeight = 0;
 
         const filteredDisposals = records.filter(
-      (d) => new Date(d.pickupDate).getFullYear() === year,
+      (d) => d.pickupDate
     );
     const binDisposalAnalytics = this.groupDisposalsByMonth(filteredDisposals);
 
@@ -528,6 +543,7 @@ export class ReportService {
             totalWeight += weight;
 
             return {
+                    wasteId: item._id,
                 pickupDate: item.pickupDate,
                 pickupTime: item.pickupTime,
                 customerName: item?.customerName,
@@ -535,7 +551,6 @@ export class ReportService {
                 address: item.address,
                 status: item.status,
                 weight,
-                wasteId: item.id,
                 branch: item?.branch,
                 tenantName: item?.customerName,
                 businessName: item?.representative,
@@ -552,6 +567,57 @@ export class ReportService {
         };
     }
 
+    async adminWasteDisposedReport(dto: CreateAdminReportDto) {
+        const { startDate, endDate, filters } = dto;
+
+        const query: any = { status:Status.Completed};
+
+        if (filters?.branch) {
+            query.branch = filters.branch;
+        }
+
+        if (startDate && endDate) {
+            query.pickupDate = {
+                 $gte: moment(startDate).format('YYYY-MM-DD'),
+                $lte: moment(endDate).format('YYYY-MM-DD'),
+            };
+        }
+
+        const records = await this.pickupModel
+            .find(query)
+            .sort({ pickupDate: -1 })
+            .lean();
+        let totalWeight = 0;
+
+            const filteredDisposals = records.filter( (d) => d.pickupDate);
+
+        const pickups = records.map((item) => {
+            const weight = item.weight || 0;
+
+            totalWeight += weight;
+
+            return {
+                wasteId: item._id,
+                name: item?.customerName || item?.representative,
+                branch:item?.branch,
+                pickupDate: item.pickupDate,
+                pickupTime: item.pickupTime,
+                address: item.address,
+                status: item.status,
+                weight,
+
+            };
+        });
+    const binDisposalAnalytics = this.groupDisposalsByMonth(filteredDisposals);
+        return {
+            binDisposalAnalytics,
+            pickups,
+            summary: {
+                totalPickups: records.length,
+                totalWeight,
+            },
+        };
+    }
 
 
     async adminRevenueReport(dto: CreateAdminReportDto) {
@@ -625,9 +691,9 @@ export class ReportService {
 }
 
 
-    async getAdminReports(adminId: string, filters?: GetReportsDto ,page?: number, limit?: number) {
+    async getAdminReports(admin:AdminUser , filters?: GetReportsDto ,page?: number, limit?: number) {
         const skip = (page - 1) * limit;
-        const query: any = { adminId };
+        const query: any = { adminId: admin.id };
 
         if (filters.type) {
             query.type = filters.type;
@@ -669,20 +735,21 @@ export class ReportService {
             reports: data,
             paging:{
             totalReports,
-            page,
-            pages:totalPages,
+            page:page,
+            pages:Math.ceil(totalReports / limit),
             size: limit,
+            
             }
         }
 
     }
 
 
-    async getAdminReportById(reportId: string,adminId: string) {
+    async getAdminReportById(reportId: string,admin:AdminUser) {
         const report = await this.reportModel
             .findOne({
                 _id: reportId,
-                adminId: adminId,
+                adminId: admin.id,
             })
             .lean();
 
@@ -694,18 +761,10 @@ export class ReportService {
 
         return {
             report
-            // id: report._id,
-            // type: report.type,
-            // reportName: report.reportName,
-            // period: report.period,
-            // tenantName: report?.tenantName,
-            // businessName: report?.businessName,
-            // customerName: report?.customerName,
-            // customerType: report?.customerType,
-            // generatedAt: report.createdAt,
-            // filters: report.filters,
-            // data: report.data,
         };
     }
 
+
+
+   
 }

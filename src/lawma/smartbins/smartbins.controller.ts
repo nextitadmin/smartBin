@@ -2,12 +2,14 @@ import { Controller, Get, Param, Put, Query } from '@nestjs/common';
 import { ApiTags, ApiQuery } from '@nestjs/swagger';
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 import { LawmaSmartbinsService } from './smartbins.service';
+import { AdminAuth } from '@common/decorators/auth.decorator';
 
 @ApiTags('Admin/Smartbin Applications')
 @Controller({
   path: 'lawma/smartbins',
   version: '1',
 })
+@AdminAuth()
 export class SmartbinsController {
   constructor(private readonly smartbinService: LawmaSmartbinsService) {}
 

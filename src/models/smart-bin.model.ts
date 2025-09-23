@@ -251,6 +251,13 @@ export class SmartBin extends Document {
   @Prop({ type: Date, required: false })
   deliveredOn?: Date;
 
+  @Prop({ type: Date, required: false })
+  approvalDate?: Date;
+
+  @Prop({ type: SchemaTypes.String, required: false })
+  deliveredBy?: string;
+
+
 
   @Prop({ type: [ApplicationHistoryItemSchema], default: [] })
   applicationHistory: ApplicationHistoryItem[];
