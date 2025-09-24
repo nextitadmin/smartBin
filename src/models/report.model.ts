@@ -6,7 +6,10 @@ export enum ReportType {
     Revenue = 'revenue',
     PaymentHistory = 'payment-history',
     WastePickup = 'waste-pickup',
+     WasteDisposed='waste-disposed',
     SmartBinRequest = 'smartbin-request',
+    SmartbinDelivered='smartbin-delivered',
+   
 }
 
 export enum CustomerType {

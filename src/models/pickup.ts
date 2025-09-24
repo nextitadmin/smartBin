@@ -132,6 +132,9 @@ export class Pickup {
   issuedOn?: Date;
 
   @Prop()
+  assignedTo?: string;
+
+  @Prop()
   paymentDue?: Date;
 
   @Prop()

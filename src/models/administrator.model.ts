@@ -42,7 +42,10 @@ export class Administrator implements AdministratorAttributes {
   @Prop({ required: true })
   password: string;
 
-  @Prop({ required: true, enum: Object.values(AdministratorStatus) })
+  @Prop({
+    enum: Object.values(AdministratorStatus),
+    default: AdministratorStatus.Active,
+  })
   status: AdministratorStatus;
 
   @Prop({ type: Date, default: null })
