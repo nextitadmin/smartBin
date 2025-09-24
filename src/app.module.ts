@@ -45,7 +45,7 @@ import { WasteManagementModule } from './waste-management/waste-management.modul
 import { TeamModule } from './team/team.module';
 // import { UsersModule } from './users/users.module';
 // import { AppService } from './app.service';
-import { SuperAdminController } from './super-admin/super-admin.controller';
+// import { SuperAdminController } from './super-admin/super-admin.controller';
 import { SuperAdminModule } from './super-admin/super-admin.module';
 import { LawmaModule } from './lawma/lawma.module';
 
@@ -82,7 +82,7 @@ import { LawmaModule } from './lawma/lawma.module';
     SuperAdminModule,
     LawmaModule,
   ],
-  controllers: [AppController, SuperAdminController],
+  controllers: [AppController],
   providers: [
     {
       provide: APP_GUARD,
