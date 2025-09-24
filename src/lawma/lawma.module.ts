@@ -8,6 +8,8 @@ import { AuditLogModule } from './audit-log/auditLog.module';
 import { LawmaPartnerModule } from './lawma-partner/lawma-partner.module';
 import { AuthModule } from './auth/auth.module';
 import { TeamModule } from './team/team.module';
+import { AdminReportController } from './admin.controller';
+import { ReportModule } from '@src/report/report.module';
 
 @Module({
   imports: [
@@ -20,6 +22,10 @@ import { TeamModule } from './team/team.module';
     LawmaPartnerModule,
     AuthModule,
     TeamModule,
+    ReportModule
   ],
+controllers:[
+  AdminReportController
+]
 })
 export class LawmaModule {}
