@@ -2,11 +2,17 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsEmail, IsString } from 'class-validator';
 
 export class LawmaAuthLoginDto {
-  @ApiProperty()
+  @ApiProperty({
+    description: 'The email of the administrator',
+    example: 'superadmin@lawma.co',
+  })
   @IsEmail()
   email: string;
 
-  @ApiProperty()
+  @ApiProperty({
+    description: 'The password of the administrator',
+    example: 'password',
+  })
   @IsString()
   password: string;
 }
