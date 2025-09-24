@@ -33,7 +33,6 @@ import {
 import { NotificationType } from '@models/notification.model';
 import { events } from '@common/constants';
 import { NotificationEvent } from '@src/notification/dto/notification.event';
-import { stat } from 'fs';
 
 @Injectable()
 export class PickupService {

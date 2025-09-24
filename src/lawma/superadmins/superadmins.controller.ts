@@ -12,12 +12,12 @@ export class SuperadminsController {
     constructor(private readonly superAdminService: LawmaSuperadminsService) {}
     
     @Get('dashboard')
-    getDSashboard() {
-      return this.superAdminService.getSuperAdminDashboard(new Date().getFullYear());
+    async getSuperAdminDashboard() {
+        return this.superAdminService.getSuperAdminDashboard();
+    }
+    @Get('revenue-overview')
+    async getRevenueOverview() {
+        return this.superAdminService.getRevenueOverview();
     }
 
-    @Get('revenue-overview')
-    getRevenueOverview() {
-      return this.superAdminService.getRevenueOverview(new Date().getFullYear());
-    }
 }
