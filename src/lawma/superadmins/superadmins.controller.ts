@@ -1,13 +1,23 @@
-import { SuccessResponse } from '@common/http';
 import { Controller, Get } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { LawmaSuperadminsService } from './superadmins.service';
+import { SuperAdminService } from '@src/super-admin/super-admin.service';
 
+@ApiTags('Admin/Superadmins')
 @Controller({
-  path: 'superadmins',
+  path: 'lawma/superadmins',
   version: '1',
 })
 export class SuperadminsController {
-  @Get()
-  async getSuperadmins() {
-    return new SuccessResponse('superadmins fetched', null);
-  }
+    constructor(private readonly superAdminService: LawmaSuperadminsService) {}
+    
+    @Get('dashboard')
+    async getSuperAdminDashboard() {
+        return this.superAdminService.getSuperAdminDashboard();
+    }
+    @Get('revenue-overview')
+    async getRevenueOverview() {
+        return this.superAdminService.getRevenueOverview();
+    }
+
 }

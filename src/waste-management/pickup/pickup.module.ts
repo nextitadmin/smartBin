@@ -14,6 +14,7 @@ import { Transaction, TransactionSchema } from '@models/transaction.model';
 import { PickupService } from './pickup.service';
 import { Pickup, PickupSchema } from '@models/pickup';
 import { AgentModule } from '@src/agent/agent.module';
+import { sAdminPickupController } from './sAdminPickup.controller';
 
 @Module({
   imports: [
@@ -24,5 +25,6 @@ import { AgentModule } from '@src/agent/agent.module';
   ],
   providers: [PickupService],
   exports: [PickupService],
+  controllers: [sAdminPickupController],
 })
 export class PickupModule {}

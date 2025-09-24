@@ -43,6 +43,10 @@ import { ReportModule } from './report/report.module';
 import { SubscriptionModule } from './subscription/subscription.module';
 import { WasteManagementModule } from './waste-management/waste-management.module';
 import { TeamModule } from './team/team.module';
+// import { UsersModule } from './users/users.module';
+// import { AppService } from './app.service';
+import { SuperAdminController } from './super-admin/super-admin.controller';
+import { SuperAdminModule } from './super-admin/super-admin.module';
 import { LawmaModule } from './lawma/lawma.module';
 
 @Module({
@@ -75,9 +79,10 @@ import { LawmaModule } from './lawma/lawma.module';
     SubscriptionModule,
     WasteManagementModule,
     TeamModule,
+    SuperAdminModule,
     LawmaModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, SuperAdminController],
   providers: [
     {
       provide: APP_GUARD,

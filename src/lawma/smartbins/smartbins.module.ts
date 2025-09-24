@@ -6,6 +6,7 @@ import { ResidentModule } from '@src/resident/resident.module';
 import { CorporateModule } from '@src/corporate/corporate.module';
 import { AgentModule } from '@src/agent/agent.module';
 import { LawmaSmartbinsService } from './smartbins.service';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { LawmaSmartbinsService } from './smartbins.service';
     ResidentModule,
     CorporateModule,
     AgentModule,
+    AuthModule
   ],
   controllers: [SmartbinsController],
   providers: [LawmaSmartbinsService],

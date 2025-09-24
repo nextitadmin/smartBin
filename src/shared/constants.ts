@@ -29,6 +29,11 @@ export const AdminMessagePatternCommands = Object.freeze({
     GetFacilityUsers: 'GET_FACILITY_USERS',
     GetAgentRegisteredUsers: 'GET_AGENT_REGISTERED_USERS',
   },
+  SuperAdmin: {
+    GetDashboard: 'GET_DASHBOARD',
+    GetRevenueOverview: 'GET_REVENUE_OVERVIEW',
+  },
+  
   Report: {
     CreateReport: 'CREATE_REPORT',
     GetReports: 'GET_REPORTS',
