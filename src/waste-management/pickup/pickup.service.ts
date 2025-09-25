@@ -266,17 +266,33 @@ export class PickupService {
   }
 
   // SuperAdmin pickups with dashboard
-  async getPickupsForAdmin(admin:AdminUser , page?:number, limit?:number) {
+  async getPickupsForAdmin(admin:AdminUser , page?:number, limit?:number, filters?: GetPickupDto) {
     const skip = (page - 1) * limit;
   
-    const [pickups,totalRequest ]= await Promise.all([ this.pickupModel
-      .find()
-      .select('wasteId accountId userType createdAt address representative status')
+    const query: any = {};
+
+    if (filters?.status) {
+      query.status = filters.status;
+    }
+
+    if (filters?.search) {
+      query.$or = [
+        { address: { $regex: filters.search, $options: 'i' } },
+        { representative: { $regex: filters.search, $options: 'i' } },
+        { phoneNumber: { $regex: filters.search, $options: 'i' } },
+        
+      ];
+    }
+
+    const [pickups, totalRequest] = await Promise.all([
+      this.pickupModel
+      .find(query)
+      .select('wasteId accountId accountType createdAt address representative status')
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 })
       .lean(),
-      this.pickupModel.countDocuments()
+      this.pickupModel.countDocuments(query)
     ])
  
     const wastePickedUp = await this.pickupModel.countDocuments({
