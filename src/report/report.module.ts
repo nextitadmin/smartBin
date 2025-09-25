@@ -13,7 +13,7 @@ import { Resident, ResidentSchema } from '@models/users/resident.model';
 import { Agent, AgentSchema } from '@models/users/agent.model';
 import { FacilityManager, FacilityManagerSchema } from '@models/users/facility-manager.model';
 import { FacilityUsers, FacilityUserSchema } from '@models/facility-users.model';
-import { AdminReportController } from '../lawma/admin.controller';
+import { SuperAdminReportController } from '../lawma/report/super-admin.controller';
 
 @Module({
   imports: [

@@ -268,16 +268,12 @@ export class PickupService {
     };
   }
 
-  // SuperAdmin pickups with dashboard
-  async getPickupsForAdmin(
-    admin: AdminUser,
-    page?: number,
-    limit?: number,
-    filters?: GetPickupDto,
-  ) {
+  // SuperAdmin pickups
+  async getPickupsForAdmin(admin: AdminUser, filters?: GetPickupDto) {
+    const { page = 1, limit = 10 } = filters || {};
     const skip = (page - 1) * limit;
+const query: any = {};
 
-    const query: any = {};
 
     if (filters?.status) {
       query.status = filters.status;

@@ -1,5 +1,5 @@
 import { Status } from '@models/pickup';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsDateString, IsString , IsOptional} from 'class-validator';
 
 export class RequestPickupDto {
@@ -22,13 +22,22 @@ export class RequestPickupDto {
 
 
 export class GetPickupDto{
-  @ApiProperty()
- @IsOptional()
+  @ApiPropertyOptional( {enum: Status})
+  @IsOptional()
   status?: Status;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsOptional()
   search?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  page?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  limit?: number;
+
 
 
 }

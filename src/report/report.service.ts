@@ -345,6 +345,8 @@ export class ReportService {
 
 
     async getReportsByUser(user: AuthUser, filters: GetReportsDto) {
+        const { page = 1, limit = 10 } = filters || {};
+        const skip = (page - 1) * limit;
         const query: any = {
             userId: new Types.ObjectId(user.id),
         };
@@ -367,20 +369,39 @@ export class ReportService {
         const reports = await this.reportModel
             .find(query)
             .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
             .lean();
 
-        return reports.map((report, index) => ({
-            sn: index + 1,
-            title: report.reportName,
-            reportType: report.type,
-            generationDate: report.createdAt,
-            period: {
-                from: moment(filters.startDate).format('DD/MM'),
-                to: moment(filters.endDate).format('DD/MM'),
-            },
+        // return reports.map((report, index) => ({
+        //     sn: index + 1,
+        //     title: report.reportName,
+        //     reportType: report.type,
+        //     generationDate: report.createdAt,
+        //     period: {
+        //         from: moment(filters.startDate).format('DD/MM'),
+        //         to: moment(filters.endDate).format('DD/MM'),
+        //     },
 
-            ...report,
-        }));
+        //     ...report,
+        //     paging:{
+        //         totalReports:reports.length,
+        //         page:page,
+        //         pages:Math.ceil(reports.length / limit),
+        //         size: limit,
+                
+        //         }
+        // }));
+
+        return {
+            reports,
+            paging:{
+                totalReports:reports.length,
+                page:page,
+                pages:Math.ceil(reports.length / limit),
+                size: limit,
+            }
+        }
     }
 
 
@@ -406,6 +427,8 @@ export class ReportService {
         }else if (type === ReportType.WasteDisposed) {
             data = await this.adminWasteDisposedReport(dto);
         }
+
+
 
         const report = await this.reportModel.create({
             adminId:admin.id,
@@ -439,6 +462,104 @@ export class ReportService {
     }
 
 
+
+     async generateSmartbinPartnerReport(
+        admin: AdminUser,
+        dto: CreateAdminReportDto,
+    ): Promise<SuccessResponse> {
+        const { type } = dto;
+
+        let data: any;
+       if (type === ReportType.SmartBinRequest) {
+            data = await this.adminSmartbinReport(dto);
+        }else if (type === ReportType.SmartbinDelivered) {
+            data = await this.adminDeliveredSmartbinReport(dto);
+       
+
+        const report = await this.reportModel.create({
+            adminId:admin.id,
+            reportName: dto.reportName,
+            type,
+            lga: dto.lga,
+            filters: dto.filters,
+            data,
+            period: {
+                from: moment(dto.startDate).format('DD/MM'),
+                to: moment(dto.endDate).format('DD/MM'),
+            },
+        });
+
+        return {
+            success: true,
+            message: 'Report generated successfully',
+            data: {
+                id: report._id,
+                reportName: report.reportName,
+                type: report.type,
+                generatedBy: report.adminId,
+                generatedAt: report.createdAt,
+                period: {
+                    from: moment(dto.startDate).format('DD/MM'),
+                    to: moment(dto.endDate).format('DD/MM'),
+                },
+                totalRecords: data.length,
+            },
+        };
+    }
+
+}
+
+
+ async generatePSPReport(
+        admin: AdminUser,
+        dto: CreateAdminReportDto,
+    ): Promise<SuccessResponse> {
+        const { type } = dto;
+
+        let data: any;
+       if (type === ReportType.WastePickup) {
+            data = await this.adminWasteDisposalReport(dto);
+        }else if (type === ReportType.WasteDisposed) {
+            data = await this.adminWasteDisposedReport(dto);
+       
+
+        const report = await this.reportModel.create({
+            adminId:admin.id,
+            reportName: dto.reportName,
+            type,
+            lga: dto.lga,
+            filters: dto.filters,
+            data,
+            period: {
+                from: moment(dto.startDate).format('DD/MM'),
+                to: moment(dto.endDate).format('DD/MM'),
+            },
+        });
+
+        return {
+            success: true,
+            message: 'Report generated successfully',
+            data: {
+                id: report._id,
+                reportName: report.reportName,
+                type: report.type,
+                generatedBy: report.adminId,
+                generatedAt: report.createdAt,
+                period: {
+                    from: moment(dto.startDate).format('DD/MM'),
+                    to: moment(dto.endDate).format('DD/MM'),
+                },
+                totalRecords: data.length,
+            },
+        };
+    }
+
+}
+
+
+
+
+    // helpers
     async adminSmartbinReport(dto: CreateAdminReportDto) {
         const { filters, startDate, endDate } = dto;
 
@@ -461,6 +582,7 @@ export class ReportService {
 
         const applications = await this.smartBinModel.find(query).populate('payment').lean();
         const totalAmount = applications.reduce((sum, app) => sum + (app.amount || 0), 0);
+
 
         return {
            applications,
@@ -511,24 +633,25 @@ export class ReportService {
 
     async adminWasteDisposalReport(dto: CreateAdminReportDto,year?: number) {
         const { startDate, endDate, filters } = dto;
-
-        const query: any = {};
-
+        
+        const matchStage: any = {};
+        
         if (filters?.branch) {
-            query.branch = filters.branch;
+            matchStage.branch = filters.branch;
         }
 
         if (startDate && endDate) {
-            query.createdAt = {
+            matchStage.pickupDateAsDate = {
                 $gte: new Date(startDate),
                 $lte: new Date(endDate),
             };
         }
 
-        const records = await this.pickupModel
-            .find(query)
+        const records = await this.pickupModel.aggregate([
+            { $addFields: { pickupDateAsDate: { $toDate: '$pickupDate' } } },
+            { $match: matchStage }
+        ])
             .sort({ createdAt: -1 })
-            .lean();
         let totalWeight = 0;
 
         const filteredDisposals = records.filter(
@@ -543,7 +666,6 @@ export class ReportService {
             totalWeight += weight;
 
             return {
-                    wasteId: item._id,
                 pickupDate: item.pickupDate,
                 pickupTime: item.pickupTime,
                 customerName: item?.customerName,
@@ -551,6 +673,7 @@ export class ReportService {
                 address: item.address,
                 status: item.status,
                 weight,
+                wasteId: item.id,
                 branch: item?.branch,
                 tenantName: item?.customerName,
                 businessName: item?.representative,
@@ -567,7 +690,9 @@ export class ReportService {
         };
     }
 
-    async adminWasteDisposedReport(dto: CreateAdminReportDto) {
+
+    // waste disposed
+    async adminWasteDisposedReport(dto: CreateAdminReportDto,month?: number) {
         const { startDate, endDate, filters } = dto;
 
         const query: any = { status:Status.Completed};
@@ -578,33 +703,38 @@ export class ReportService {
 
         if (startDate && endDate) {
             query.pickupDate = {
-                 $gte: moment(startDate).format('YYYY-MM-DD'),
-                $lte: moment(endDate).format('YYYY-MM-DD'),
+                $gte: new Date(startDate),
+                $lte: new Date(endDate),
             };
         }
 
         const records = await this.pickupModel
             .find(query)
-            .sort({ pickupDate: -1 })
+            .sort({ createdAt: -1 })
             .lean();
         let totalWeight = 0;
 
-            const filteredDisposals = records.filter( (d) => d.pickupDate);
+            const filteredDisposals = records.filter(
+      (d) => new Date(d.pickupDate).getMonth() === month,
+    );
 
         const pickups = records.map((item) => {
+
             const weight = item.weight || 0;
 
             totalWeight += weight;
 
             return {
-                wasteId: item._id,
+                wasteId: item.id,
                 name: item?.customerName || item?.representative,
-                branch:item?.branch,
                 pickupDate: item.pickupDate,
                 pickupTime: item.pickupTime,
                 address: item.address,
                 status: item.status,
                 weight,
+            
+             
+                assignedTo: item?.assignedTo,
 
             };
         });
@@ -691,7 +821,10 @@ export class ReportService {
 }
 
 
-    async getAdminReports(admin:AdminUser , filters?: GetReportsDto ,page?: number, limit?: number) {
+
+// Get Report by admin 
+    async getAdminReports(admin:AdminUser , filters?: GetReportsDto ) {
+        const { page = 1, limit = 10 } = filters || {};
         const skip = (page - 1) * limit;
         const query: any = { adminId: admin.id };
 
