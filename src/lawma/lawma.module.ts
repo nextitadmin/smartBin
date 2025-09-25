@@ -10,6 +10,7 @@ import { AuthModule } from './auth/auth.module';
 import { TeamModule } from './team/team.module';
 import { AdminReportController } from './admin.controller';
 import { ReportModule } from '@src/report/report.module';
+import { AdminWasteManagementModule } from './waste-management/waste-management.module';
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { ReportModule } from '@src/report/report.module';
     LawmaPartnerModule,
     AuthModule,
     TeamModule,
-    ReportModule
+    ReportModule,
+    AdminWasteManagementModule
   ],
 controllers:[
   AdminReportController
