@@ -23,8 +23,11 @@ import {
   Transaction,
   TransactionStatus,
 } from '@models/transaction.model';
-import { RequestPickupDto } from '@src/waste-management/pickup/dto/pickup.dto';
-import { AuthUser } from '@common/types';
+import {
+  GetPickupDto,
+  RequestPickupDto,
+} from '@src/waste-management/pickup/dto/pickup.dto';
+import { AdminUser, AuthUser } from '@common/types';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   MailNotificationEvents,
@@ -33,6 +36,7 @@ import {
 import { NotificationType } from '@models/notification.model';
 import { events } from '@common/constants';
 import { NotificationEvent } from '@src/notification/dto/notification.event';
+import { filter } from 'rxjs';
 
 @Injectable()
 export class PickupService {
@@ -264,16 +268,38 @@ export class PickupService {
     };
   }
 
-  // SuperAdmin pickups with dashboard
-  async getPickupsForSuperAdmin(admin, status: Status) {
-    // 1. Fetch all pickups
-    const pickups = await this.pickupModel
-      .find({})
-      .select('wasteId createdAt address representative status')// only needed fields
-      .sort({ createdAt: -1 })
-      .lean();
+  // SuperAdmin pickups
+  async getPickupsForAdmin(admin: AdminUser, filters?: GetPickupDto) {
+    const { page = 1, limit = 10 } = filters || {};
+    const skip = (page - 1) * limit;
+const query: any = {};
 
-    // 2. Count pickups by status
+
+    if (filters?.status) {
+      query.status = filters.status;
+    }
+
+    if (filters?.search) {
+      query.$or = [
+        { address: { $regex: filters.search, $options: 'i' } },
+        { representative: { $regex: filters.search, $options: 'i' } },
+        { phoneNumber: { $regex: filters.search, $options: 'i' } },
+      ];
+    }
+
+    const [pickups, totalRequest] = await Promise.all([
+      this.pickupModel
+        .find(query)
+        .select(
+          'wasteId accountId accountType createdAt address representative status',
+        )
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+        .lean(),
+      this.pickupModel.countDocuments(query),
+    ]);
+
     const wastePickedUp = await this.pickupModel.countDocuments({
       status: Status.Completed,
     });
@@ -281,26 +307,35 @@ export class PickupService {
       status: Status.Pending,
     });
 
-    // 3. Calculate total amount generated from successful transactions
     const result = await this.transactionModel.aggregate([
-      { $match: { status: TransactionStatus.Successful } },
+      {
+        $match: {
+          status: TransactionStatus.Successful,
+          service: ServiceType.WasteDisposal,
+        },
+      },
       { $group: { _id: null, total: { $sum: '$amount' } } },
     ]);
     const amountGenerated = result.length > 0 ? result[0].total : 0;
 
-    // 4. Return dashboard + pickup list
     return {
       adminInfo: {
-          username: admin.firstName + ' ' + admin.lastName,
-          adminId: admin._id,
-          status: admin.status,
-        },
+        username: admin.name,
+        adminId: admin.id,
+        role: admin.role,
+      },
       dashboard: {
         wastePickedUp,
         pendingPickups,
         amountGenerated,
       },
-      pickups,
+      pickups: pickups,
+      paging: {
+        totalRequest,
+        page: page,
+        pages: Math.ceil(totalRequest / limit),
+        size: limit,
+      },
     };
   }
 }

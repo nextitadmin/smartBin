@@ -3,6 +3,7 @@ import { ApiTags, ApiQuery } from '@nestjs/swagger';
 import { UsersService } from './user-management.service';
 import { UserRole } from '@models/types';
 import { AdminAuth } from '@common/decorators/auth.decorator';
+import { GetUserDto } from './dto/dto';
 
 @ApiTags('Admin/User-Managemnt')
 @Controller({
@@ -14,10 +15,10 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @ApiQuery({ name: 'page', required: false, type: String })
-  @ApiQuery({ name: 'limit', required: false, type: String })
-  getUsers(@Query('page') page = 1, @Query('limit') limit = 10) {
-    return this.usersService.getAllUsers(page, limit);
+  // @ApiQuery({ name: 'page', required: false, type: String })
+  // @ApiQuery({ name: 'limit', required: false, type: String })
+  getUsers(@Query() filter:GetUserDto) {
+    return this.usersService.getAllUsers(filter);
   }
 
   @Get(':id')
@@ -27,24 +28,18 @@ export class UsersController {
   }
 
   @Get('facility/:id')
-  @ApiQuery({ name: 'page', required: false })
-  @ApiQuery({ name: 'limit', required: false })
   getFacilityUsers(
     @Param('id') accountId: string,
-    @Query('page') page = 1,
-    @Query('limit') limit = 10,
+    @Query() filter: GetUserDto,
   ) {
-    return this.usersService.getFacilityUsers({accountId}, page, limit);
+    return this.usersService.getFacilityUsers({accountId}, filter);
   }
 
   @Get('agent/:id')
-  @ApiQuery({ name: 'page', required: false })
-  @ApiQuery({ name: 'limit', required: false })
   getAgentUsers(
     @Param('id') agentId: string,
-    @Query('page') page = 1,
-    @Query('limit') limit = 10,
+    @Query() filter:GetUserDto
   ) {
-    return this.usersService.getAgentRegisteredUsers({agentId}, page, limit);
+    return this.usersService.getAgentRegisteredUsers({agentId}, filter);
   }
 }
