@@ -1,121 +1,121 @@
 import {
-    BadRequestException,
-    Injectable,
-    NotFoundException,
+  BadRequestException,
+  Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { TeamMember, TeamMemberDocument } from '@models/team.model';
 import { Model, Types } from 'mongoose';
 import { FacilityManagerService } from '@src/facility-manager/facility-manager.service';
-import { CreateTeamMemberDto, UpdateTeamMemberDto } from '@src/team/dto/team-member.dto';
+import {
+  CreateTeamMemberDto,
+  UpdateTeamMemberDto,
+} from '@src/team/dto/team-member.dto';
 import { AuthUser } from '@common/types';
 import { UserRole } from '@models/types';
 import { Paging } from '@common/http';
 
-
-
 @Injectable()
 export class TeamService {
-    constructor(
-        @InjectModel(TeamMember.name)
-        private readonly teamMemberModel: Model<TeamMemberDocument>,
-    ) { }
+  constructor(
+    @InjectModel(TeamMember.name)
+    private readonly teamMemberModel: Model<TeamMemberDocument>,
+  ) {}
 
-    async addTeamMember({
-        userId,
-        accountType,
-        dto,
-    }: {
-        userId: string;
-        accountType: UserRole;
-        dto: CreateTeamMemberDto;
-    }) {
-        const existingMember = await this.teamMemberModel.findOne({
-            userId: new Types.ObjectId(userId),
-            email: dto.email,
-        });
+  async addTeamMember({
+    userId,
+    accountType,
+    dto,
+  }: {
+    userId: string;
+    accountType: UserRole;
+    dto: CreateTeamMemberDto;
+  }) {
+    const existingMember = await this.teamMemberModel.findOne({
+      userId: new Types.ObjectId(userId),
+      email: dto.email,
+    });
 
-        if (existingMember) {
-            throw new BadRequestException('Team member with this email already exists for this user.');
-        }
-
-        const teamMember = await this.teamMemberModel.create({
-            userId: new Types.ObjectId(userId),
-            accountType,
-            ...dto,
-        });
-        return teamMember;
+    if (existingMember) {
+      throw new BadRequestException(
+        'Team member with this email already exists for this user.',
+      );
     }
 
+    const teamMember = await this.teamMemberModel.create({
+      userId: new Types.ObjectId(userId),
+      accountType,
+      ...dto,
+    });
+    return teamMember;
+  }
 
+  async getTeamMembersForUser(user: AuthUser) {
+    const query = {
+      userId: new Types.ObjectId(user.id),
+    };
+    const totalDocument = await this.teamMemberModel.countDocuments(query);
+    const teamMembers = await this.teamMemberModel
+      .find(query)
+      .sort({ createdAt: -1 }) // Sort by creation date in descending order
+      .lean();
 
+    const pagingMeta: Paging = {
+      page: 1,
+      pages: Math.ceil(totalDocument / 10),
+      size: totalDocument,
+      total: totalDocument,
+    };
 
-    async getTeamMembersForUser(user: AuthUser) {
-        const query = {
-            userId: new Types.ObjectId(user.id)
-        };
-        const totalDocument = await this.teamMemberModel.countDocuments(query);
-        const teamMembers = await this.teamMemberModel
-            .find(query)
-            .sort({ createdAt: -1 }) // Sort by creation date in descending order
-            .lean();
+    return {
+      data: teamMembers,
+      paging: pagingMeta,
+    };
+  }
 
-        const pagingMeta: Paging = {
-            page: 1,
-            pages: Math.ceil(totalDocument / 10),
-            size: totalDocument,
-            total: totalDocument,
-        };
+  async getTeamMemberById(id: string, userId: string) {
+    const teamMember = await this.teamMemberModel.findOne({
+      _id: id,
+      userId: new Types.ObjectId(userId),
+    });
 
-        return {
-            data: teamMembers,
-            paging: pagingMeta,
-        };
+    if (!teamMember) {
+      throw new NotFoundException(
+        'Team member not found or does not belong to you.',
+      );
     }
+    return teamMember;
+  }
 
-    async getTeamMemberById(id: string, userId: string) {
-        const teamMember = await this.teamMemberModel.findOne({
-            _id: id,
-            userId: new Types.ObjectId(userId),
-        });
+  async updateTeamMemberInfo(
+    id: string,
+    userId: string,
+    dto: UpdateTeamMemberDto,
+  ) {
+    const updatedTeamMember = await this.teamMemberModel.findOneAndUpdate(
+      { _id: id, userId: userId },
+      { $set: dto },
+      { new: true },
+    );
 
-        if (!teamMember) {
-            throw new NotFoundException('Team member not found or does not belong to you.');
-        }
-        return teamMember;
+    if (!updatedTeamMember) {
+      throw new NotFoundException(
+        'Team member not found or does not belong to you.',
+      );
     }
+    return updatedTeamMember;
+  }
 
+  async deleteTeamMember(id: string, userId: string) {
+    const deletedTeamMember = await this.teamMemberModel.findOneAndDelete({
+      _id: id,
+      userId: userId,
+    });
 
-
-    async updateTeamMemberInfo(
-        id: string,
-        userId: string,
-        dto: UpdateTeamMemberDto,
-    ) {
-        const updatedTeamMember = await this.teamMemberModel.findOneAndUpdate(
-            { _id: id, userId: userId },
-            { $set: dto },
-            { new: true },
-        );
-
-        if (!updatedTeamMember) {
-            throw new NotFoundException('Team member not found or does not belong to you.');
-        }
-        return updatedTeamMember;
+    if (!deletedTeamMember) {
+      throw new NotFoundException(
+        'Team member not found or does not belong to you.',
+      );
     }
-
-    async deleteTeamMember(id: string, userId: string) {
-        const deletedTeamMember = await this.teamMemberModel.findOneAndDelete({
-            _id: id,
-            userId: userId,
-        });
-
-        if (!deletedTeamMember) {
-            throw new NotFoundException('Team member not found or does not belong to you.');
-        }
-
-    }
-
-
-
+  }
 }
