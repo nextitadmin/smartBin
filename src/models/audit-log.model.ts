@@ -4,6 +4,8 @@ import { Document, SchemaTypes, Types } from 'mongoose';
 export enum LOGTYPE {
   USER_LOGIN = 'user_login',
   CHANGE_PASSWORD = 'change_password',
+  ADD_PSP = 'add_psp',
+  DEACTIVATE_PSP = 'deactivate_psp',
   ADD_TEAM_MEMBER = 'add_team_member',
   REMOVE_TEAM_MEMBER = 'remove_team_member',
   STATUS_CHANGE = 'change_status',
@@ -11,8 +13,8 @@ export enum LOGTYPE {
 
 @Schema({ timestamps: true })
 export class AuditLog extends Document {
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  userId: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'Administrator', required: true })
+  user: Types.ObjectId;
 
   @Prop({ type: SchemaTypes.String, required: true })
   name: string;
