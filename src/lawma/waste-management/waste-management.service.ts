@@ -8,8 +8,18 @@ import { GetPickupDto } from '@src/waste-management/pickup/dto/pickup.dto';
 @Injectable()
 export class LawmaWasteManagementService {
   constructor(private readonly pickupService: PickupService) {}
-  async getPickupsForAdmin(admin: AdminUser, page?: number, limit?: number , filters?: GetPickupDto) {
-    const data = await this.pickupService.getPickupsForAdmin(admin,page,limit,filters);
+  async getPickupsForAdmin(
+    admin: AdminUser,
+    page?: number,
+    limit?: number,
+    filters?: GetPickupDto,
+  ) {
+    const data = await this.pickupService.getPickupsForAdmin(
+      admin,
+      page,
+      limit,
+      filters,
+    );
     return new SuccessResponse('Pickups retrieved successfully', data);
   }
 }

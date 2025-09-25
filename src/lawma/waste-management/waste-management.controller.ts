@@ -35,7 +35,7 @@ export class WasteManagementController {
       admin,
       page,
       limit,
-      filters
+      filters,
     );
   }
 }

@@ -23,7 +23,10 @@ import {
   Transaction,
   TransactionStatus,
 } from '@models/transaction.model';
-import { GetPickupDto, RequestPickupDto } from '@src/waste-management/pickup/dto/pickup.dto';
+import {
+  GetPickupDto,
+  RequestPickupDto,
+} from '@src/waste-management/pickup/dto/pickup.dto';
 import { AdminUser, AuthUser } from '@common/types';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
@@ -266,9 +269,14 @@ export class PickupService {
   }
 
   // SuperAdmin pickups with dashboard
-  async getPickupsForAdmin(admin:AdminUser , page?:number, limit?:number, filters?: GetPickupDto) {
+  async getPickupsForAdmin(
+    admin: AdminUser,
+    page?: number,
+    limit?: number,
+    filters?: GetPickupDto,
+  ) {
     const skip = (page - 1) * limit;
-  
+
     const query: any = {};
 
     if (filters?.status) {
@@ -280,21 +288,22 @@ export class PickupService {
         { address: { $regex: filters.search, $options: 'i' } },
         { representative: { $regex: filters.search, $options: 'i' } },
         { phoneNumber: { $regex: filters.search, $options: 'i' } },
-        
       ];
     }
 
     const [pickups, totalRequest] = await Promise.all([
       this.pickupModel
-      .find(query)
-      .select('wasteId accountId accountType createdAt address representative status')
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 })
-      .lean(),
-      this.pickupModel.countDocuments(query)
-    ])
- 
+        .find(query)
+        .select(
+          'wasteId accountId accountType createdAt address representative status',
+        )
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+        .lean(),
+      this.pickupModel.countDocuments(query),
+    ]);
+
     const wastePickedUp = await this.pickupModel.countDocuments({
       status: Status.Completed,
     });
@@ -303,33 +312,34 @@ export class PickupService {
     });
 
     const result = await this.transactionModel.aggregate([
-      { $match: { status: TransactionStatus.Successful , service: ServiceType.WasteDisposal}
-    
-    },
+      {
+        $match: {
+          status: TransactionStatus.Successful,
+          service: ServiceType.WasteDisposal,
+        },
+      },
       { $group: { _id: null, total: { $sum: '$amount' } } },
     ]);
     const amountGenerated = result.length > 0 ? result[0].total : 0;
 
-
     return {
       adminInfo: {
-          username: admin.name,
-          adminId: admin.id,
-          role: admin.role,
-        },
+        username: admin.name,
+        adminId: admin.id,
+        role: admin.role,
+      },
       dashboard: {
         wastePickedUp,
         pendingPickups,
         amountGenerated,
       },
       pickups: pickups,
-      paging:{
+      paging: {
         totalRequest,
-        page:page,
-        pages:Math.ceil(totalRequest/limit),
-        size:limit
-      
-      }
+        page: page,
+        pages: Math.ceil(totalRequest / limit),
+        size: limit,
+      },
     };
   }
 }
