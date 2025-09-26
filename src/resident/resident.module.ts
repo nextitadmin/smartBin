@@ -40,7 +40,7 @@ import { NotificationModule } from '@src/notification/notification.module';
 
 import { WalletModule } from '@src/wallet/wallet.module';
 import { AdminResidentController } from './admin.controller';
-
+import { TeamMember, TeamMemberSchema } from '@models/team.model';
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -84,12 +84,14 @@ import { AdminResidentController } from './admin.controller';
       { name: Report.name, schema: ReportSchema },
       { name: Pickup.name, schema: PickupSchema },
       { name: Facility.name, schema: FacilitySchema },
+      { name: TeamMember.name, schema: TeamMemberSchema },
     ]),
     SmartBinModule,
     KycModule,
     DashboardModule,
     PickupModule,
     WalletModule,
+    TeamMember,
     forwardRef(() => NotificationModule),
   ],
   controllers: [

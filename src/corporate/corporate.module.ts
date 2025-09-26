@@ -42,7 +42,7 @@ import { CorporatePaymentController } from './payment/payment.controller';
 import { ReportService } from '@src/report/report.service';
 import { Report, ReportSchema } from '@models/report.model';
 import { PayerService } from '@src/payer/payer.service';
-
+import { TeamMember, TeamMemberSchema } from '@models/team.model';  
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -59,13 +59,15 @@ import { PayerService } from '@src/payer/payer.service';
       { name: Pickup.name, schema: PickupSchema },
       { name: Branch.name, schema: BranchSchema },
       { name: Report.name, schema: ReportSchema },
-      { name: Facility.name, schema: FacilitySchema }
+      { name: Facility.name, schema: FacilitySchema },
+      { name: TeamMember.name, schema: TeamMemberSchema },
     ]),
     WalletModule,
     PickupModule,
     DashboardModule,
     forwardRef(() => NotificationModule),
     KycModule,
+    TeamMember
   ],
 
   controllers: [

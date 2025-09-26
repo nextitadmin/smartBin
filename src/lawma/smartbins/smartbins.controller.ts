@@ -44,4 +44,27 @@ export class SmartbinsController {
       Number(limit),
     );
   }
+
+  @Get('orders')
+  @ApiQuery({ name: 'page', required: false, type: String })
+  @ApiQuery({ name: 'limit', required: false, type: String })
+  getAllBinOrders(@Query('page') page = '1', @Query('limit') limit = '10') {
+    return this.smartbinService.getAllBinOrders(Number(page), Number(limit));
+  }
+
+  @Put('schedule-delivery')
+  @ApiQuery({ name: 'applicationId', type: String, required: true })
+  @ApiQuery({ name: 'teamMemberId', type: String, required: true })
+  @ApiQuery({ name: 'comment', type: String, required: false })
+  scheduleDelivery(
+    @Query('applicationId') applicationId: string,
+    @Query('teamMemberId') teamMemberId: string,
+    @Query('comment') comment = '',
+  ) {
+    return this.smartbinService.scheduleDelivery(
+      applicationId,
+      teamMemberId,
+      comment,
+    );
+  }
 }

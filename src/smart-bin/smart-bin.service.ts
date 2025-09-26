@@ -50,6 +50,7 @@ import { NotificationEvent } from '@src/notification/dto/notification.event';
 import { Facility } from '@models/facilities';
 import { CustomerType } from '@models/report.model';
 import { Paging } from '@common/http';
+import { TeamMember } from '@models/team.model';
 
 @Injectable()
 export class SmartBinService {
@@ -67,6 +68,7 @@ export class SmartBinService {
     @InjectModel(Transaction.name)
     private readonly transactionModel: Model<Transaction>,
     private readonly eventEmitter: EventEmitter2,
+    @InjectModel(TeamMember.name) private readonly teamMemberModel: Model<TeamMember>,
   ) { }
 
   async getResidentBinApplication(residentId: string, page = 1, limit = 10) {
@@ -341,6 +343,136 @@ export class SmartBinService {
       },
     };
   }
+
+  //get All bin Orders
+  async getAllBinOrders(page = 1, limit = 10) {
+    const skip = (page - 1) * limit;
+    const [
+      totalOrders,
+      orderValueAgg,
+      ongoingOrders,
+      completedOrders
+    ] = await Promise.all([
+      this.smartbinModel.countDocuments(),
+      this.transactionModel.aggregate([
+        { $match: { service: 'SmartBinPurchase', status: TransactionStatus.Successful } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ]),
+      this.smartbinModel.countDocuments({ status: { $in: [SmartbinStatus.Pending, SmartbinStatus.Approved] } }),
+      this.smartbinModel.countDocuments({ status: SmartbinStatus.Delivered })
+    ]);
+
+    const [orders, total] = await Promise.all([
+      this.smartbinModel
+        .find()
+        .populate('payment')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      this.smartbinModel.countDocuments(),
+    ]);
+
+    const orderValue = orderValueAgg.length > 0 ? orderValueAgg[0].total : 0;
+
+    const records = orders.map((order) => ({
+      id: String(order._id),
+      orderId: order.binId,
+      name: order?.name,
+      phoneNumber: order?.phoneNumber,
+      lga: order?.localGovernmentArea,
+      orderDate: order.createdAt, 
+      status: order.status,
+    }));
+
+    return {
+      summary: {
+        totalOrders,
+        orderValue,
+        ongoingOrders,
+        completedOrders,
+      },
+      orders: records,
+      paging: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        size: limit,
+      },
+    };
+  }
+
+  // Assign team member to schedule delivery
+  async scheduleDelivery(
+  applicationId: string,
+  teamMemberId: string, 
+  comment: string,
+) {
+  const smartbin = await this.smartbinModel.findById(applicationId);
+  if (!smartbin) {
+    throw new NotFoundException('Bin application not found');
+  }
+
+  if (smartbin.status === SmartbinStatus.Delivered) {
+    throw new BadRequestException('This SmartBin has already been delivered.');
+  }
+
+  const teamMember = await this.teamMemberModel.findById(teamMemberId);
+  if (!teamMember) {
+    throw new NotFoundException('Team member not found');
+  }
+
+  smartbin.status = SmartbinStatus.ScheduledForDelivery;
+  smartbin.assignedTo = String(teamMember._id); // <-- store relation to team member as string
+  smartbin.applicationHistory.push({
+    timestamp: new Date(),
+    status: SmartbinStatus.ScheduledForDelivery,
+    description: comment || `Scheduled for delivery by ${teamMember.name}`,
+  });
+
+  await smartbin.save();
+
+  // 1️⃣ email notification
+  this.eventEmitter.emit(
+    MailNotificationEvents.Application.SmartBinUpdate,
+    new SendEmailEvent({
+      to: teamMember.email,
+      from: `"LAWMA REG" <accounts@lawma.co>`,
+      subject: 'New SmartBin Delivery Assigned',
+      context: {
+        teamMember: teamMember.name,
+        binId: smartbin.binId,
+        address: smartbin.address,
+        customer: smartbin.name || smartbin.businessName,
+        comment,
+      },
+    }),
+  );
+
+  // 1️⃣ in-app notification 
+  this.eventEmitter.emit(
+    events.notifications.created,
+    new NotificationEvent({
+      userId: String(teamMember.userId), // link notification to actual user
+      title: 'SmartBin Delivery Scheduled',
+      text: `You have been assigned to deliver SmartBin ${smartbin.binId}.`,
+      type: NotificationType.SmartBinUpdate,
+    }),
+  );
+
+  return {
+    message: 'SmartBin delivery scheduled successfully',
+    applicationId,
+    status: smartbin.status,
+    assignedTo: {
+      id: teamMember._id,
+      name: teamMember.name,
+      email: teamMember.email,
+      phoneNumber: teamMember.phoneNumber,
+    },
+    comment,
+  };
+}
 
 
   // Get bin application by ID

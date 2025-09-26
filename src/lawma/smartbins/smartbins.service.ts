@@ -20,4 +20,20 @@ export class LawmaSmartbinsService {
   async getDeliveredSmartBins(page: number, limit: number) {
     return this.smartBinService.getDeliveredSmartBins(page, limit);
   }
+  
+  async getAllBinOrders(page: number, limit: number) {
+    return this.smartBinService.getAllBinOrders(page, limit);
+  }
+
+  async scheduleDelivery(
+    applicationId: string,
+    teamMemberId: string,
+    comment: string,
+  ) {
+    return this.smartBinService.scheduleDelivery(
+      applicationId,
+      teamMemberId,
+      comment,
+    );
+  }
 }
