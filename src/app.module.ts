@@ -48,8 +48,6 @@ import { TeamModule } from './team/team.module';
 // import { SuperAdminController } from './super-admin/super-admin.controller';
 import { SuperAdminModule } from './super-admin/super-admin.module';
 import { LawmaModule } from './lawma/lawma.module';
-import { OderManagementModule } from './oder-management/oder-management.module';
-
 @Module({
   imports: [
     ConfigModule.forRoot(configModuleOpts),
@@ -82,7 +80,6 @@ import { OderManagementModule } from './oder-management/oder-management.module';
     TeamModule,
     SuperAdminModule,
     LawmaModule,
-    OderManagementModule,
   ],
   controllers: [AppController],
   providers: [
