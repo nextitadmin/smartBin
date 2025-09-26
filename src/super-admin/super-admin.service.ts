@@ -58,12 +58,19 @@ export class SuperAdminService {
       .countDocuments({ status: SmartbinStatus.Delivered })
       .exec();
     const totalBinRequests = await this.smartbinModel.countDocuments().exec();
+
     const totalRegisteredUsers =
-      residentCount +
-      agentCount +
-      corporateCount +
-      facilityManagerCount +
-      totalTeamMembers;
+      residentCount + agentCount + corporateCount + facilityManagerCount;
+    totalTeamMembers;
+    const percentageByUserType = {
+      resident: Math.floor((residentCount / totalRegisteredUsers) * 100) || 0,
+      agent: Math.floor((agentCount / totalRegisteredUsers) * 100) || 0,
+      corporate: Math.floor((corporateCount / totalRegisteredUsers) * 100) || 0,
+      facilityManager:
+        Math.floor((facilityManagerCount / totalRegisteredUsers) * 100) || 0,
+      teamMember:
+        Math.floor((totalTeamMembers / totalRegisteredUsers) * 100) || 0,
+    };
 
     const totalPSPCompanies = await this.pspModel.countDocuments().exec();
     // TODO: Add top PSP companies per revenue generated. @Kazeem
@@ -80,6 +87,7 @@ export class SuperAdminService {
         corporatesUsers: corporateCount,
         facilityManagers: facilityManagerCount,
         totalRegisteredUsers: totalRegisteredUsers,
+        percentageByUserType: percentageByUserType,
       },
       binRequests: {
         pendingBinrequests: pendingBinrequests,

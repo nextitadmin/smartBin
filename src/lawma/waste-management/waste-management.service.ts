@@ -1,11 +1,22 @@
+import { SuccessResponse } from '@common/http';
 import { Status } from '@models/pickup';
 import { Injectable } from '@nestjs/common';
 import { PickupService } from '@src/waste-management/pickup/pickup.service';
+import { AdminUser } from '@common/types';
+import { GetPickupDto } from '@src/waste-management/pickup/dto/pickup.dto';
 
 @Injectable()
 export class LawmaWasteManagementService {
   constructor(private readonly pickupService: PickupService) {}
-  async getPickupsForSuperAdmin(admin: string, status: Status) {
-    return this.pickupService.getPickupsForSuperAdmin(admin, status);
+  async getPickupsForAdmin(
+    admin: AdminUser,
+    filters?: GetPickupDto,
+    
+  ) {
+    const data = await this.pickupService.getPickupsForAdmin(
+      admin,
+      filters,
+    );
+    return new SuccessResponse('Pickups retrieved successfully', data);
   }
 }

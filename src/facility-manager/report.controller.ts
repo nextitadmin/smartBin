@@ -49,9 +49,6 @@ export class FacilityManagerReportController {
 
     // getAllReportsByUser
     @Get()
-    @ApiQuery({ name: 'type', enum: ReportType, required: false })
-    @ApiQuery({ name: 'startDate', required: false })
-    @ApiQuery({ name: 'endDate', required: false })
     async getReports(@AuthenticatedFacilityManager() facility: FacilityManagerUser, @Query() filters: GetReportsDto) {
         const reports = await this.reportService.getReportsByUser(facility, filters);
         return new SuccessResponse('Reports fetched', reports);
