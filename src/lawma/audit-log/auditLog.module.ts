@@ -7,6 +7,7 @@ import {
   Administrator,
   AdministratorSchema,
 } from '@models/administrator.model';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import {
       { name: AuditLog.name, schema: AuditLogSchema },
       { name: Administrator.name, schema: AdministratorSchema },
     ]),
+    AuthModule
   ],
   controllers: [AuditLogController],
   providers: [AuditLogService],

@@ -8,18 +8,21 @@ import {
   UpdatePspMembersStatusBodyDTO,
   UpdatePspMembersStatusParamDTO,
 } from './dto/psp.dto';
+import { AdminAuth, AuthenticatedAdmin } from '@common/decorators/auth.decorator';
+import { AdminUser } from '@common/types';
 
 @ApiTags('PSPs')
 @Controller({
   path: 'psps',
   version: '1',
 })
+@AdminAuth()
 export class PspController {
   constructor(private readonly pspService: PspService) {}
 
   @Post()
-  async createPsp(@Body() psp: CreatePspDTO) {
-    const response = await this.pspService.createPsp(psp);
+  async createPsp(@Body() psp: CreatePspDTO, @AuthenticatedAdmin() admin: AdminUser) {
+    const response = await this.pspService.createPsp(psp, admin.id);
     return new SuccessResponse('psp created', response);
   }
 
@@ -33,6 +36,12 @@ export class PspController {
       ...pspMembers,
     });
     return new SuccessResponse('psp members created', response);
+  }
+
+  @Get('/lgas')
+  async getPspLgas(){
+    const response = await this.pspService.getPspLgas();
+    return new SuccessResponse('psp lgas fetched', response);
   }
 
   @Get()

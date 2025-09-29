@@ -4,6 +4,9 @@ import { PspService } from './psp.service';
 import { PSP, PSPSchema } from '@models/psp.model';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PSPMembers, PSPMembersSchema } from '@models/psp-members.model';
+import { Lga, LgaSchema } from '@models/lgas.model';
+import { Administrator, AdministratorSchema } from '@models/administrator.model';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   controllers: [PspController],
@@ -12,7 +15,10 @@ import { PSPMembers, PSPMembersSchema } from '@models/psp-members.model';
     MongooseModule.forFeature([
       { name: PSP.name, schema: PSPSchema },
       { name: PSPMembers.name, schema: PSPMembersSchema },
+      { name: Administrator.name, schema: AdministratorSchema },
+      { name: Lga.name, schema: LgaSchema}
     ]),
+    AuthModule
   ],
 })
 export class PspModule {}

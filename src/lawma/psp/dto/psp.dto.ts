@@ -1,6 +1,6 @@
 import { PSPMembersStatus } from '@models/psp-members.model';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsIn, IsString } from 'class-validator';
+import { IsEmail, IsIn, IsString } from 'class-validator';
 
 export class CreatePspDTO {
   @ApiProperty()
@@ -10,6 +10,11 @@ export class CreatePspDTO {
   @ApiProperty()
   @IsString()
   administrator_name: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsEmail()
+  administrator_email: string;
 
   @ApiProperty()
   @IsString()

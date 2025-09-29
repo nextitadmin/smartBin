@@ -34,6 +34,12 @@ export class PSP {
     required: true,
   })
   company_address: string;
+
+  @Prop({
+    type: SchemaTypes.Date,
+    required: false,
+  })
+  deleted_at: Date;
 }
 
 export const PSPSchema = SchemaFactory.createForClass(PSP);

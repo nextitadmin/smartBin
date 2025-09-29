@@ -5,6 +5,8 @@ import { Model } from 'mongoose';
 import { CreatePspDTO, CreatePspMembersDTO } from './dto/psp.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { UpdatePspMembersStatusBodyDTO } from './dto/psp.dto';
+import { Lga } from '@models/lgas.model';
+import { Administrator } from '@models/administrator.model';
 
 @Injectable()
 export class PspService {
@@ -13,10 +15,24 @@ export class PspService {
     private readonly psp: Model<PspDocument>,
     @InjectModel(PSPMembers.name)
     private readonly pspMembers: Model<PspMembersDocument>,
+    @InjectModel(Lga.name) private lga: Model<Lga>,
+    @InjectModel(Administrator.name) private admin: Model<Administrator>
   ) {}
 
-  async createPsp(psp: CreatePspDTO) {
+  async createPsp(psp: CreatePspDTO, adminId:string) {
+    const newAdmin = await this.admin.create({
+      name: psp.administrator_name,
+      email: psp.administrator_email,
+      phoneNumber: psp.administrator_phone,
+      role: 'smartbin_partner',
+      password: 'password'
+    });
+
     return this.psp.create(psp);
+  }
+
+  async getPspLgas(){
+    return this.lga.find();
   }
 
   async createPspMembers(pspMembers: CreatePspMembersDTO & { psp_id: string }) {

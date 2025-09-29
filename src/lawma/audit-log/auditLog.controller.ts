@@ -3,12 +3,14 @@ import { AuditLogService } from './auditLog.service';
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { SuccessResponse } from '@common/http';
 import { logStatement } from './dto/auditLog.dto';
+import { AdminAuth } from '@common/decorators/auth.decorator';
 
 @ApiTags('Admin/Audit Logs')
 @Controller({
   path: 'lawma/auditlogs',
   version: '1',
 })
+@AdminAuth()
 export class AuditLogController {
   constructor(private readonly auditLogService: AuditLogService) {}
 
