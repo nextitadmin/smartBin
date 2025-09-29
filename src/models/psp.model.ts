@@ -12,6 +12,13 @@ export class PSP {
   company_name: string;
 
   @Prop({
+    type: SchemaTypes.ObjectId,
+    ref: 'Administrator',
+    required: true,
+  })
+  administrator: Types.ObjectId;
+
+  @Prop({
     type: SchemaTypes.String,
     required: true,
   })
@@ -22,6 +29,13 @@ export class PSP {
     required: true,
   })
   administrator_phone: string;
+
+  @Prop({
+    type: SchemaTypes.ObjectId,
+    ref: 'Lga',
+    required: true,
+  })
+  lga_id: Types.ObjectId;
 
   @Prop({
     type: SchemaTypes.String,

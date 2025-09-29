@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { PspService } from './psp.service';
 import { CreatePspDTO, CreatePspMembersDTO } from './dto/psp.dto';
@@ -10,6 +10,7 @@ import {
 } from './dto/psp.dto';
 import { AdminAuth, AuthenticatedAdmin } from '@common/decorators/auth.decorator';
 import { AdminUser } from '@common/types';
+import { Request as UserRequest } from 'express';
 
 @ApiTags('PSPs')
 @Controller({
@@ -21,8 +22,8 @@ export class PspController {
   constructor(private readonly pspService: PspService) {}
 
   @Post()
-  async createPsp(@Body() psp: CreatePspDTO, @AuthenticatedAdmin() admin: AdminUser) {
-    const response = await this.pspService.createPsp(psp, admin.id);
+  async createPsp(@Body() psp: CreatePspDTO, @AuthenticatedAdmin() admin: AdminUser, @Req() req: UserRequest) {
+    const response = await this.pspService.createPsp(psp, admin.id, req);
     return new SuccessResponse('psp created', response);
   }
 

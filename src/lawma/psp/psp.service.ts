@@ -6,7 +6,11 @@ import { CreatePspDTO, CreatePspMembersDTO } from './dto/psp.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { UpdatePspMembersStatusBodyDTO } from './dto/psp.dto';
 import { Lga } from '@models/lgas.model';
-import { Administrator } from '@models/administrator.model';
+import { Administrator, AdministratorRole } from '@models/administrator.model';
+import { AuditLogEvents, LogActionEvent } from '../audit-log/dto/event';
+import { LOGTYPE } from '@models/audit-log.model';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Request as UserRequest } from 'express';
 
 @Injectable()
 export class PspService {
@@ -16,22 +20,33 @@ export class PspService {
     @InjectModel(PSPMembers.name)
     private readonly pspMembers: Model<PspMembersDocument>,
     @InjectModel(Lga.name) private lga: Model<Lga>,
-    @InjectModel(Administrator.name) private admin: Model<Administrator>
-  ) {}
+    @InjectModel(Administrator.name) private admin: Model<Administrator>,
+    private readonly ee: EventEmitter2
+  ) { }
 
-  async createPsp(psp: CreatePspDTO, adminId:string) {
+  async createPsp(psp: CreatePspDTO, adminId: string, req: UserRequest) {
     const newAdmin = await this.admin.create({
       name: psp.administrator_name,
       email: psp.administrator_email,
       phoneNumber: psp.administrator_phone,
-      role: 'smartbin_partner',
+      role: AdministratorRole.SmartBinPartner,
+      status: 'active',
       password: 'password'
     });
 
-    return this.psp.create(psp);
+    this.ee.emit(
+      AuditLogEvents.UserActivity,
+      new LogActionEvent({
+        userId: adminId,
+        req,
+        action: LOGTYPE.ADD_PSP
+      }),
+    );
+
+    return this.psp.create({ ...psp, administrator: newAdmin._id });
   }
 
-  async getPspLgas(){
+  async getPspLgas() {
     return this.lga.find();
   }
 
@@ -47,7 +62,7 @@ export class PspService {
   }
 
   async getPsps() {
-    return this.psp.find();
+    return this.psp.find({ deleted_at: null });
   }
 
   async getPsp(pspId: string) {
@@ -55,7 +70,7 @@ export class PspService {
   }
 
   async getPspMembers(pspId: string) {
-    return this.pspMembers.find({ psp_id: pspId });
+    return this.pspMembers.find({ psp_id: pspId, deleted_at: null });
   }
 
   async updatePsp(pspId: string, psp: PspDocument) {
@@ -81,10 +96,16 @@ export class PspService {
   }
 
   async deletePsp(pspId: string) {
-    return this.psp.findByIdAndDelete(pspId);
+    // return this.psp.findByIdAndDelete(pspId);
+    return this.psp.findByIdAndUpdate(pspId, {
+      deleted_at: new Date(),
+    })
   }
 
   async deletePspMembers(pspMembersId: string) {
-    return this.pspMembers.findByIdAndDelete(pspMembersId);
+    // return this.pspMembers.findByIdAndDelete(pspMembersId);
+    return this.pspMembers.findByIdAndUpdate(pspMembersId, {
+      deleted_at: new Date(),
+    })
   }
 }
