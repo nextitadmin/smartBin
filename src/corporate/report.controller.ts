@@ -49,9 +49,6 @@ export class CorporateReportController {
 
     // getAllReportsByUser
     @Get()
-    @ApiQuery({ name: 'type', enum: ReportType, required: false })
-    @ApiQuery({ name: 'startDate', required: false })
-    @ApiQuery({ name: 'endDate', required: false })
     async getReports(@AuthenticatedCorporate() corporate: CorporateUser, @Query() filters: GetReportsDto) {
         const reports = await this.reportService.getReportsByUser(corporate, filters);
         return new SuccessResponse('Reports fetched', reports);

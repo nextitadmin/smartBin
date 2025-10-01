@@ -47,9 +47,6 @@ export class ResidentReportController {
 
   // getAllReportsByUser
   @Get()
-  @ApiQuery({ name: 'type', enum: ReportType, required: false })
-  @ApiQuery({ name: 'startDate', required: false })
-  @ApiQuery({ name: 'endDate', required: false })
   async getReports(
     @AuthenticatedResident() resident: ResidentUser,
     @Query() filters: GetReportsDto,

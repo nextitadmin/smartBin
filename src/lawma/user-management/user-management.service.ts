@@ -12,6 +12,7 @@ import { FacilityManager } from '@models/users/facility-manager.model';
 import { UserRole } from '@models/types';
 import { Subscription } from '@models/subscription.model';
 import { FacilityUsers } from '@models/facility-users.model';
+import { GetUserDto } from './dto/dto';
 
 @Injectable()
 export class UsersService {
@@ -27,7 +28,8 @@ export class UsersService {
         private readonly subscriptionModel: Model<Subscription>,
     ) { }
 
-    async getAllUsers(page: number, limit: number) {
+    async getAllUsers(filter?:GetUserDto) {
+        const { page = 1, limit = 10 } = filter || {};
         const skip = (page - 1) * limit;
 
         const [residents, agents, corporates, facilityManagers, counts] = await Promise.all([
@@ -114,7 +116,8 @@ export class UsersService {
 
 
     // facility users
-    async getFacilityUsers({ accountId }: { accountId?: string } = {}, page = 1, limit = 10) {
+    async getFacilityUsers({ accountId }: { accountId?: string } = {}, filter?: GetUserDto) {
+        const { page = 1, limit = 10 } = filter || {};
         const skip = (page - 1) * limit;
         const [users, total] = await Promise.all([
             this.facilityUsersModel
@@ -143,7 +146,8 @@ export class UsersService {
 
 
 
-    async getAgentRegisteredUsers({ agentId }: { agentId?: string } = {}, page: number = 1, limit: number = 10) {
+    async getAgentRegisteredUsers({ agentId }: { agentId?: string } = {}, filter: GetUserDto) {
+        const { page = 1, limit = 10 } = filter || {};
         const skip = (page - 1) * limit;
 
         const [residents, corporates, totalResidents, totalCorporates] = await Promise.all([
