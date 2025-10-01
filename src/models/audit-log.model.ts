@@ -39,4 +39,13 @@ export class AuditLog extends Document {
   timestamp: Date;
 }
 
+export type AuditLogDocument = AuditLog & Document;
 export const AuditLogSchema = SchemaFactory.createForClass(AuditLog);
+
+AuditLogSchema.pre<AuditLogDocument>('find', function (next) {
+  const obj = this as any;
+  if (obj.user) {
+    obj.user = new Types.ObjectId(obj.user);
+  }
+  next();
+});

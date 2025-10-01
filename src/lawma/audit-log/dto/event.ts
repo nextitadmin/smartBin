@@ -1,8 +1,7 @@
-import { Request as UserRequest } from 'express';
+import { AdminUser } from "@common/types";
 
 export interface LogActionEventData {
-  userId: string;
-  req: UserRequest;
+  administrator: AdminUser;
   action: string;
 }
 

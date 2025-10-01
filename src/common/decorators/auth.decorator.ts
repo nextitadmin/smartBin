@@ -80,6 +80,6 @@ export const AuthenticatedUser = createParamDecorator(
 export const AuthenticatedAdmin = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
     const req: Request & { admin: AdminUser } = ctx.switchToHttp().getRequest();
-    return req.admin;
+    return { ...req.admin, ipAddress: req.ip, userAgent: req.headers['user-agent'] };
   },
 );

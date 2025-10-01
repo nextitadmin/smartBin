@@ -10,7 +10,7 @@ import { Administrator, AdministratorRole } from '@models/administrator.model';
 import { AuditLogEvents, LogActionEvent } from '../audit-log/dto/event';
 import { LOGTYPE } from '@models/audit-log.model';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Request as UserRequest } from 'express';
+import { AdminUser } from '@common/types';
 
 @Injectable()
 export class PspService {
@@ -24,26 +24,17 @@ export class PspService {
     private readonly ee: EventEmitter2
   ) { }
 
-  async createPsp(psp: CreatePspDTO, adminId: string, req: UserRequest) {
-    const newAdmin = await this.admin.create({
-      name: psp.administrator_name,
-      email: psp.administrator_email,
-      phoneNumber: psp.administrator_phone,
-      role: AdministratorRole.SmartBinPartner,
-      status: 'active',
-      password: 'password'
-    });
+  async createPsp(psp: CreatePspDTO, admin: AdminUser) {
 
     this.ee.emit(
       AuditLogEvents.UserActivity,
       new LogActionEvent({
-        userId: adminId,
-        req,
+        administrator: admin,
         action: LOGTYPE.ADD_PSP
       }),
     );
 
-    return this.psp.create({ ...psp, administrator: newAdmin._id });
+    return this.psp.create({ ...psp });
   }
 
   async getPspLgas() {

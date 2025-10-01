@@ -12,17 +12,16 @@ export class PSP {
   company_name: string;
 
   @Prop({
-    type: SchemaTypes.ObjectId,
-    ref: 'Administrator',
+    type: SchemaTypes.String,
     required: true,
   })
-  administrator: Types.ObjectId;
+  administrator_name: string;
 
   @Prop({
     type: SchemaTypes.String,
     required: true,
   })
-  administrator_name: string;
+  administrator_email: string;
 
   @Prop({
     type: SchemaTypes.String,

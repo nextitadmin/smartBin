@@ -2,12 +2,9 @@ import { AuditLog, AuditLogSchema } from '@models/audit-log.model';
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { InjectModel } from '@nestjs/mongoose';
-
-import { Request } from 'express';
 import { Model } from 'mongoose';
 import { AuditLogEvents, LogActionEvent } from './dto/event';
 import { Administrator } from '@models/administrator.model';
-import { log } from 'console';
 import { logStatement } from './dto/auditLog.dto';
 
 @Injectable()
@@ -19,24 +16,17 @@ export class AuditLogService {
 
   @OnEvent(AuditLogEvents.UserActivity)
   async logAction(event: LogActionEvent) {
-    const { userId, req, action } = event.data;
+    const { administrator, action } = event.data;
 
-    const platform = req.headers['user-agent'] || '';
-
-    let ipAddress =
-      req.headers['x-forwarded-for']?.toString().split(',')[0] ||
-      req.socket.remoteAddress ||
-      '';
-
-    const user = await this.adminModel.findById(userId);
+    const admin = await this.adminModel.findById(administrator.id).select('_id');
 
     return this.auditLogModel.create({
-      user: user._id,
-      name: user.name,
-      email: user.email,
+      user:  admin._id,
+      name: administrator.name,
+      email: administrator.email,
       action: action,
-      platform,
-      ipAddress,
+      platform: administrator.userAgent,
+      ipAddress: administrator.ipAddress,
     });
   }
 

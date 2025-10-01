@@ -110,11 +110,19 @@ export class AuthService implements OnModuleInit {
       role: administrator.role,
     });
 
+    const eventObj = {
+      id: administrator.id,
+      name: administrator.name,
+      email: administrator.email,
+      role: administrator.role,
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+    }
+
     this.ee.emit(
       AuditLogEvents.UserActivity,
       new LogActionEvent({
-        userId: administrator.id,
-        req,
+        administrator: eventObj,
         action: LOGTYPE.USER_LOGIN,
       }),
     );

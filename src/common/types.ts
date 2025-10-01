@@ -1,6 +1,7 @@
 import { AdministratorRole } from '@models/administrator.model';
 import { UserRole } from '@models/types';
 import { Types } from 'mongoose';
+import { StringDecoder } from 'string_decoder';
 
 // export type QueryFilter<T> = WhereOptions<T>;
 // type RawModelAttributes<T extends Model> = InferAttributes<
@@ -35,4 +36,8 @@ export type AdminUser = {
   email: string;
   role: AdministratorRole;
   name: string;
-};
+  ipAddress?:string;
+  userAgent?: string;
+}
+
+
