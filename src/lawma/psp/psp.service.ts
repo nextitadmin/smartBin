@@ -20,7 +20,6 @@ export class PspService {
     @InjectModel(PSPMembers.name)
     private readonly pspMembers: Model<PspMembersDocument>,
     @InjectModel(Lga.name) private lga: Model<Lga>,
-    @InjectModel(Administrator.name) private admin: Model<Administrator>,
     private readonly ee: EventEmitter2
   ) { }
 

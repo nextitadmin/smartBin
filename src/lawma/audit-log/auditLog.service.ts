@@ -5,7 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AuditLogEvents, LogActionEvent } from './dto/event';
 import { Administrator } from '@models/administrator.model';
-import { logStatement } from './dto/auditLog.dto';
+import { AuditLogQueryDto, logStatement } from './dto/auditLog.dto';
 
 @Injectable()
 export class AuditLogService {
@@ -30,7 +30,8 @@ export class AuditLogService {
     });
   }
 
-  async getAllLogs({ search, startDate, endDate, activityType, role, page = '1', limit = '10' }) {
+  async getAllLogs(queryObj: AuditLogQueryDto) {
+    const { search, startdate: startDate, enddate: endDate, activityType, role, page = 1, limit = 10 } = queryObj;
     const query: any = {};
     // Search by action, platform, or ipAddress
     if (search) {
@@ -62,25 +63,12 @@ export class AuditLogService {
       .skip(skip)
       .limit(Number(limit))
       .lean()
-      .then((logs) =>
-        logs.map((log) => ({
-          ...log,
-          action: logStatement[log.action],
-        })),
-      );
   }
 
   async getLogDetails(id: string) {
     return this.auditLogModel
       .findById(id)
       .populate('user', 'name email role')
-      .lean()
-      .then(
-        (log) =>
-          log && {
-            ...log,
-           action: logStatement[log.action],
-          },
-      );
+      .lean();
   }
 }
