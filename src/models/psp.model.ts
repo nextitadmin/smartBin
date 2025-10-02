@@ -1,3 +1,4 @@
+import { getHashedPassword } from '@common/utils';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { SchemaTypes, Types } from 'mongoose';
 
@@ -22,6 +23,12 @@ export class PSP {
     required: true,
   })
   administrator_email: string;
+
+  @Prop({
+    required: true,
+    set: (val: string) => getHashedPassword(val),
+  })
+  password: string;
 
   @Prop({
     type: SchemaTypes.String,

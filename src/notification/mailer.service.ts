@@ -7,6 +7,7 @@ import { renderString } from 'nunjucks';
 import path from 'path';
 import { MailNotificationEvents, SendEmailEvent, Templates } from './dto/event';
 import { OnEvent } from '@nestjs/event-emitter';
+import { template } from 'handlebars';
 
 @Injectable()
 export class MailerService {
@@ -70,6 +71,18 @@ export class MailerService {
       context,
       subject,
     });
+  }
+
+  @OnEvent(MailNotificationEvents.Account.ResetPassword)
+  async onAccountResetPassword(event: SendEmailEvent) {
+    const { from, context, to, subject } = event.data;
+    await this.sendMail({
+      from,
+      template: Templates.ResetPassword,
+      to,
+      context,
+      subject,
+    })
   }
 
   @OnEvent(MailNotificationEvents.Account.ForgotPassword)
@@ -142,12 +155,12 @@ export class MailerService {
       template: Templates.SupportRequest,
       attachments: file
         ? [
-            {
-              filename: file.originalname,
-              content: file.buffer,
-              contentType: file.mimetype,
-            },
-          ]
+          {
+            filename: file.originalname,
+            content: file.buffer,
+            contentType: file.mimetype,
+          },
+        ]
         : [],
     });
   }

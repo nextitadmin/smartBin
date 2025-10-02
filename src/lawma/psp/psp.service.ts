@@ -1,6 +1,6 @@
 import { PSPMembers, PspMembersDocument } from '@models/psp-members.model';
 import { PSP, PspDocument } from '@models/psp.model';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { CreatePspDTO, CreatePspMembersDTO } from './dto/psp.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -11,6 +11,11 @@ import { AuditLogEvents, LogActionEvent } from '../audit-log/dto/event';
 import { LOGTYPE } from '@models/audit-log.model';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AdminUser } from '@common/types';
+import { MailNotificationEvents, SendEmailEvent } from '@src/notification/dto/event';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { CacheKeys } from '@src/shared/constants';
+import { generateRandomChars } from '@common/utils';
 
 @Injectable()
 export class PspService {
@@ -20,10 +25,24 @@ export class PspService {
     @InjectModel(PSPMembers.name)
     private readonly pspMembers: Model<PspMembersDocument>,
     @InjectModel(Lga.name) private lga: Model<Lga>,
-    private readonly ee: EventEmitter2
+    private readonly ee: EventEmitter2,
+    @Inject(CACHE_MANAGER) private cacheService: Cache,
   ) { }
 
   async createPsp(psp: CreatePspDTO, admin: AdminUser) {
+
+    const password = generateRandomChars(6, 'alphanum');
+
+    const pspData = await this.psp.create({ ...psp, password: password });
+
+    const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
+
+    await this.cacheService.set(
+      CacheKeys.PspResetPasswordCode(String(resetCode)),
+      String(pspData._id),
+    );
+
+    const resetLink = `http://localhost:3001/resetPassword/${resetCode}`;
 
     this.ee.emit(
       AuditLogEvents.UserActivity,
@@ -33,7 +52,24 @@ export class PspService {
       }),
     );
 
-    return this.psp.create({ ...psp });
+    this.ee.emit(
+      MailNotificationEvents.Account.ResetPassword,
+      new SendEmailEvent({
+        to: psp.administrator_email,
+        from: `"LAWMA REG" <accounts@lawma.co>`,
+        subject: 'Reset Your Password',
+        context: {
+          firstName: psp.administrator_name,
+          resetLink: resetLink
+        },
+      }),
+    );
+
+    return {
+      email: pspData.administrator_email,
+      name: pspData.company_name,
+      id: pspData._id
+    }
   }
 
   async getPspLgas() {

@@ -1,6 +1,6 @@
 import { PSPMembersStatus } from '@models/psp-members.model';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsIn, IsMongoId, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsIn, IsMongoId, IsNotEmpty, IsString, MinLength } from 'class-validator';
 
 export class CreatePspDTO {
   @ApiProperty()
@@ -73,4 +73,43 @@ export class IdDTO {
   @ApiProperty()
   @IsString()
   id: string;
+}
+
+export class PspLoginDto {
+  @ApiProperty()
+  @IsEmail()
+  email: string;
+
+  @ApiProperty()
+  @IsString()
+  @MinLength(6)
+  password: string;
+}
+
+export class VerifyPspLogin {
+  @ApiProperty()
+  @IsString()
+  code: string;
+}
+
+export class PspForgotPasswordDto {
+  @ApiProperty()
+  @IsEmail()
+  email: string;
+}
+
+export class PspVerifyResetCodeDto {
+  @ApiProperty()
+  @IsString()
+  code: string;
+}
+
+export class PspResetPasswordDto {
+  @ApiProperty()
+  @IsString()
+  password: string;
+
+  @ApiProperty()
+  @IsString()
+  confirmPassword: string;
 }

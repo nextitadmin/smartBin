@@ -7,10 +7,12 @@ import { PSPMembers, PSPMembersSchema } from '@models/psp-members.model';
 import { Lga, LgaSchema } from '@models/lgas.model';
 import { Administrator, AdministratorSchema } from '@models/administrator.model';
 import { AuthModule } from '../auth/auth.module';
+import { PspAuthController } from './auth/auth.controller';
+import { PspAuthService } from './auth/auth.service';
 
 @Module({
-  controllers: [PspController],
-  providers: [PspService],
+  controllers: [PspController, PspAuthController],
+  providers: [PspService, PspAuthService],
   imports: [
     MongooseModule.forFeature([
       { name: PSP.name, schema: PSPSchema },

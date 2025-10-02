@@ -36,6 +36,16 @@ export type AdminUser = {
   email: string;
   role: AdministratorRole;
   name: string;
+  token?:string;
+  ipAddress?:string;
+  userAgent?: string;
+}
+
+export type PspAdminUser = {
+  id: string;
+  email: string;
+  name: string;
+  token?:string;
   ipAddress?:string;
   userAgent?: string;
 }
