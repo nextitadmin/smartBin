@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { orderBinsDto, scheduleDeliveryDto } from '@src/smart-bin/dto/binAppDto';
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 
 @Injectable()
@@ -21,19 +22,11 @@ export class LawmaSmartbinsService {
     return this.smartBinService.getDeliveredSmartBins(page, limit);
   }
   
-  async getAllBinOrders(page: number, limit: number) {
-    return this.smartBinService.getAllBinOrders(page, limit);
+  async getAllBinOrders(filters?: orderBinsDto) {
+    return this.smartBinService.getAllBinOrders(filters);
   }
 
-  async scheduleDelivery(
-    applicationId: string,
-    teamMemberId: string,
-    comment: string,
-  ) {
-    return this.smartBinService.scheduleDelivery(
-      applicationId,
-      teamMemberId,
-      comment,
-    );
+  async scheduleDelivery(filters: scheduleDeliveryDto) {
+    return this.smartBinService.scheduleDelivery(filters);
   }
 }
