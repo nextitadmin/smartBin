@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { SuperAdminService } from './super-admin.service';
-import { SuperAdminController } from './super-admin.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Resident, ResidentSchema } from '@models/users/resident.model';
 import { Corporate, CorporateSchema } from '@models/users/corporate.model';
@@ -34,8 +33,8 @@ import { PSP, PSPSchema } from '@models/psp.model';
         { name: PSP.name, schema: PSPSchema },
       ]),
     ],
+  controllers: [],
   providers: [SuperAdminService],
-  controllers: [SuperAdminController],
   exports: [SuperAdminService]
 })
 export class SuperAdminModule {}

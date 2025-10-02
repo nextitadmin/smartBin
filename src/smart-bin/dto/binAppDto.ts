@@ -327,5 +327,29 @@ export class GetApplicationResponseDto {
 
   @ApiProperty()
   updatedAt: Date;
+}
 
+export class orderBinsDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  page?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  limit?: number;
+}
+
+export class scheduleDeliveryDto {
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  applicationId: string;
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  teamMemberId: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  comment?: string;
 }

@@ -29,7 +29,7 @@ import { WalletController } from './wallet.controller';
 import { PayerService } from '@src/payer/payer.service';
 import { Pickup, PickupSchema } from '@models/pickup';
 import { Facility, FacilitySchema } from '@models/facilities';
-
+import { TeamMember, TeamMemberSchema } from '@models/team.model';
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -45,7 +45,8 @@ import { Facility, FacilitySchema } from '@models/facilities';
       { name: UserKyc.name, schema: UserKycSchema },
       { name: Branch.name, schema: BranchSchema },
       { name: Pickup.name, schema: PickupSchema },
-      { name: Facility.name, schema: FacilitySchema }
+      { name: Facility.name, schema: FacilitySchema },
+      { name: TeamMember.name, schema: TeamMemberSchema },  
     ]),
     // SmartBinModule,
     TransactionModule,
