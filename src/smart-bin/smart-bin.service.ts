@@ -34,6 +34,8 @@ import {
   CreateBusinessApplicationDto,
   CreateFacilityApplicationDto,
   GetApplicationsDto,
+  orderBinsDto,
+  scheduleDeliveryDto,
 } from './dto/binAppDto';
 import { SmartBinApplicationStatus, UserRole } from '@models/types';
 import { generateRandomChars } from '@common/utils';
@@ -345,7 +347,9 @@ export class SmartBinService {
   }
 
   //get All bin Orders
-  async getAllBinOrders(page = 1, limit = 10) {
+  async getAllBinOrders(filters?: orderBinsDto) {
+    const page = filters?.page ?? 1;
+    const limit = filters?.limit ?? 10;
     const skip = (page - 1) * limit;
     const [
       totalOrders,
@@ -355,7 +359,7 @@ export class SmartBinService {
     ] = await Promise.all([
       this.smartbinModel.countDocuments(),
       this.transactionModel.aggregate([
-        { $match: { service: 'SmartBinPurchase', status: TransactionStatus.Successful } },
+        { $match: { service: ServiceType.SmartBinPurchase, status: TransactionStatus.Successful } },
         { $group: { _id: null, total: { $sum: '$amount' } } }
       ]),
       this.smartbinModel.countDocuments({ status: { $in: [SmartbinStatus.Pending, SmartbinStatus.Approved] } }),
@@ -366,8 +370,8 @@ export class SmartBinService {
       this.smartbinModel
         .find()
         .populate('payment')
-        .sort({ createdAt: -1 })
         .skip(skip)
+        .sort({ createdAt: -1 })
         .limit(limit)
         .lean(),
       this.smartbinModel.countDocuments(),
@@ -404,11 +408,9 @@ export class SmartBinService {
 
   // Assign team member to schedule delivery
   async scheduleDelivery(
-  applicationId: string,
-  teamMemberId: string, 
-  comment: string,
+    filters: scheduleDeliveryDto,
 ) {
-  const smartbin = await this.smartbinModel.findById(applicationId);
+  const smartbin = await this.smartbinModel.findById(filters.applicationId);
   if (!smartbin) {
     throw new NotFoundException('Bin application not found');
   }
@@ -417,7 +419,7 @@ export class SmartBinService {
     throw new BadRequestException('This SmartBin has already been delivered.');
   }
 
-  const teamMember = await this.teamMemberModel.findById(teamMemberId);
+  const teamMember = await this.teamMemberModel.findById(filters.teamMemberId);
   if (!teamMember) {
     throw new NotFoundException('Team member not found');
   }
@@ -427,7 +429,7 @@ export class SmartBinService {
   smartbin.applicationHistory.push({
     timestamp: new Date(),
     status: SmartbinStatus.ScheduledForDelivery,
-    description: comment || `Scheduled for delivery by ${teamMember.name}`,
+    description: filters.comment || `Scheduled for delivery by ${teamMember.name}`,
   });
 
   await smartbin.save();
@@ -444,7 +446,7 @@ export class SmartBinService {
         binId: smartbin.binId,
         address: smartbin.address,
         customer: smartbin.name || smartbin.businessName,
-        comment,
+        comment: filters.comment,
       },
     }),
   );
@@ -462,7 +464,7 @@ export class SmartBinService {
 
   return {
     message: 'SmartBin delivery scheduled successfully',
-    applicationId,
+    applicationId: filters.applicationId,
     status: smartbin.status,
     assignedTo: {
       id: teamMember._id,
@@ -470,7 +472,7 @@ export class SmartBinService {
       email: teamMember.email,
       phoneNumber: teamMember.phoneNumber,
     },
-    comment,
+    comment: filters.comment,
   };
 }
 

@@ -3,6 +3,7 @@ import { ApiTags, ApiQuery } from '@nestjs/swagger';
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 import { LawmaSmartbinsService } from './smartbins.service';
 import { AdminAuth } from '@common/decorators/auth.decorator';
+import { orderBinsDto } from '@src/smart-bin/dto/binAppDto';
 
 @ApiTags('Admin/Smartbin Applications')
 @Controller({
@@ -46,10 +47,10 @@ export class SmartbinsController {
   }
 
   @Get('orders')
-  @ApiQuery({ name: 'page', required: false, type: String })
-  @ApiQuery({ name: 'limit', required: false, type: String })
-  getAllBinOrders(@Query('page') page = '1', @Query('limit') limit = '10') {
-    return this.smartbinService.getAllBinOrders(Number(page), Number(limit));
+  getAllBinOrders(
+    @Query() filters?: orderBinsDto,
+  ) {
+    return this.smartbinService.getAllBinOrders(filters);
   }
 
   @Put('schedule-delivery')
@@ -61,10 +62,7 @@ export class SmartbinsController {
     @Query('teamMemberId') teamMemberId: string,
     @Query('comment') comment = '',
   ) {
-    return this.smartbinService.scheduleDelivery(
-      applicationId,
-      teamMemberId,
-      comment,
+    return this.smartbinService.scheduleDelivery({applicationId, teamMemberId, comment}
     );
   }
 }
