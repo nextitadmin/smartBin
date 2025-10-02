@@ -5,7 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { AuditLogEvents, LogActionEvent } from './dto/event';
 import { Administrator } from '@models/administrator.model';
-import { AuditLogQueryDto, logStatement } from './dto/auditLog.dto';
+import { AuditLogQueryDto } from './dto/auditLog.dto';
 
 @Injectable()
 export class AuditLogService {
@@ -59,10 +59,10 @@ export class AuditLogService {
     return this.auditLogModel
       .find(query)
       .populate('user', 'name email role')
-      .sort({ createdAt: -1 })
       .skip(skip)
+      .sort({ createdAt: -1 })
       .limit(Number(limit))
-      .lean()
+      .lean();
   }
 
   async getLogDetails(id: string) {

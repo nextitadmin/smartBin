@@ -123,7 +123,7 @@ export class AuthService implements OnModuleInit {
       AuditLogEvents.UserActivity,
       new LogActionEvent({
         administrator: eventObj,
-        action: LOGTYPE.USER_LOGIN,
+        action: LOGTYPE.UserLoggedIn,
       }),
     );
 

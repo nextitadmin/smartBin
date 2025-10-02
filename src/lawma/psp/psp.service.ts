@@ -48,7 +48,7 @@ export class PspService {
       AuditLogEvents.UserActivity,
       new LogActionEvent({
         administrator: admin,
-        action: LOGTYPE.ADD_PSP
+        action: LOGTYPE.PspAdded
       }),
     );
 

@@ -2,7 +2,8 @@ import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AuditLogService } from './auditLog.service';
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { SuccessResponse } from '@common/http';
-import { AuditLogQueryDto, logStatement } from './dto/auditLog.dto';
+import { AuditLogQueryDto } from './dto/auditLog.dto';
+import { LogStatement } from './dto/event';
 import { AdminAuth } from '@common/decorators/auth.decorator';
 
 @ApiTags('Admin/Audit Logs')
@@ -24,7 +25,7 @@ export class AuditLogController {
 
   @Get('/activityTypes')
   async getActivityTypes() {
-    const data = Object.entries(logStatement).map(([key, value]) => ({
+    const data = Object.entries(LogStatement).map(([key, value]) => ({
       value: key,
       label: value,
     }));

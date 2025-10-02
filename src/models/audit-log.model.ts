@@ -2,13 +2,13 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaTypes, Types } from 'mongoose';
 
 export enum LOGTYPE {
-  USER_LOGIN = 'user_login',
-  CHANGE_PASSWORD = 'change_password',
-  ADD_PSP = 'add_psp',
-  DEACTIVATE_PSP = 'deactivate_psp',
-  ADD_TEAM_MEMBER = 'add_team_member',
-  REMOVE_TEAM_MEMBER = 'remove_team_member',
-  STATUS_CHANGE = 'change_status',
+  UserLoggedIn = 'User Logged In',
+  PasswordChanged = 'Password Changed',
+  PspAdded = 'Psp Added',
+  PspDeactivated = 'Psp Deactivated',
+  TeamMemberAdded = 'Team Member Added',
+  TeamMemberRemoved = 'Team Member Removed',
+  StatusChanged = 'Status Changed',
 }
 
 @Schema({ timestamps: true })
