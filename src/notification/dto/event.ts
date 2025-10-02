@@ -7,6 +7,7 @@ export const MailNotificationEvents = Object.freeze({
     PayerGenerated: 'generated.payer.account',
     VerificationOTP: 'verificaton.otp.account',
     Welcome: 'welcome.account',
+    ResetPassword: 'password.reset.account',
   },
   Application: {
     SmartBinUpdate: 'notification.smartbin.updated',
@@ -22,6 +23,7 @@ export const MailNotificationEvents = Object.freeze({
 
 export enum Templates {
   ForgotPassword = 'forgot-password',
+  ResetPassword = 'reset-password',
   LoginCode = 'login-code',
   PayerGenerated = 'payer-generated',
   VerifyOTP = 'verify-otp',

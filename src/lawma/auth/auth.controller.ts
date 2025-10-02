@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   LawmaAuthCompletePasswordResetDto,
@@ -14,6 +14,7 @@ import {
 } from '@common/decorators/auth.decorator';
 import { ApiTags } from '@nestjs/swagger';
 import { Public } from '@common/guards/public.guard';
+import { Request as UserRequest } from 'express';
 
 @ApiTags('Lawma - Administrator Auth')
 @Controller({
@@ -33,8 +34,8 @@ export class AuthController {
 
   @Public()
   @Post('verify-login')
-  async verifyLogin(@Body() body: LawmaAuthVerifyDto) {
-    const response = await this.authService.verifyLoginCode(body.code);
+  async verifyLogin(@Body() body: LawmaAuthVerifyDto, @Req() req: UserRequest) {
+    const response = await this.authService.verifyLoginCode(body.code, req);
     return new SuccessResponse('Login verified', response);
   }
 

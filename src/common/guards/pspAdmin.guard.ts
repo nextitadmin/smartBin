@@ -7,26 +7,26 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { AdminUser } from '../types';
+import { AdminUser, PspAdminUser } from '../types';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from './public.guard';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
-import { AuthService } from '@src/lawma/auth/auth.service';
+import { PspAuthService } from '@src/lawma/psp/auth/auth.service';
 
 @Injectable()
-export class AdminAuthGuard implements CanActivate {
+export class PspAdminAuthGuard implements CanActivate {
   constructor(
     @Inject(CACHE_MANAGER) private cacheService: Cache,
     private readonly reflector: Reflector,
-    private readonly authService: AuthService,
+    private readonly authService: PspAuthService
   ) {}
 
-  private logger = new Logger(AdminAuthGuard.name);
+  private logger = new Logger(PspAdminAuthGuard.name);
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
     const req: Request & {
       user: Record<string, any>;
-      admin?: AdminUser;
+      pspAdmin?: PspAdminUser;
     } = ctx.switchToHttp().getRequest();
 
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -49,11 +49,10 @@ export class AdminAuthGuard implements CanActivate {
       throw new UnauthorizedException('not authenticated!');
     }
 
-    req.admin = {
+    req.pspAdmin = {
       id: String(administrator._id),
-      email: administrator.email,
-      role: administrator.role,
-      name: administrator.name,
+      email:administrator.administrator_email,
+      name: administrator.administrator_name,
       token: token
     };
 

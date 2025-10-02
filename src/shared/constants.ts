@@ -7,6 +7,10 @@ export const CacheKeys = {
   // Administrator
   AdministratorLoginCode: (code: string) => `SMTBIN_AD_${code}`,
   AdministratorResetPasswordCode: (code: string) => `SMTBIN_AD_RESET_${code}`,
+
+  //PSP
+  PspLoginCode: (code: string) => `SMTBIN_PSP_${code}`,
+  PspResetPasswordCode: (code: string) => `SMTBIN_PSP_RESET_${code}`,
 };
 
 export const AdminMessagePatternCommands = Object.freeze({
