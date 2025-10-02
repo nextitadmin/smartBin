@@ -14,6 +14,7 @@ export class LawmaSmartbinsService {
     return this.smartBinService.getAdminSmartbinOverview();
   }
 
+  
   async getAllApplications(page: number, limit: number) {
     return this.smartBinService.getAllApplications(page, limit);
   }
