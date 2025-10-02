@@ -19,6 +19,13 @@ export class SmartbinsController {
     return this.smartbinService.getSmartBinOverview();
   }
 
+  @Get('lawma-admin/overview')
+  getLawmaAdminOverview() {
+    return this.smartbinService.getAdminSmartbinOverview();
+  }
+
+
+
   @Get()
   @ApiQuery({ name: 'page', required: false, type: String })
   @ApiQuery({ name: 'limit', required: false, type: String })

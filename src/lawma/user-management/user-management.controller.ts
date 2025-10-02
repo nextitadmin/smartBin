@@ -15,8 +15,6 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  // @ApiQuery({ name: 'page', required: false, type: String })
-  // @ApiQuery({ name: 'limit', required: false, type: String })
   getUsers(@Query() filter:GetUserDto) {
     return this.usersService.getAllUsers(filter);
   }
