@@ -87,16 +87,16 @@ export class IdParamDTO {
   @ApiProperty({
     required: true,
   })
+  @IsString()
   @IsMongoId()
   id: string;
 }
-
 
 export class UploadUserDto {
   @ApiProperty({ enum: ['resident', 'corporate'] })
   customerType: 'resident' | 'corporate';
 
-  @ApiProperty({ required: true})
+  @ApiProperty({ required: true })
   @IsString()
   payerId: string;
 

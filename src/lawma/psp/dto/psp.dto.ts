@@ -1,6 +1,13 @@
 import { PSPMembersStatus } from '@models/psp-members.model';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsIn, IsMongoId, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsIn,
+  IsMongoId,
+  IsNotEmpty,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 export class CreatePspDTO {
   @ApiProperty()

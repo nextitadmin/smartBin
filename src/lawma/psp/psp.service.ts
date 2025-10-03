@@ -11,7 +11,10 @@ import { AuditLogEvents, LogActionEvent } from '../audit-log/dto/event';
 import { LOGTYPE } from '@models/audit-log.model';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AdminUser } from '@common/types';
-import { MailNotificationEvents, SendEmailEvent } from '@src/notification/dto/event';
+import {
+  MailNotificationEvents,
+  SendEmailEvent,
+} from '@src/notification/dto/event';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { CacheKeys } from '@src/shared/constants';
@@ -27,10 +30,9 @@ export class PspService {
     @InjectModel(Lga.name) private lga: Model<Lga>,
     private readonly ee: EventEmitter2,
     @Inject(CACHE_MANAGER) private cacheService: Cache,
-  ) { }
+  ) {}
 
   async createPsp(psp: CreatePspDTO, admin: AdminUser) {
-
     const password = generateRandomChars(6, 'alphanum');
 
     const pspData = await this.psp.create({ ...psp, password: password });
@@ -48,7 +50,7 @@ export class PspService {
       AuditLogEvents.UserActivity,
       new LogActionEvent({
         administrator: admin,
-        action: LOGTYPE.PspAdded
+        action: LOGTYPE.PspAdded,
       }),
     );
 
@@ -60,7 +62,7 @@ export class PspService {
         subject: 'Reset Your Password',
         context: {
           firstName: psp.administrator_name,
-          resetLink: resetLink
+          resetLink: resetLink,
         },
       }),
     );
@@ -68,8 +70,8 @@ export class PspService {
     return {
       email: pspData.administrator_email,
       name: pspData.company_name,
-      id: pspData._id
-    }
+      id: pspData._id,
+    };
   }
 
   async getPspLgas() {
@@ -125,13 +127,13 @@ export class PspService {
     // return this.psp.findByIdAndDelete(pspId);
     return this.psp.findByIdAndUpdate(pspId, {
       deleted_at: new Date(),
-    })
+    });
   }
 
   async deletePspMembers(pspMembersId: string) {
     // return this.pspMembers.findByIdAndDelete(pspMembersId);
     return this.pspMembers.findByIdAndUpdate(pspMembersId, {
       deleted_at: new Date(),
-    })
+    });
   }
 }
