@@ -12,4 +12,8 @@ export class LawmaSuperadminsService {
   async getRevenueOverview() {
     return this.superAdminService.getRevenueOverview();
   }
+
+  async getAdminDashboard() {
+    return this.superAdminService.getSuperAdminDashboard();
+  }
 }

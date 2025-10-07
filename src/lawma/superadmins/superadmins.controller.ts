@@ -19,4 +19,8 @@ export class SuperadminsController {
   async getRevenueOverview() {
     return this.superAdminService.getRevenueOverview();
   }
+  @Get('admin-dashboard')
+  async getAdminDashboard() {
+    return this.superAdminService.getAdminDashboard();
+  }
 }
