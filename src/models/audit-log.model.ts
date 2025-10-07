@@ -2,17 +2,19 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaTypes, Types } from 'mongoose';
 
 export enum LOGTYPE {
-  USER_LOGIN = 'user_login',
-  CHANGE_PASSWORD = 'change_password',
-  ADD_TEAM_MEMBER = 'add_team_member',
-  REMOVE_TEAM_MEMBER = 'remove_team_member',
-  STATUS_CHANGE = 'change_status',
+  UserLoggedIn = 'User Logged In',
+  PasswordChanged = 'Password Changed',
+  PspAdded = 'Psp Added',
+  PspDeactivated = 'Psp Deactivated',
+  TeamMemberAdded = 'Team Member Added',
+  TeamMemberRemoved = 'Team Member Removed',
+  StatusChanged = 'Status Changed',
 }
 
 @Schema({ timestamps: true })
 export class AuditLog extends Document {
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  userId: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'Administrator', required: true })
+  user: Types.ObjectId;
 
   @Prop({ type: SchemaTypes.String, required: true })
   name: string;
@@ -37,4 +39,13 @@ export class AuditLog extends Document {
   timestamp: Date;
 }
 
+export type AuditLogDocument = AuditLog & Document;
 export const AuditLogSchema = SchemaFactory.createForClass(AuditLog);
+
+AuditLogSchema.pre<AuditLogDocument>('find', function (next) {
+  const obj = this as any;
+  if (obj.user) {
+    obj.user = new Types.ObjectId(obj.user);
+  }
+  next();
+});

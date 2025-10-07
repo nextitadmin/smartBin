@@ -10,9 +10,10 @@ import { ResidentAuthGuard } from '../guards/resident.guard';
 import { FacilityManagerAuthGuard } from '../guards/facility-manager.guard';
 import { CorporateAuthGuard } from '../guards/corporate.guard';
 import { Request } from 'express';
-import { AdminUser, AuthUser } from '../types';
+import { AdminUser, AuthUser, PspAdminUser } from '../types';
 import { AuthGuard } from '@common/guards/actor.guard';
 import { AdminAuthGuard } from '@common/guards/admin.guard';
+import { PspAdminAuthGuard } from '@common/guards/pspAdmin.guard';
 
 export function AgentAuth() {
   return applyDecorators(UseGuards(AgentAuthGuard));
@@ -37,6 +38,11 @@ export function Auth() {
 export function AdminAuth() {
   return applyDecorators(UseGuards(AdminAuthGuard));
 }
+
+export function PspAdminAuth() {
+  return applyDecorators(UseGuards(PspAdminAuthGuard));
+}
+
 
 export const AuthenticatedAgent = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
@@ -80,6 +86,13 @@ export const AuthenticatedUser = createParamDecorator(
 export const AuthenticatedAdmin = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
     const req: Request & { admin: AdminUser } = ctx.switchToHttp().getRequest();
-    return req.admin;
+    return { ...req.admin, ipAddress: req.ip, userAgent: req.headers['user-agent'] };
+  },
+);
+
+export const AuthenticatedPspAdmin = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext) => {
+    const req: Request & { pspAdmin: PspAdminUser } = ctx.switchToHttp().getRequest();
+    return { ...req.pspAdmin, ipAddress: req.ip, userAgent: req.headers['user-agent'] };
   },
 );

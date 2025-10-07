@@ -9,15 +9,14 @@ import { SuperAdminService } from '@src/super-admin/super-admin.service';
   version: '1',
 })
 export class SuperadminsController {
-    constructor(private readonly superAdminService: LawmaSuperadminsService) {}
-    
-    @Get('dashboard')
-    async getSuperAdminDashboard() {
-        return this.superAdminService.getSuperAdminDashboard();
-    }
-    @Get('revenue-overview')
-    async getRevenueOverview() {
-        return this.superAdminService.getRevenueOverview();
-    }
+  constructor(private readonly superAdminService: LawmaSuperadminsService) {}
 
+  @Get('dashboard')
+  async getSuperAdminDashboard() {
+    return this.superAdminService.getSuperAdminDashboard();
+  }
+  @Get('revenue-overview')
+  async getRevenueOverview() {
+    return this.superAdminService.getRevenueOverview();
+  }
 }

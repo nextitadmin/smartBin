@@ -39,7 +39,7 @@ import { NotificationModule } from '@src/notification/notification.module';
 // import { ResidentotificationSettingsController } from './notifications/notification.controller';
 
 import { WalletModule } from '@src/wallet/wallet.module';
-import { AdminResidentController } from './admin.controller';
+// import { AdminResidentController } from './admin.controller';
 import { TeamMember, TeamMemberSchema } from '@models/team.model';
 @Module({
   imports: [
@@ -101,7 +101,7 @@ import { TeamMember, TeamMemberSchema } from '@models/team.model';
     DashboardController,
     ResidentPaymentController,
     ResidentReportController,
-    AdminResidentController,
+    // AdminResidentController,
     // ResidentotificationSettingsController,
   ],
   providers: [

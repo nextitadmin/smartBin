@@ -9,6 +9,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CreateLawmaTeamDto, UpdateLawmaTeamStatusDto } from './dto/team.dto';
 import { getHashedPassword } from '@common/utils';
+import { Paging } from '@common/http';
 
 @Injectable()
 export class TeamService {
@@ -18,12 +19,27 @@ export class TeamService {
   ) {}
 
   async getTeams() {
-    return this.teamMemberModel
+    const teamsQuery = {
+      role: { $ne: AdministratorRole.SuperAdmin },
+      deleted_at: null,
+    };
+    const totalDocument = await this.teamMemberModel.countDocuments(teamsQuery);
+    const pagingMeta: Paging = {
+      page: 1,
+      pages: Math.ceil(totalDocument / 10),
+      size: totalDocument,
+      total: totalDocument,
+    };
+    const teams = await this.teamMemberModel
       .find({
-        role: { $ne: AdministratorRole.SuperAdmin },
-        deleted_at: null,
+        ...teamsQuery,
       })
-      .select('name email phoneNumber role status createdAt');
+      .select('name email phoneNumber role status createdAt')
+      .lean();
+    return {
+      data: teams,
+      paging: pagingMeta,
+    };
   }
 
   async createTeam(team: CreateLawmaTeamDto) {

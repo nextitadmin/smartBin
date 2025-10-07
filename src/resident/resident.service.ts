@@ -46,7 +46,7 @@ import {
 import { UserKyc } from '@models/user-kyc.model';
 import { Pickup } from '@models/pickup';
 import { AuthUser } from '@common/types';
-import { MessagePattern } from '@nestjs/microservices';
+// import { MessagePattern } from '@nestjs/microservices';
 
 @Injectable()
 export class ResidentService {
@@ -518,9 +518,8 @@ export class ResidentService {
 
   async getApplicationDetails(applicationId: string) {
     console.log('applicationId', applicationId);
-    const data = await this.smartBinService.getBinApplicationDetails(
-      applicationId,
-    );
+    const data =
+      await this.smartBinService.getBinApplicationDetails(applicationId);
     return data;
   }
 

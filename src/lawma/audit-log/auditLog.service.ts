@@ -1,36 +1,37 @@
 import { AuditLog, AuditLogSchema } from '@models/audit-log.model';
 import { Injectable } from '@nestjs/common';
+import { OnEvent } from '@nestjs/event-emitter';
 import { InjectModel } from '@nestjs/mongoose';
-import { Request } from 'express';
 import { Model } from 'mongoose';
+import { AuditLogEvents, LogActionEvent } from './dto/event';
+import { Administrator } from '@models/administrator.model';
+import { AuditLogQueryDto } from './dto/auditLog.dto';
 
 @Injectable()
 export class AuditLogService {
   constructor(
     @InjectModel(AuditLog.name) private auditLogModel: Model<AuditLog>,
+    @InjectModel(Administrator.name) private adminModel: Model<Administrator>,
   ) {}
 
-  async logAction(user, req: Request, action:string) {
-    const platform = req.headers['user-agent'] || '';
-    let ipAddress =
-      req.headers['x-forwarded-for']?.toString().split(',')[0] ||
-      req.socket.remoteAddress ||
-      '';
-    if (ipAddress.startsWith('::ffff:')) {
-      ipAddress = '';
-    }
+  @OnEvent(AuditLogEvents.UserActivity)
+  async logAction(event: LogActionEvent) {
+    const { administrator, action } = event.data;
+
+    const admin = await this.adminModel.findById(administrator.id).select('_id');
 
     return this.auditLogModel.create({
-      userId: user.id,
-      name: user.name,
-      email: user.email,
+      user:  admin._id,
+      name: administrator.name,
+      email: administrator.email,
       action: action,
-      platform,
-      ipAddress,
+      platform: administrator.userAgent,
+      ipAddress: administrator.ipAddress,
     });
   }
 
-  async getAllLogs({ search, startDate, endDate, page = '1', limit = '10' }) {
+  async getAllLogs(queryObj: AuditLogQueryDto) {
+    const { search, startdate: startDate, enddate: endDate, activityType, role, page = 1, limit = 10 } = queryObj;
     const query: any = {};
     // Search by action, platform, or ipAddress
     if (search) {
@@ -47,15 +48,27 @@ export class AuditLogService {
       if (startDate) query['timestamp']['$gte'] = new Date(startDate);
       if (endDate) query['timestamp']['$lte'] = new Date(endDate);
     }
+
+    if(activityType){
+      query['action'] = activityType;
+    }
+    if(role){
+      query['role'] = role; 
+    }
     const skip = (Number(page) - 1) * Number(limit);
     return this.auditLogModel
       .find(query)
-      .sort({ createdAt: -1 })
+      .populate('user', 'name email role')
       .skip(skip)
-      .limit(Number(limit));
+      .sort({ createdAt: -1 })
+      .limit(Number(limit))
+      .lean();
   }
 
   async getLogDetails(id: string) {
-    return this.auditLogModel.findById(id).populate('userId', 'name email');
+    return this.auditLogModel
+      .findById(id)
+      .populate('user', 'name email role')
+      .lean();
   }
 }

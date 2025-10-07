@@ -5,6 +5,7 @@ export enum AdministratorRole {
   SuperAdmin = 'super_admin',
   Admin = 'admin',
   TeamMember = 'team_member',
+  SmartBinPartner = 'smartbin_partner'
 }
 
 export enum AdministratorStatus {

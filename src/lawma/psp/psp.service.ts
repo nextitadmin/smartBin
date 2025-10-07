@@ -1,10 +1,24 @@
 import { PSPMembers, PspMembersDocument } from '@models/psp-members.model';
 import { PSP, PspDocument } from '@models/psp.model';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { CreatePspDTO, CreatePspMembersDTO } from './dto/psp.dto';
 import { InjectModel } from '@nestjs/mongoose';
 import { UpdatePspMembersStatusBodyDTO } from './dto/psp.dto';
+import { Lga } from '@models/lgas.model';
+import { Administrator, AdministratorRole } from '@models/administrator.model';
+import { AuditLogEvents, LogActionEvent } from '../audit-log/dto/event';
+import { LOGTYPE } from '@models/audit-log.model';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { AdminUser } from '@common/types';
+import {
+  MailNotificationEvents,
+  SendEmailEvent,
+} from '@src/notification/dto/event';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { CacheKeys } from '@src/shared/constants';
+import { generateRandomChars } from '@common/utils';
 
 @Injectable()
 export class PspService {
@@ -13,10 +27,55 @@ export class PspService {
     private readonly psp: Model<PspDocument>,
     @InjectModel(PSPMembers.name)
     private readonly pspMembers: Model<PspMembersDocument>,
+    @InjectModel(Lga.name) private lga: Model<Lga>,
+    private readonly ee: EventEmitter2,
+    @Inject(CACHE_MANAGER) private cacheService: Cache,
   ) {}
 
-  async createPsp(psp: CreatePspDTO) {
-    return this.psp.create(psp);
+  async createPsp(psp: CreatePspDTO, admin: AdminUser) {
+    const password = generateRandomChars(6, 'alphanum');
+
+    const pspData = await this.psp.create({ ...psp, password: password });
+
+    const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
+
+    await this.cacheService.set(
+      CacheKeys.PspResetPasswordCode(String(resetCode)),
+      String(pspData._id),
+    );
+
+    const resetLink = `http://localhost:3001/resetPassword/${resetCode}`;
+
+    this.ee.emit(
+      AuditLogEvents.UserActivity,
+      new LogActionEvent({
+        administrator: admin,
+        action: LOGTYPE.PspAdded,
+      }),
+    );
+
+    this.ee.emit(
+      MailNotificationEvents.Account.ResetPassword,
+      new SendEmailEvent({
+        to: psp.administrator_email,
+        from: `"LAWMA REG" <accounts@lawma.co>`,
+        subject: 'Reset Your Password',
+        context: {
+          firstName: psp.administrator_name,
+          resetLink: resetLink,
+        },
+      }),
+    );
+
+    return {
+      email: pspData.administrator_email,
+      name: pspData.company_name,
+      id: pspData._id,
+    };
+  }
+
+  async getPspLgas() {
+    return this.lga.find();
   }
 
   async createPspMembers(pspMembers: CreatePspMembersDTO & { psp_id: string }) {
@@ -31,7 +90,7 @@ export class PspService {
   }
 
   async getPsps() {
-    return this.psp.find();
+    return this.psp.find({ deleted_at: null });
   }
 
   async getPsp(pspId: string) {
@@ -39,7 +98,7 @@ export class PspService {
   }
 
   async getPspMembers(pspId: string) {
-    return this.pspMembers.find({ psp_id: pspId });
+    return this.pspMembers.find({ psp_id: pspId, deleted_at: null });
   }
 
   async updatePsp(pspId: string, psp: PspDocument) {
@@ -65,10 +124,16 @@ export class PspService {
   }
 
   async deletePsp(pspId: string) {
-    return this.psp.findByIdAndDelete(pspId);
+    // return this.psp.findByIdAndDelete(pspId);
+    return this.psp.findByIdAndUpdate(pspId, {
+      deleted_at: new Date(),
+    });
   }
 
   async deletePspMembers(pspMembersId: string) {
-    return this.pspMembers.findByIdAndDelete(pspMembersId);
+    // return this.pspMembers.findByIdAndDelete(pspMembersId);
+    return this.pspMembers.findByIdAndUpdate(pspMembersId, {
+      deleted_at: new Date(),
+    });
   }
 }

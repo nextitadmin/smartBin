@@ -28,6 +28,9 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { ConfigAttributes } from '@src/config';
 import { ApplicationEnvironment } from '@common/constants';
+import { Request as UserRequest } from 'express';
+import { AuditLogEvents, LogActionEvent } from '../audit-log/dto/event';
+import { LOGTYPE } from '@models/audit-log.model';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
@@ -82,6 +85,8 @@ export class AuthService implements OnModuleInit {
       : Math.floor(10000 + Math.random() * 90000).toString();
     const loginCodeExpiry = 600000; // 10mins
 
+    console.log(loginCode);
+
     await this.cacheService.set(
       CacheKeys.AdministratorLoginCode(String(loginCode)),
       String(administrator._id),
@@ -89,7 +94,7 @@ export class AuthService implements OnModuleInit {
     );
   }
 
-  async verifyLoginCode(code: string) {
+  async verifyLoginCode(code: string, req: UserRequest) {
     const administratorId = await this.cacheService.get(
       CacheKeys.AdministratorLoginCode(code),
     );
@@ -104,6 +109,23 @@ export class AuthService implements OnModuleInit {
       id: administrator._id,
       role: administrator.role,
     });
+
+    const eventObj = {
+      id: administrator.id,
+      name: administrator.name,
+      email: administrator.email,
+      role: administrator.role,
+      ipAddress: req.ip,
+      userAgent: req.headers['user-agent'],
+    }
+
+    this.ee.emit(
+      AuditLogEvents.UserActivity,
+      new LogActionEvent({
+        administrator: eventObj,
+        action: LOGTYPE.UserLoggedIn,
+      }),
+    );
 
     return { token };
   }

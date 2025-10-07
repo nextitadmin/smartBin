@@ -53,6 +53,7 @@ import { Facility } from '@models/facilities';
 import { CustomerType } from '@models/report.model';
 import { Paging } from '@common/http';
 import { TeamMember } from '@models/team.model';
+import { LAGOS_LGAS } from '@src/utility/utility.constants';
 
 @Injectable()
 export class SmartBinService {
@@ -238,11 +239,35 @@ export class SmartBinService {
   // overview
   async getSmartBinOverview() {
     const totalApplications = await this.smartbinModel.countDocuments();
-
+  const totalSmartbinUsers = await this.smartbinModel.distinct('userId').countDocuments();
     const deliveredApplications = await this.smartbinModel.countDocuments({
       status: SmartbinStatus.Delivered,
     });
 
+    const smartbinUsersByLGAFromDB = await this.smartbinModel.aggregate([
+      {
+        $group: {
+          _id: '$localGovernmentArea',
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          lga: '$_id',
+          count: 1,
+          _id: 0,
+        },
+      },
+    ]);
+
+  const lgaCounts = new Map(
+      smartbinUsersByLGAFromDB.map((item) => [item.lga, item.count]),
+    );
+
+    const smartbinUsersByLGA = LAGOS_LGAS.map((lga) => ({
+      lga,
+      count: lgaCounts.get(lga) || 0,
+    }));
     const recentlyDeliveredRecords = await this.smartbinModel
       .find({ status: SmartbinStatus.Delivered })
       .sort({ deliveredOn: -1 })
@@ -261,10 +286,54 @@ export class SmartBinService {
 
     return {
       totalApplications,
+      totalSmartbinUsers,
+      smartbinUsersByLGA,
       deliveredApplications,
       records,
     };
   }
+
+  async getAdminSmartbinOverview() {
+    const totalSmartbinUsers = await this.smartbinModel.distinct('userId').countDocuments();
+    const smartbinRequests = await this.smartbinModel.countDocuments();
+    const deliveredSmartbins = await this.smartbinModel.countDocuments({
+      status: SmartbinStatus.Delivered,
+    });
+
+    const smartbinUsersByLGAFromDB = await this.smartbinModel.aggregate([
+      {
+        $group: {
+          _id: '$localGovernmentArea',
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          lga: '$_id',
+          count: 1,
+          _id: 0,
+        },
+      },
+    ]);
+
+  const lgaCounts = new Map(
+      smartbinUsersByLGAFromDB.map((item) => [item.lga, item.count]),
+    );
+
+    const smartbinUsersByLGA = LAGOS_LGAS.map((lga) => ({
+      lga,
+      count: lgaCounts.get(lga) || 0,
+    }));
+
+    return {
+      totalSmartbinUsers,
+      smartbinRequests,
+      deliveredSmartbins,
+      smartbinUsersByLGA,
+    };
+  }
+
+
 
   // delivered bins
   async getDeliveredSmartBins(page: number, limit: number) {
