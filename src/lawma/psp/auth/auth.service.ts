@@ -26,7 +26,8 @@ export class PspAuthService {
     async login(body: PspLoginDto) {
         const { email, password } = body;
 
-        const psp = await this.pspModel.findOne({ email });
+        const psp = await this.pspModel.findOne({ administrator_email: email });
+
         if (!psp) {
             throw new NotFoundException('Psp not found');
         }
@@ -37,8 +38,6 @@ export class PspAuthService {
         }
 
         const loginCode = Math.floor(10000 + Math.random() * 90000).toString();
-
-        await psp.save();
 
         await this.cacheService.set(
             CacheKeys.PspLoginCode(String(loginCode)),

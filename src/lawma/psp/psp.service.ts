@@ -33,6 +33,8 @@ export class PspService {
 
     const password = generateRandomChars(6, 'alphanum');
 
+    console.log(password)
+
     const pspData = await this.psp.create({ ...psp, password: password });
 
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
