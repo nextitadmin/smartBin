@@ -45,7 +45,7 @@ import { Public } from '@common/guards/public.guard';
 import { UpdateSmartBinStatusDto } from '@src/smart-bin/dto/binAppDto';
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 import { SmartBinApplicationStatus } from '@models/types';
-import { MessagePattern } from '@nestjs/microservices';
+// import { MessagePattern } from '@nestjs/microservices';
 
 @ApiTags('Residents')
 @Controller({
@@ -222,9 +222,8 @@ export class ResidentController {
   ) {
     console.log('params', params);
     const { applicationId } = params;
-    const response = await this.residentService.getApplicationDetails(
-      applicationId,
-    );
+    const response =
+      await this.residentService.getApplicationDetails(applicationId);
     return new SuccessResponse(
       'Smart Bin application retrieved successfully',
       response,

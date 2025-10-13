@@ -20,7 +20,7 @@ import { CorporateModule } from '@src/corporate/corporate.module';
     CorporateModule,
   ],
   controllers: [TeamController],
-  exports: [TeamService],
+  exports: [TeamService, MongooseModule],
   providers: [TeamService],
 })
 export class TeamModule {}

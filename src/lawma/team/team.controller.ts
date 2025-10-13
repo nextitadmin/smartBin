@@ -14,7 +14,7 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { TeamService } from './team.service';
 import { AdminUser } from '@common/types';
-import { SuccessResponse } from '@common/http';
+import { PaginatedSuccessResponse, SuccessResponse } from '@common/http';
 import { CreateLawmaTeamDto, UpdateLawmaTeamStatusDto } from './dto/team.dto';
 import { IdParamDTO } from '@src/agent/dto/agent.dto';
 
@@ -28,9 +28,13 @@ export class TeamController {
   constructor(private readonly teamService: TeamService) {}
 
   @Get()
-  async getTeams(@AuthenticatedAdmin() admin: AdminUser) {
+  async getTeams() {
     const teams = await this.teamService.getTeams();
-    return new SuccessResponse('Teams fetched successfully', teams);
+    return new PaginatedSuccessResponse(
+      'Teams fetched successfully',
+      teams.data,
+      teams.paging,
+    );
   }
 
   @Post()
@@ -41,7 +45,7 @@ export class TeamController {
 
   @Put(':id/status')
   async updateTeam(
-    @Param('id') { id }: IdParamDTO,
+    @Param() { id }: IdParamDTO,
     @Body() team: UpdateLawmaTeamStatusDto,
   ) {
     const updatedTeam = await this.teamService.updateTeam(id, team);
@@ -49,7 +53,7 @@ export class TeamController {
   }
 
   @Delete(':id')
-  async deleteTeam(@Param('id') { id }: IdParamDTO) {
+  async deleteTeam(@Param() { id }: IdParamDTO) {
     const deletedTeam = await this.teamService.deleteTeam(id);
     return new SuccessResponse('Team deleted successfully', deletedTeam);
   }

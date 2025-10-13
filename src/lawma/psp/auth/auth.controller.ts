@@ -1,9 +1,18 @@
 import { Body, Controller, Post, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { PspAuthService } from './auth.service';
-import { PspForgotPasswordDto, PspLoginDto, PspResetPasswordDto, PspVerifyResetCodeDto, VerifyPspLogin } from '../dto/psp.dto';
+import {
+  PspForgotPasswordDto,
+  PspLoginDto,
+  PspResetPasswordDto,
+  PspVerifyResetCodeDto,
+  VerifyPspLogin,
+} from '../dto/psp.dto';
 import { SuccessResponse } from '@common/http';
-import { AuthenticatedPspAdmin, PspAdminAuth } from '@common/decorators/auth.decorator';
+import {
+  AuthenticatedPspAdmin,
+  PspAdminAuth,
+} from '@common/decorators/auth.decorator';
 import { PspAdminUser } from '@common/types';
 
 @ApiTags('PSPs Authentication')
@@ -11,17 +20,14 @@ import { PspAdminUser } from '@common/types';
   path: 'psps/auth',
   version: '1',
 })
-
 export class PspAuthController {
-  constructor(private readonly pspAuthService: PspAuthService) { }
-
+  constructor(private readonly pspAuthService: PspAuthService) {}
 
   @Post('login')
   async login(@Body() body: PspLoginDto) {
     await this.pspAuthService.login(body);
     return new SuccessResponse('Verification code sent to your email', null);
   }
-
 
   @Post('verify-login')
   async verifyLogin(@Body() body: VerifyPspLogin) {
@@ -32,13 +38,11 @@ export class PspAuthController {
     });
   }
 
-
   @Post('request-password-reset')
   async requestPasswordReset(@Body() body: PspForgotPasswordDto) {
     const response = await this.pspAuthService.requestPasswordReset(body);
     return new SuccessResponse(response.message, null);
   }
-
 
   @Post('verify-password-reset')
   async verifyReset(
@@ -55,10 +59,7 @@ export class PspAuthController {
     @AuthenticatedPspAdmin() psp: PspAdminUser,
     @Body() body: PspResetPasswordDto,
   ) {
-    const response = await this.pspAuthService.resetPassword(
-      psp.id,
-      body,
-    );
+    const response = await this.pspAuthService.resetPassword(psp.id, body);
 
     return new SuccessResponse('reset password successful', response);
   }
@@ -69,5 +70,4 @@ export class PspAuthController {
     const response = await this.pspAuthService.logout(psp.token);
     return new SuccessResponse(response.message, null);
   }
-
 }

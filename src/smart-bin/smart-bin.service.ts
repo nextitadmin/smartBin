@@ -34,6 +34,8 @@ import {
   CreateBusinessApplicationDto,
   CreateFacilityApplicationDto,
   GetApplicationsDto,
+  orderBinsDto,
+  scheduleDeliveryDto,
 } from './dto/binAppDto';
 import { SmartBinApplicationStatus, UserRole } from '@models/types';
 import { generateRandomChars } from '@common/utils';
@@ -50,6 +52,8 @@ import { NotificationEvent } from '@src/notification/dto/notification.event';
 import { Facility } from '@models/facilities';
 import { CustomerType } from '@models/report.model';
 import { Paging } from '@common/http';
+import { TeamMember } from '@models/team.model';
+import { LAGOS_LGAS } from '@src/utility/utility.constants';
 
 @Injectable()
 export class SmartBinService {
@@ -67,6 +71,7 @@ export class SmartBinService {
     @InjectModel(Transaction.name)
     private readonly transactionModel: Model<Transaction>,
     private readonly eventEmitter: EventEmitter2,
+    @InjectModel(TeamMember.name) private readonly teamMemberModel: Model<TeamMember>,
   ) { }
 
   async getResidentBinApplication(residentId: string, page = 1, limit = 10) {
@@ -234,11 +239,35 @@ export class SmartBinService {
   // overview
   async getSmartBinOverview() {
     const totalApplications = await this.smartbinModel.countDocuments();
-
+  const totalSmartbinUsers = await this.smartbinModel.distinct('userId').countDocuments();
     const deliveredApplications = await this.smartbinModel.countDocuments({
       status: SmartbinStatus.Delivered,
     });
 
+    const smartbinUsersByLGAFromDB = await this.smartbinModel.aggregate([
+      {
+        $group: {
+          _id: '$localGovernmentArea',
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          lga: '$_id',
+          count: 1,
+          _id: 0,
+        },
+      },
+    ]);
+
+  const lgaCounts = new Map(
+      smartbinUsersByLGAFromDB.map((item) => [item.lga, item.count]),
+    );
+
+    const smartbinUsersByLGA = LAGOS_LGAS.map((lga) => ({
+      lga,
+      count: lgaCounts.get(lga) || 0,
+    }));
     const recentlyDeliveredRecords = await this.smartbinModel
       .find({ status: SmartbinStatus.Delivered })
       .sort({ deliveredOn: -1 })
@@ -257,10 +286,54 @@ export class SmartBinService {
 
     return {
       totalApplications,
+      totalSmartbinUsers,
+      smartbinUsersByLGA,
       deliveredApplications,
       records,
     };
   }
+
+  async getAdminSmartbinOverview() {
+    const totalSmartbinUsers = await this.smartbinModel.distinct('userId').countDocuments();
+    const smartbinRequests = await this.smartbinModel.countDocuments();
+    const deliveredSmartbins = await this.smartbinModel.countDocuments({
+      status: SmartbinStatus.Delivered,
+    });
+
+    const smartbinUsersByLGAFromDB = await this.smartbinModel.aggregate([
+      {
+        $group: {
+          _id: '$localGovernmentArea',
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          lga: '$_id',
+          count: 1,
+          _id: 0,
+        },
+      },
+    ]);
+
+  const lgaCounts = new Map(
+      smartbinUsersByLGAFromDB.map((item) => [item.lga, item.count]),
+    );
+
+    const smartbinUsersByLGA = LAGOS_LGAS.map((lga) => ({
+      lga,
+      count: lgaCounts.get(lga) || 0,
+    }));
+
+    return {
+      totalSmartbinUsers,
+      smartbinRequests,
+      deliveredSmartbins,
+      smartbinUsersByLGA,
+    };
+  }
+
+
 
   // delivered bins
   async getDeliveredSmartBins(page: number, limit: number) {
@@ -341,6 +414,136 @@ export class SmartBinService {
       },
     };
   }
+
+  //get All bin Orders
+  async getAllBinOrders(filters?: orderBinsDto) {
+    const page = filters?.page ?? 1;
+    const limit = filters?.limit ?? 10;
+    const skip = (page - 1) * limit;
+    const [
+      totalOrders,
+      orderValueAgg,
+      ongoingOrders,
+      completedOrders
+    ] = await Promise.all([
+      this.smartbinModel.countDocuments(),
+      this.transactionModel.aggregate([
+        { $match: { service: ServiceType.SmartBinPurchase, status: TransactionStatus.Successful } },
+        { $group: { _id: null, total: { $sum: '$amount' } } }
+      ]),
+      this.smartbinModel.countDocuments({ status: { $in: [SmartbinStatus.Pending, SmartbinStatus.Approved] } }),
+      this.smartbinModel.countDocuments({ status: SmartbinStatus.Delivered })
+    ]);
+
+    const [orders, total] = await Promise.all([
+      this.smartbinModel
+        .find()
+        .populate('payment')
+        .skip(skip)
+        .sort({ createdAt: -1 })
+        .limit(limit)
+        .lean(),
+      this.smartbinModel.countDocuments(),
+    ]);
+
+    const orderValue = orderValueAgg.length > 0 ? orderValueAgg[0].total : 0;
+
+    const records = orders.map((order) => ({
+      id: String(order._id),
+      orderId: order.binId,
+      name: order?.name,
+      phoneNumber: order?.phoneNumber,
+      lga: order?.localGovernmentArea,
+      orderDate: order.createdAt, 
+      status: order.status,
+    }));
+
+    return {
+      summary: {
+        totalOrders,
+        orderValue,
+        ongoingOrders,
+        completedOrders,
+      },
+      orders: records,
+      paging: {
+        total,
+        page,
+        pages: Math.ceil(total / limit),
+        size: limit,
+      },
+    };
+  }
+
+  // Assign team member to schedule delivery
+  async scheduleDelivery(
+    filters: scheduleDeliveryDto,
+) {
+  const smartbin = await this.smartbinModel.findById(filters.applicationId);
+  if (!smartbin) {
+    throw new NotFoundException('Bin application not found');
+  }
+
+  if (smartbin.status === SmartbinStatus.Delivered) {
+    throw new BadRequestException('This SmartBin has already been delivered.');
+  }
+
+  const teamMember = await this.teamMemberModel.findById(filters.teamMemberId);
+  if (!teamMember) {
+    throw new NotFoundException('Team member not found');
+  }
+
+  smartbin.status = SmartbinStatus.ScheduledForDelivery;
+  smartbin.assignedTo = String(teamMember._id); // <-- store relation to team member as string
+  smartbin.applicationHistory.push({
+    timestamp: new Date(),
+    status: SmartbinStatus.ScheduledForDelivery,
+    description: filters.comment || `Scheduled for delivery by ${teamMember.name}`,
+  });
+
+  await smartbin.save();
+
+  // 1️⃣ email notification
+  this.eventEmitter.emit(
+    MailNotificationEvents.Application.SmartBinUpdate,
+    new SendEmailEvent({
+      to: teamMember.email,
+      from: `"LAWMA REG" <accounts@lawma.co>`,
+      subject: 'New SmartBin Delivery Assigned',
+      context: {
+        teamMember: teamMember.name,
+        binId: smartbin.binId,
+        address: smartbin.address,
+        customer: smartbin.name || smartbin.businessName,
+        comment: filters.comment,
+      },
+    }),
+  );
+
+  // 1️⃣ in-app notification 
+  this.eventEmitter.emit(
+    events.notifications.created,
+    new NotificationEvent({
+      userId: String(teamMember.userId), // link notification to actual user
+      title: 'SmartBin Delivery Scheduled',
+      text: `You have been assigned to deliver SmartBin ${smartbin.binId}.`,
+      type: NotificationType.SmartBinUpdate,
+    }),
+  );
+
+  return {
+    message: 'SmartBin delivery scheduled successfully',
+    applicationId: filters.applicationId,
+    status: smartbin.status,
+    assignedTo: {
+      id: teamMember._id,
+      name: teamMember.name,
+      email: teamMember.email,
+      phoneNumber: teamMember.phoneNumber,
+    },
+    comment: filters.comment,
+  };
+}
 
 
   // Get bin application by ID

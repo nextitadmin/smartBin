@@ -14,7 +14,7 @@ import { Transaction, TransactionSchema } from '@models/transaction.model';
 import { SmartBinService } from './smart-bin.service';
 import { AgentModule } from '@src/agent/agent.module';
 import { Facility, FacilitySchema } from '@models/facilities';
-
+import { TeamMember, TeamMemberSchema } from '../models/team.model';
 
 @Module({
   imports: [
@@ -28,6 +28,8 @@ import { Facility, FacilitySchema } from '@models/facilities';
       { name: Wallet.name, schema: WalletSchema },
       { name: Transaction.name, schema: TransactionSchema },
       { name: Facility.name, schema: FacilitySchema },
+      { name: TeamMember.name, schema: TeamMemberSchema },
+
     ]),
     AgentModule,
   ],
