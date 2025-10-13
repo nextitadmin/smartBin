@@ -12,6 +12,7 @@ import { Cache } from "cache-manager"
 import { Model } from "mongoose";
 import { PspForgotPasswordDto, PspLoginDto, PspResetPasswordDto, PspVerifyResetCodeDto } from "../dto/psp.dto";
 import { MailNotificationEvents, SendEmailEvent } from "@src/notification/dto/event";
+import { ApplicationEnvironment } from "@common/constants";
 
 @Injectable()
 export class PspAuthService {
@@ -22,6 +23,12 @@ export class PspAuthService {
         private readonly jwtService: JwtService,
         private ee: EventEmitter2,
     ) { }
+
+
+    get isProduction() {
+        const environment = this.configService.get('applicationEnvironment');
+        return environment === ApplicationEnvironment.Production;
+    }
 
     async login(body: PspLoginDto) {
         const { email, password } = body;
@@ -37,7 +44,7 @@ export class PspAuthService {
             throw new UnauthorizedException('Invalid email or password');
         }
 
-        const loginCode = Math.floor(10000 + Math.random() * 90000).toString();
+        const loginCode = !this.isProduction ? '12345' : Math.floor(10000 + Math.random() * 90000).toString();
 
         await this.cacheService.set(
             CacheKeys.PspLoginCode(String(loginCode)),
