@@ -13,7 +13,6 @@ export enum SmartbinStatus {
   Cancelled = 'cancelled',
   Approved = 'approved',
   Declined = 'declined',
-
 }
 
 export enum BinType {
@@ -245,8 +244,14 @@ export class SmartBin extends Document {
   @Prop({ type: SchemaTypes.String, required: false })
   flatNumber?: string;
 
-  @Prop({ type: SchemaTypes.String, required: false })
-  localGovernmentArea?: string;
+  @Prop({
+    type: SchemaTypes.Mixed,
+    required: true,
+  })
+  localGovernmentArea?: {
+    id: Types.ObjectId;
+    name: string;
+  };
 
   @Prop({ type: Date, required: false })
   deliveredOn?: Date;
@@ -256,7 +261,7 @@ export class SmartBin extends Document {
 
   @Prop({ type: SchemaTypes.String, required: false })
   deliveredBy?: string;
-  
+
   @Prop({ type: Date })
   createdAt?: Date;
 

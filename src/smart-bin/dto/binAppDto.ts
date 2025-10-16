@@ -1,5 +1,5 @@
 import { BinType, LAWMACustomerType } from '@models/smart-bin.model';
-import { ApiProperty, ApiPropertyOptional, } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsBoolean,
   IsEmpty,
@@ -9,7 +9,6 @@ import {
   IsOptional,
   IsString,
   IsDateString,
-
 } from 'class-validator';
 import { SmartbinStatus } from '@models/smart-bin.model';
 import { SmartBinApplicationStatus, UserRole } from '@models/types/index';
@@ -273,14 +272,11 @@ export interface AgentBinApplicationFilter {
   userType?: UserRole;
 }
 
-
 export class GetApplicationsDto {
-
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
   type?: BinType;
-
 
   @ApiPropertyOptional()
   @IsOptional()
@@ -320,7 +316,7 @@ export class GetApplicationResponseDto {
   lawmaCustomerType: LAWMACustomerType;
 
   @ApiProperty()
-  address: string
+  address: string;
 
   @ApiProperty()
   createdAt: Date;
