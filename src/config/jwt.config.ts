@@ -7,7 +7,7 @@ const jwtOpts = (c: ConfigService<ConfigAttributes>): JwtModuleOptions => {
   const jwtExpiresIn = String(jwtSecret.expiry);
   return {
     secret: jwtSecret.secret,
-    signOptions: { expiresIn: jwtExpiresIn || '7d', issuer: 'Smartbin' },
+    signOptions: { expiresIn: '7d', issuer: 'Smartbin' },
   };
 };
 
