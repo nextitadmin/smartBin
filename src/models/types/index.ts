@@ -12,8 +12,8 @@ export enum UserRole {
 }
 
 export enum SmartBinApplicationStatus {
-  Pending = 'Pending',
-  Delivered = 'Delivered',
+  Pending = 'pending',
+  Delivered = 'delivered',
   ScheduledForDelivery = 'Scheduled for Delivery',
   Inventory = 'Inventory',
   Activated = 'Activated',
