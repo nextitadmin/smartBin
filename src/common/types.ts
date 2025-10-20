@@ -50,4 +50,13 @@ export type PspAdminUser = {
   userAgent?: string;
 }
 
+export type PspTeamMember = {
+  id: string;
+  email: string;
+  name: string;
+  token?:string;
+  ipAddress?:string;
+  userAgent?: string;
+}
+
 
