@@ -68,6 +68,7 @@ export class ResidentController {
     await this.residentService.login(body);
     return new SuccessResponse('Verification code sent to your email', null);
   }
+  ewmjnwewewewwew;
 
   @Public()
   @Post('verify-login')

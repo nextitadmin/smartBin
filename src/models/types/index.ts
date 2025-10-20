@@ -12,21 +12,20 @@ export enum UserRole {
 }
 
 export enum SmartBinApplicationStatus {
-  Pending = 'Pending',
-  Delivered = 'Delivered',
+  Pending = 'pending',
+  Delivered = 'delivered',
   ScheduledForDelivery = 'Scheduled for Delivery',
   Inventory = 'Inventory',
-  Activated = 'Activated'
+  Activated = 'Activated',
 }
 
 export enum PickupStatus {
-  Pending = 'Pending',
-  Completed = 'Completed',
-  Cancelled = 'Cancelled',
+  Pending = 'pending',
+  Completed = 'completed',
+  Cancelled = 'cancelled',
 }
 
-
 export enum AccountStatus {
-  Active = 'Active',
-  Inactive = 'Inactive',
+  Active = 'active',
+  Inactive = 'inactive',
 }
