@@ -6,9 +6,10 @@ import { AuthModule } from '../auth/auth.module';
 import { LawmaAdminReportController } from './lawma-admin.report';
 import { SmartbinPartnersReportController } from './smartbin-partner.controller';
 import { PSPReportController } from './psp.controller';
+import { PspModule } from '../psp/psp.module';
 
 @Module({
-  imports: [ReportModule, AuthModule],
+  imports: [ReportModule, AuthModule,PspModule],
   controllers: [
     SuperAdminReportController,
     LawmaAdminReportController,

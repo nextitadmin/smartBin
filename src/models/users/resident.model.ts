@@ -27,7 +27,7 @@ export interface ResidentAttributes {
   landmark?: string;
   nextPickupDate?: string;
   accountNo?: string;
-  localGovermentArea?: string;
+  localGovernmentArea?: string;
   buildingType?: string;
   password: string;
   registeredBy?: Types.ObjectId;
@@ -118,7 +118,7 @@ export class Resident implements ResidentAttributes {
   accountNo?: string;
 
   @Prop()
-  localGovermentArea?: string;
+  localGovernmentArea?: string;
 
   @Prop()
   buildingType?: string;

@@ -21,6 +21,10 @@ import { AgentModule } from '@src/agent/agent.module';
     MongooseModule.forFeature([
       { name: Pickup.name, schema: PickupSchema },
       { name: Transaction.name, schema: TransactionSchema },
+      {name: Resident.name, schema: ResidentSchema},
+      {name: Agent.name, schema: AgentSchema},
+      {name: Corporate.name, schema: CorporateSchema},
+      {name: FacilityManager.name, schema: FacilityManagerSchema},
     ]),
   ],
   providers: [PickupService],

@@ -25,5 +25,6 @@ import { PspAuthService } from './auth/auth.service';
     ]),
     AuthModule,
   ],
+  exports: [PspAuthService],
 })
 export class PspModule {}

@@ -18,16 +18,20 @@ import { UserRole } from '@models/types';
 import { Payer } from '@models/users/payer.model';
 import { Paging } from '@common/http';
 import { generateRandomChars } from '@common/utils';
+
 import {
   ServiceType,
   Transaction,
   TransactionStatus,
 } from '@models/transaction.model';
 import {
+  AssignTeamMemberDto,
   GetPickupDto,
+  GetPickupsForPspDto,
+  UpdatePickupStatusDto,
   RequestPickupDto,
 } from '@src/waste-management/pickup/dto/pickup.dto';
-import { AdminUser, AuthUser } from '@common/types';
+import { AdminUser, AuthUser, PspAdminUser } from '@common/types';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import {
   MailNotificationEvents,
@@ -37,6 +41,7 @@ import { NotificationType } from '@models/notification.model';
 import { events } from '@common/constants';
 import { NotificationEvent } from '@src/notification/dto/notification.event';
 import { filter } from 'rxjs';
+import { string } from 'joi';
 
 @Injectable()
 export class PickupService {
@@ -45,6 +50,14 @@ export class PickupService {
     private readonly transactionModel: Model<Transaction>,
     @InjectModel(Pickup.name)
     private readonly pickupModel: Model<PickupDocument>,
+    @InjectModel(Resident.name)
+    private readonly residentModel: Model<Resident>,
+    @InjectModel(Agent.name)
+    private readonly agentModel: Model<Agent>,
+    @InjectModel(Corporate.name)
+    private readonly corporateModel: Model<Corporate>,
+    @InjectModel(FacilityManager.name)
+    private readonly facilityManagerModel: Model<FacilityManager>,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -144,66 +157,6 @@ export class PickupService {
     return pickup;
   }
 
-  //update pickups status
-  async updatePickupStatus(user: AuthUser, id: string, status: Status) {
-    const pickup = await this.pickupModel
-      .findByIdAndUpdate(id, { status }, { new: true })
-      .lean();
-    if (!pickup) {
-      throw new NotFoundException(`Pickup with ID ${id} not found`);
-    }
-    // 1️⃣ Email notification
-    this.eventEmitter.emit(
-      MailNotificationEvents.Application.PickupUpdate,
-      new SendEmailEvent({
-        to: user.email,
-        from: `"LAWMA REG" <accounts@lawma.co>`,
-        subject: 'Pickup Application Status Update',
-        context: {
-          name: user.firstName,
-          status: status,
-          applicationId: id,
-        },
-      }),
-    );
-
-    // 2️⃣ In-app notification
-    this.eventEmitter.emit(
-      events.notifications.created,
-      new NotificationEvent({
-        userId: user.id,
-        title: 'Pickup Application',
-        text: `Your Pickup application status has been updated to ${status}.`,
-        type: NotificationType.PickupUpdate,
-      }),
-      // new SendInAppEvent({
-      //   userId: user.id,
-      //   text: `Your SmartBin application status has been updated to ${status}.`,
-      //   type: NotificationType.SmartBinUpdate,
-      //   isRead: false,
-      // }),
-    );
-    return pickup;
-  }
-
-  // get pickup by waste ID
-  async getPickupByWasteId(wasteId: string) {
-    const pickup = await this.pickupModel.findOne({ wasteId }).lean();
-    if (!pickup) {
-      throw new NotFoundException(`Pickup with waste ID ${wasteId} not found`);
-    }
-    return pickup;
-  }
-
-  //delete pickup by ID
-  async deletePickupById(id: string) {
-    const pickup = await this.pickupModel.findByIdAndDelete(id).lean();
-    if (!pickup) {
-      throw new NotFoundException(`Pickup with ID ${id} not found`);
-    }
-    return { message: 'Pickup deleted successfully' };
-  }
-
   //create pickup
   async createPickup({
     accountId,
@@ -272,8 +225,7 @@ export class PickupService {
   async getPickupsForAdmin(admin: AdminUser, filters?: GetPickupDto) {
     const { page = 1, limit = 10 } = filters || {};
     const skip = (page - 1) * limit;
-const query: any = {};
-
+    const query: any = {};
 
     if (filters?.status) {
       query.status = filters.status;
@@ -337,5 +289,341 @@ const query: any = {};
         size: limit,
       },
     };
+  }
+
+  async getPendingPickups(psp: PspAdminUser, filters?: GetPickupsForPspDto) {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+    } = filters || {};
+    const skip = (page - 1) * limit;
+
+   const query: any = {
+  status: Status.Pending,
+  pspId: null,
+};
+
+    if (search) {
+      query.$or = [
+        { address: { $regex: search, $options: 'i' } },
+        {customerName:{ $regex: search, $options: 'i' }},
+        { representative: { $regex: search, $options: 'i' } },
+        { phoneNumber: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const [pickups, totalCount] = await Promise.all([
+      this.pickupModel
+        .find(query)
+        .select(
+          'id address accountId customerName createdAt status accountType',
+        )
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+        .lean(),
+      this.pickupModel.countDocuments(query),
+    ]);
+
+    const { users } = await this.inferUsers(pickups);
+
+    const formattedPickups = pickups.map((pickup) => {
+      const user = users[pickup.accountType].find(
+        (user) => user._id.toString() === pickup.accountId.toString(),
+      );
+      return {
+        wasteId: pickup._id,
+        address: pickup.address,
+        pspTeam: pickup.representative || 'N/A',
+        customerName: user
+          ? `${user.firstName} ${user.lastName}`
+          : pickup.customerName,
+        fillUpLevel: 'N/A',
+        dateCreated: pickup.createdAt,
+      };
+    });
+
+    const paging = {
+      totalRecords: totalCount,
+      currentPage: page,
+      totalPages: Math.ceil(totalCount / limit),
+      pageSize: limit,
+    };
+
+    return {
+      pspInfo: {
+        username: psp.name,
+        pspId: psp.id,
+      },
+      pickups: formattedPickups,
+      paging,
+    };
+  }
+
+
+
+  
+
+  async inferUsers(pickups: any[]) {
+    const residentIds = pickups
+      .filter((pickup) => pickup.accountType === UserRole.Resident)
+      .map((pickup) => pickup.accountId);
+    const agentIds = pickups
+      .filter((pickup) => pickup.accountType === UserRole.Agent)
+      .map((pickup) => pickup.accountId);
+    const corporateIds = pickups
+      .filter((pickup) => pickup.accountType === UserRole.Corporate)
+      .map((pickup) => pickup.accountId);
+    const facilityManagerIds = pickups
+      .filter((pickup) => pickup.accountType === UserRole.Facility)
+      .map((pickup) => pickup.accountId);
+
+    const [residents, agents, corporates, facilityManagers] = await Promise.all(
+      [
+        this.residentModel
+          .find({ _id: { $in: residentIds } })
+          .select('_id firstName lastName email localGovernmentArea')
+          .lean(),
+        this.agentModel
+          .find({ _id: { $in: agentIds } })
+          .select('_id firstName lastName email localGovernmentArea')
+          .lean(),
+        this.corporateModel
+          .find({ _id: { $in: corporateIds } })
+          .select('_id firstName lastName email localGovernmentArea')
+          .lean(),
+        this.facilityManagerModel
+          .find({ _id: { $in: facilityManagerIds } })
+          .select('_id firstName lastName email localGovernmentArea')
+          .lean(),
+      ],
+    );
+
+    const users = {
+      [UserRole.Resident]: residents,
+      [UserRole.Agent]: agents,
+      [UserRole.Corporate]: corporates,
+      [UserRole.Facility]: facilityManagers,
+    };
+
+    return { users };
+  }
+
+  async getAssignedPickups(psp: PspAdminUser, filters?: GetPickupsForPspDto) {
+    const { page = 1, limit = 10, search } = filters || {};
+    const skip = (page - 1) * limit;
+    const query: any = { pspId: new Types.ObjectId(psp.id), assignedTo: { $exists: true, $ne: null } };
+
+    if (search) {
+      query.$or = [
+        { address: { $regex: search, $options: 'i' } },
+        { customerName: { $regex: search, $options: 'i' } },
+        { representative: { $regex: search, $options: 'i' } },
+        { phoneNumber: { $regex: search, $options: 'i' } },
+      ];
+    }
+   
+    const [pickups, totalCount] = await Promise.all([
+      this.pickupModel
+        .find(query)
+        .select(
+          'id address accountId customerName  updatedAt status accountType assignedTo',
+        )
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+        .lean(),
+      this.pickupModel.countDocuments(query),
+    ]);
+
+    const { users } = await this.inferUsers(pickups);
+
+    const formattedPickups = pickups.map((pickup) => {
+      const user = users[pickup.accountType].find(
+        (user) => user._id.toString() === pickup.accountId.toString(),
+      );
+      return {
+        wasteId: pickup._id,
+        address: pickup.address,
+        accountId:pickup.accountId,
+        accountType:pickup.accountType,
+        customerName: user
+          ? `${user.firstName} ${user.lastName}`
+          : pickup.customerName,
+        fillUpLevel: 'N/A',
+        assignedTo: pickup.assignedTo || 'N/A',
+        dateAssigned: pickup.updatedAt,
+      };
+      
+    });
+
+    const paging = {
+      totalRecords: totalCount,
+      currentPage: page,
+      totalPages: Math.ceil(totalCount / limit),
+    };
+    return {
+      pspInfo: {
+        username: psp.name,
+        pspId: psp.id,
+      },
+      pickups: formattedPickups,
+      paging,
+    };
+
+    
+  }
+
+  
+  
+  async getCompletedPickups(psp: PspAdminUser, filters?: GetPickupsForPspDto) {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+    } = filters || {};
+    const skip = (page - 1) * limit;
+
+    const query: any = ( {
+  status: Status.Completed,
+  pspId: new Types.ObjectId(psp.id),
+});
+
+    if (search) {
+      query.$or = [
+        { address: { $regex: search, $options: 'i' } },
+        { representative: { $regex: search, $options: 'i' } },
+        { phoneNumber: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const [pickups, totalCount] = await Promise.all([
+      this.pickupModel
+        .find(query)
+        .select(
+          'id address accountId customerName  updatedAt status accountType assignedTo',
+        )
+        .skip(skip)
+        .limit(limit)
+        .sort({updatedAt: -1 })
+        .lean(),
+      this.pickupModel.countDocuments(query),
+    ]);
+
+    const { users } = await this.inferUsers(pickups);
+
+    const formattedPickups = pickups.map((pickup) => {
+      const user = users[pickup.accountType].find(
+        (user) => user._id.toString() === pickup.accountId.toString(),
+      );
+      return {
+        wasteId: pickup._id,
+        address: pickup.address,
+        customerName: user
+          ? `${user.firstName} ${user.lastName}`
+          : pickup.customerName,
+        assignedTo: pickup.assignedTo || 'N/A',
+        dateCompleted: pickup.updatedAt,
+      };
+    });
+
+    const paging = {
+      totalRecords: totalCount,
+      currentPage: page,
+      totalPages: Math.ceil(totalCount / limit),
+      pageSize: limit,
+    };
+
+    return {
+      pspInfo: {
+        username: psp.name,
+        pspId: psp.id,
+      },
+      pickups: formattedPickups,
+      paging,
+    };
+  }
+
+
+  async assignTeamMember(
+    psp: PspAdminUser,
+    pickupId: string,
+    dto: AssignTeamMemberDto,
+  ) {
+    const pickup = await this.pickupModel.findById(pickupId);
+
+    if (!pickup) {
+      throw new NotFoundException(`Pickup with ID ${pickupId} not found`);
+    }
+
+    // Update pickup status and assign team member
+    pickup.status = Status.Assigned;
+    pickup.assignedTo = dto.teamMemberId;
+    pickup.agentNote = dto.note;
+    pickup.pspId = new Types.ObjectId(psp.id);
+
+    await pickup.save();
+
+    return pickup;
+  }
+
+
+  //update pickups status
+  async updatePickupStatus(id: string, { status }: UpdatePickupStatusDto) {
+    const pickup = await this.pickupModel
+      .findByIdAndUpdate(id, { status }, { new: true })
+      .lean();
+    if (!pickup) {
+      throw new NotFoundException(`Pickup with ID ${id} not found`);
+    }
+
+    return pickup;
+  }
+  
+
+
+  async getPickupByWasteId(id: string) {
+  const pickup = await this.pickupModel.findById(id).lean();
+  if (!pickup) {
+    throw new NotFoundException(`Pickup with ID ${id} not found`);
+  }
+
+  let customerName: string | undefined;
+  let email: string | undefined;
+  let localGovernmentArea: string | undefined;
+
+  if (pickup.accountId && pickup.accountType) {
+    const { users } = await this.inferUsers([pickup]);
+    const user = users[pickup.accountType].find(
+      (user) => user._id.toString() === pickup.accountId.toString(),
+    );
+    if (user) {
+      customerName = `${user.firstName} ${user.lastName}`;
+      email = user.email;
+      localGovernmentArea = user.localGovernmentArea;
+    }
+  }
+
+  return {
+    id: pickup._id,
+    customerName,
+    phoneNumber:pickup.phoneNumber,
+    email,
+    address: pickup.address,
+    lga:localGovernmentArea || 'N/A',
+    status: pickup.status,
+    fillUpLevel: 'N/A', 
+  };
+}
+
+
+  //delete pickup by ID
+  async deletePickupById(id: string) {
+    const pickup = await this.pickupModel.findByIdAndDelete(id).lean();
+    if (!pickup) {
+      throw new NotFoundException(`Pickup with ID ${id} not found`);
+    }
+    return { message: 'Pickup deleted successfully' };
   }
 }

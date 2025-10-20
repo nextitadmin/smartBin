@@ -48,6 +48,5 @@ export type PspAdminUser = {
   token?:string;
   ipAddress?:string;
   userAgent?: string;
+  lga_id?: Types.ObjectId;
 }
-
-

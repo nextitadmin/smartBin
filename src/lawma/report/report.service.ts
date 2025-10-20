@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { AdminUser } from '@common/types';
+import { AdminUser, PspAdminUser } from '@common/types';
 import {
   CreateAdminReportDto,
   GetReportsDto,
@@ -26,7 +26,7 @@ export class AdminReportService {
     return this.reportService.generateSmartbinPartnerReport(admin, dto);
   }
 
-  async generatePSPReport(admin: AdminUser, dto: CreateAdminReportDto) {
+  async generatePSPReport(admin: PspAdminUser, dto: CreateAdminReportDto) {
     return this.reportService.generatePSPReport(admin, dto);
   }
 
@@ -34,6 +34,13 @@ export class AdminReportService {
     return this.reportService.getAdminReports(admin, filters);
   }
 
+  getPspReports(admin: PspAdminUser, filters: GetReportsDto) {
+    return this.reportService.getPspReports(admin, filters);
+  }
+
+  async getPspReportById(id: string, admin: PspAdminUser) {
+    return this.reportService.getPspReportById(id, admin);
+  }
   async getAdminReportById(id: string, admin: AdminUser) {
     return this.reportService.getAdminReportById(id, admin);
   }

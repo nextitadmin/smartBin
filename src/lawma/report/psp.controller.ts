@@ -13,20 +13,21 @@ import {
   AdminAuth,
   AuthenticatedAdmin,
 } from '@common/decorators/auth.decorator';
-import { AdminUser } from '@common/types';
+import {PspAdminAuth, AuthenticatedPspAdmin} from '@common/decorators/auth.decorator';
+import { AdminUser, PspAdminUser } from '@common/types';
 
 @ApiTags('PSP/Report')
 @Controller({
   path: 'lawma/psp/reports',
   version: '1',
 })
-@AdminAuth()
+@PspAdminAuth()
 export class PSPReportController {
   constructor(private readonly reportService: AdminReportService) {}
 
   @Post('report')
   async createReport(
-    @AuthenticatedAdmin() admin: AdminUser,
+    @AuthenticatedPspAdmin() admin: PspAdminUser,
     @Body() dto: CreateAdminReportDto,
   ) {
     const data = await this.reportService.generatePSPReport(admin, dto);
@@ -35,16 +36,16 @@ export class PSPReportController {
 
   @Get()
   async getReports(
-    @AuthenticatedAdmin() admin: AdminUser,
+    @AuthenticatedPspAdmin() admin: PspAdminUser,
     @Query() filters: GetReportsDto,
   ) {
-    const reports = await this.reportService.getAdminReports(admin, filters);
+    const reports = await this.reportService.getPspReports(admin, filters);
     return new SuccessResponse('Reports retrieved successfully', reports);
   }
 
   @Get(':id')
   async getReportById(
-    @AuthenticatedAdmin() admin: AdminUser,
+    @AuthenticatedPspAdmin() admin: AdminUser,
     @Param('id') id: string,
   ) {
     const report = await this.reportService.getAdminReportById(id, admin);
