@@ -4,7 +4,7 @@ import { JwtModuleAsyncOptions, JwtModuleOptions } from '@nestjs/jwt';
 
 const jwtOpts = (c: ConfigService<ConfigAttributes>): JwtModuleOptions => {
   const jwtSecret = c.get('jwt', { infer: true });
-  const jwtExpiresIn = jwtSecret.expiry;
+  const jwtExpiresIn = String(jwtSecret.expiry);
   return {
     secret: jwtSecret.secret,
     signOptions: { expiresIn: jwtExpiresIn || '7d', issuer: 'Smartbin' },
