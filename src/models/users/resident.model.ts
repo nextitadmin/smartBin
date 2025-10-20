@@ -9,7 +9,6 @@ export enum LawmaCustomerType {
   New = 'New',
 }
 
-
 export interface ResidentAttributes {
   agentId: Types.ObjectId;
   payerId: string;
@@ -122,7 +121,6 @@ export class Resident implements ResidentAttributes {
 
   @Prop()
   buildingType?: string;
-
 
   @Prop({
     required: true,
