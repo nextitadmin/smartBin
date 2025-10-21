@@ -3,21 +3,56 @@ import { CreatePspMembersDTO, UpdatePspMembersStatusBodyDTO } from "../dto/psp.d
 import { PSP, PspDocument } from "@models/psp.model";
 import { Model } from "mongoose";
 import { PSPMembers, PspMembersDocument } from "@models/psp-members.model";
+import { generateRandomChars } from "@common/utils";
+import { CacheKeys } from "@src/shared/constants";
+import { Inject } from "@nestjs/common";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Cache } from 'cache-manager';
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { MailNotificationEvents, SendEmailEvent } from "@src/notification/dto/event";
 
 export class PspTeamManagement {
     constructor(
         @InjectModel(PSP.name) private readonly psp: Model<PspDocument>,
         @InjectModel(PSPMembers.name) private readonly pspMembers: Model<PspMembersDocument>,
-    ) {}
+        @Inject(CACHE_MANAGER) private cacheService: Cache,
+        private readonly ee: EventEmitter2,
+    ) { }
 
 
     async createPspMembers(pspMembers: CreatePspMembersDTO & { psp_id: string }) {
+        const password = generateRandomChars(8, 'alphanum');
+
         const psp = await this.psp.findById(pspMembers.psp_id).select('company_name');
-        return this.pspMembers.create({
+
+        const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
+
+        const pspMember = await this.pspMembers.create({
             ...pspMembers,
             psp_details: psp,
             psp_id: pspMembers.psp_id,
+            password: password
         });
+
+        await this.cacheService.set(
+            CacheKeys.PspResetPasswordCode(String(resetCode)),
+            String(pspMember._id),
+        );
+
+        const resetLink = `http://localhost:3001/resetPassword/${resetCode}`;
+
+        this.ee.emit(
+            MailNotificationEvents.Account.ResetPassword,
+            new SendEmailEvent({
+                to: pspMember.email,
+                from: `"LAWMA REG" <accounts@lawma.co>`,
+                subject: 'Reset Your Password',
+                context: {
+                    firstName: pspMember.name,
+                    resetLink: resetLink,
+                },
+            }),
+        );
     }
 
     async getPspMembers(pspId: string) {

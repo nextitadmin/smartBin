@@ -20,7 +20,7 @@ import { PspAdminUser } from '@common/types';
   path: 'psps/team-members/auth',
   version: '1',
 })
-export class PspAuthController {
+export class PspTeamAuthController {
   constructor(private readonly pspTeam: PspTeamAuthService) {}
 
   @Post('login')

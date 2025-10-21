@@ -1,6 +1,6 @@
 import { SuccessResponse } from "@common/http";
-import { Body, Controller, Get, Param, Post, Put } from "@nestjs/common";
-import { CreatePspMembersDTO, IdDTO, UpdatePspMembersStatusBodyDTO, UpdatePspMembersStatusParamDTO } from "../dto/psp.dto";
+import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
+import { CreatePspMembersDTO, DeletePspMembersParamDTO, IdDTO, UpdatePspMembersStatusBodyDTO, UpdatePspMembersStatusParamDTO } from "../dto/psp.dto";
 import { ApiTags } from "@nestjs/swagger";
 import { PspTeamManagement } from "./teamManagement.service";
 import { AuthenticatedPspAdmin, PspAdminAuth } from "@common/decorators/auth.decorator";
@@ -47,5 +47,12 @@ export class PspTeamManagementController {
             status: body.status,
         });
         return new SuccessResponse('psp members updated', response);
+    }
+
+    @Delete('members/:memberId')
+    async deletePspMember(@Param() param: DeletePspMembersParamDTO){
+      const response = await this.pspTeamService.deletePspMembers(param.memberId)
+
+      return new SuccessResponse('psp member removed successfully', response)
     }
 }

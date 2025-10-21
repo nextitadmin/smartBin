@@ -66,6 +66,12 @@ export class UpdatePspMembersStatusParamDTO {
   memberId: string;
 }
 
+export class DeletePspMembersParamDTO {
+  @ApiProperty()
+  @IsString()
+  memberId: string;
+}
+
 export class UpdatePspMembersStatusBodyDTO {
   @ApiProperty({
     enum: Object.values(PSPMembersStatus),
