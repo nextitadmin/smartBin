@@ -1,3 +1,4 @@
+import { getHashedPassword } from '@common/utils';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { SchemaTypes, Types } from 'mongoose';
 
@@ -34,6 +35,9 @@ export class PSPMembers {
   })
   email: string;
 
+  @Prop({ required: true })
+  password: string;
+
   @Prop({
     type: SchemaTypes.String,
     required: true,
@@ -50,3 +54,10 @@ export class PSPMembers {
 }
 
 export const PSPMembersSchema = SchemaFactory.createForClass(PSPMembers);
+
+PSPMembersSchema.pre('save', function (next) {
+  if (this.isModified('password')) {
+    this.password = getHashedPassword(this.password);
+  }
+  next();
+});

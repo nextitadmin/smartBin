@@ -10,7 +10,7 @@ import { ResidentAuthGuard } from '../guards/resident.guard';
 import { FacilityManagerAuthGuard } from '../guards/facility-manager.guard';
 import { CorporateAuthGuard } from '../guards/corporate.guard';
 import { Request } from 'express';
-import { AdminUser, AuthUser, PspAdminUser } from '../types';
+import { AdminUser, AuthUser, PspAdminUser, PspTeamMember } from '../types';
 import { AuthGuard } from '@common/guards/actor.guard';
 import { AdminAuthGuard } from '@common/guards/admin.guard';
 import { PspAdminAuthGuard } from '@common/guards/pspAdmin.guard';
@@ -94,5 +94,13 @@ export const AuthenticatedPspAdmin = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
     const req: Request & { pspAdmin: PspAdminUser } = ctx.switchToHttp().getRequest();
     return { ...req.pspAdmin, ipAddress: req.ip, userAgent: req.headers['user-agent'] };
+  },
+);
+
+
+export const AuthenticatedPspTeamMember = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext) => {
+    const req: Request & { pspTeamMember: PspTeamMember } = ctx.switchToHttp().getRequest();
+    return { ...req.pspTeamMember, ipAddress: req.ip, userAgent: req.headers['user-agent'] };
   },
 );
