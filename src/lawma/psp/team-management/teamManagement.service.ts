@@ -10,14 +10,20 @@ import { CACHE_MANAGER } from "@nestjs/cache-manager";
 import { Cache } from 'cache-manager';
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { MailNotificationEvents, SendEmailEvent } from "@src/notification/dto/event";
+import { ConfigAttributes } from "@src/config";
+import { ConfigService } from "@nestjs/config";
 
 export class PspTeamManagement {
+    protected clientUrl: ConfigAttributes['frontendUrl']
     constructor(
         @InjectModel(PSP.name) private readonly psp: Model<PspDocument>,
         @InjectModel(PSPMembers.name) private readonly pspMembers: Model<PspMembersDocument>,
         @Inject(CACHE_MANAGER) private cacheService: Cache,
         private readonly ee: EventEmitter2,
-    ) { }
+        private readonly configService: ConfigService<ConfigAttributes>,
+    ) { 
+        this.clientUrl = this.configService.get<string>('frontendUrl')
+    }
 
 
     async createPspMembers(pspMembers: CreatePspMembersDTO & { psp_id: string }) {
@@ -39,7 +45,7 @@ export class PspTeamManagement {
             String(pspMember._id),
         );
 
-        const resetLink = `http://localhost:3001/resetPassword/${resetCode}`;
+        const resetLink = `${this.clientUrl}/psp-team/resetPassword/${resetCode}`;
 
         this.ee.emit(
             MailNotificationEvents.Account.ResetPassword,
