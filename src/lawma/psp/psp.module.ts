@@ -12,10 +12,12 @@ import {
 import { AuthModule } from '../auth/auth.module';
 import { PspAuthController } from './auth/auth.controller';
 import { PspAuthService } from './auth/auth.service';
+import { PspTeamManagementController } from './team-management/teamManagement.controller';
+import { PspTeamManagement } from './team-management/teamManagement.service';
 
 @Module({
-  controllers: [PspController, PspAuthController],
-  providers: [PspService, PspAuthService],
+  controllers: [PspController, PspAuthController, PspTeamManagementController],
+  providers: [PspService, PspAuthService, PspTeamManagement],
   imports: [
     MongooseModule.forFeature([
       { name: PSP.name, schema: PSPSchema },
