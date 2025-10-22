@@ -32,17 +32,17 @@ export class PspController {
     return new SuccessResponse('psp created', response);
   }
 
-  // @Post('/:id/members')
-  // async createPspMembers(
-  //   @Param() param: IdDTO,
-  //   @Body() pspMembers: CreatePspMembersDTO,
-  // ) {
-  //   const response = await this.pspService.createPspMembers({
-  //     psp_id: param.id,
-  //     ...pspMembers,
-  //   });
-  //   return new SuccessResponse('psp members created', response);
-  // }
+  @Post('/:id/members')
+  async createPspMembers(
+    @Param() param: IdDTO,
+    @Body() pspMembers: CreatePspMembersDTO,
+  ) {
+    const response = await this.pspService.createPspMembers({
+      psp_id: param.id,
+      ...pspMembers,
+    });
+    return new SuccessResponse('psp members created', response);
+  }
 
   @Get('/lgas')
   async getPspLgas() {
@@ -62,22 +62,22 @@ export class PspController {
     return new SuccessResponse('psp fetched', response);
   }
 
-  // @Get(':id/members')
-  // async getPspMembers(@Param() param: IdDTO) {
-  //   const response = await this.pspService.getPspMembers(param.id);
-  //   return new SuccessResponse('psp members fetched', response);
-  // }
+  @Get(':id/members')
+  async getPspMembers(@Param() param: IdDTO) {
+    const response = await this.pspService.getPspMembers(param.id);
+    return new SuccessResponse('psp members fetched', response);
+  }
 
-  // @Put(':id/members/:memberId')
-  // async updatePspMembersStatus(
-  //   @Param() param: UpdatePspMembersStatusParamDTO,
-  //   @Body() body: UpdatePspMembersStatusBodyDTO,
-  // ) {
-  //   const response = await this.pspService.updatePspMembersStatus({
-  //     pspId: param.pspId,
-  //     memberId: param.memberId,
-  //     status: body.status,
-  //   });
-  //   return new SuccessResponse('psp members updated', response);
-  // }
+  @Put(':id/members/:memberId')
+  async updatePspMembersStatus(
+    @Param() param: UpdatePspMembersStatusParamDTO,
+    @Body() body: UpdatePspMembersStatusBodyDTO,
+  ) {
+    const response = await this.pspService.updatePspMembersStatus({
+      pspId: param.pspId,
+      memberId: param.memberId,
+      status: body.status,
+    });
+    return new SuccessResponse('psp members updated', response);
+  }
 }
