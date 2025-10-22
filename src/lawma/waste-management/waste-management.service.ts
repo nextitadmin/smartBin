@@ -2,7 +2,7 @@ import { SuccessResponse } from '@common/http';
 import { Status } from '@models/pickup';
 import { Injectable } from '@nestjs/common';
 import { PickupService } from '@src/waste-management/pickup/pickup.service';
-import { AdminUser,PspAdminUser } from '@common/types';
+import { AdminUser,PspAdminUser, PspTeamMember } from '@common/types';
 import { GetPickupDto ,AssignTeamMemberDto, UpdatePickupStatusDto} from '@src/waste-management/pickup/dto/pickup.dto';
 
 @Injectable()
@@ -61,4 +61,10 @@ export class LawmaWasteManagementService {
     const assignedPickups = await this.pickupService.getAssignedPickups(psp,filters);
     return new SuccessResponse('Assigned pickups retrieved successfully', assignedPickups);
   }
+
+  async getTeammemberAssignedPickup(pspTeamMember:PspTeamMember, filters?: GetPickupDto) {
+    const assignedPickups = await this.pickupService.getPickupAssignedToTeammember(pspTeamMember,filters);
+    return new SuccessResponse('Assigned pickups retrieved successfully', assignedPickups);
+  }
+
 }

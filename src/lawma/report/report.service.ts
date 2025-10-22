@@ -2,10 +2,11 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { AdminUser, PspAdminUser } from '@common/types';
 import {
-  CreateAdminReportDto,
-  GetReportsDto,
+  CreateAdminReportDto,GetReportsDto,
 } from '@src/report/dtos/report.dto';
 import { ReportService } from '@src/report/report.service';
+import { PspTeamMember } from '@common/types';
+
 
 @Injectable()
 export class AdminReportService {
@@ -30,12 +31,25 @@ export class AdminReportService {
     return this.reportService.generatePSPReport(admin, dto);
   }
 
+  async generatePspTeamMemberReport(teamMember: PspTeamMember, dto: CreateAdminReportDto) {
+    return this.reportService.generatePspTeamMemberReport(teamMember, dto);
+  }
+
+
   async getAdminReports(admin: AdminUser, filters: GetReportsDto) {
     return this.reportService.getAdminReports(admin, filters);
   }
 
-  getPspReports(admin: PspAdminUser, filters: GetReportsDto) {
+async  getPspReports(admin: PspAdminUser, filters: GetReportsDto) {
     return this.reportService.getPspReports(admin, filters);
+  }
+
+async getPspTeamMemberReports(teamMember: PspTeamMember, filters: GetReportsDto) {
+    return this.reportService.getPspTeamMemberReports(teamMember, filters);
+  }
+
+  async getPspTeamMemberReportById(id: string, teamMember: PspTeamMember) {
+    return this.reportService.getPspTeamMemberReportById(id, teamMember);
   }
 
   async getPspReportById(id: string, admin: PspAdminUser) {

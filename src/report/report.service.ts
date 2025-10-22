@@ -23,6 +23,7 @@ import { UserRole } from '@models/types';
 import { Agent } from '@models/users/agent.model';
 import { FacilityManager } from '@models/users/facility-manager.model';
 import { FacilityUsers } from '@models/facility-users.model';
+import { PspTeamMember } from '@common/types';
 
 @Injectable()
 export class ReportService {
@@ -510,6 +511,103 @@ export class ReportService {
 }
 
 
+ async generatePspTeamMemberReport(
+        teamMember: PspTeamMember,
+        dto: CreateAdminReportDto,
+    ): Promise<SuccessResponse> {
+        const { type } = dto;
+
+        let data: any;
+        if (type === ReportType.WasteDisposed) {
+            data = await this.pspTeamMemberWasteDisposedReport(teamMember, dto);
+        } else {
+            throw new NotFoundException('Unsupported report type for PSP Team Member.');
+        }
+
+        const report = await this.reportModel.create({
+            adminId: teamMember.id, // Assuming team members can generate reports and their ID is stored as adminId
+            reportName: dto.reportName,
+            type,
+            lga: dto.lga,
+            filters: dto.filters,
+            data,
+            period: {
+                from: moment(dto.startDate).format('DD/MM'),
+                to: moment(dto.endDate).format('DD/MM'),
+            },
+        });
+
+        return {
+            success: true,
+            message: 'Report generated successfully',
+            data: {
+                id: report._id,
+                reportName: report.reportName,
+                type: report.type,
+                generatedBy: report.adminId, // This will be the team member's ID
+                generatedAt: report.createdAt,
+                period: {
+                    from: moment(dto.startDate).format('DD/MM'),
+                    to: moment(dto.endDate).format('DD/MM'),
+                },
+                totalRecords: data.pickups.length, // Assuming data.pickups exists
+            },
+        };
+    }
+
+    async pspTeamMemberWasteDisposedReport(teamMember: PspTeamMember, dto: CreateAdminReportDto) {
+        const { startDate, endDate, filters } = dto;
+
+        const query: any = {
+            status: Status.Completed,
+            assignedTo: teamMember.name, // Filter by team member's name
+        };
+
+        if (filters?.branch) {
+            query.branch = filters.branch;
+        }
+
+        if (startDate && endDate) {
+            query.updatedAt = {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate),
+            };
+        }
+
+        const records = await this.pickupModel.aggregate([
+            { $match: query }
+        ])
+            .sort({ updatedAt: -1 });
+
+        let totalWeight = 0;
+
+        const binDisposalAnalytics = this.groupDisposalsByMonth(records, startDate, endDate);
+
+        const pickups = records.map((item) => {
+            const weight = item.weight || 0;
+            totalWeight += weight;
+            return {
+                wasteId: item._id,
+                name: item?.customerName || item?.representative,
+                pickupDate: item.pickupDate,
+                pickupTime: item.pickupTime,
+                address: item.address,
+                status: item.status,
+                weight,
+                assignedTo: item?.assignedTo,
+            };
+        });
+        return {
+            binDisposalAnalytics,
+            pickups,
+            summary: {
+                totalPickups: records.length,
+                totalWeight,
+            },
+        };
+    }
+
+
  async generatePSPReport(
         admin: PspAdminUser,
         dto: CreateAdminReportDto,
@@ -962,7 +1060,7 @@ async getPspReports(admin:PspAdminUser , filters?: GetReportsDto ) {
             this.reportModel.countDocuments(query),
 
         ])
-        const totalPages = Math.ceil(totalReports / limit);
+     
 
        const data= reports.map((report) => ({
             reportId: report._id,
@@ -985,6 +1083,80 @@ async getPspReports(admin:PspAdminUser , filters?: GetReportsDto ) {
             }
         }
 
+    }
+async getPspTeamMemberReports(teamMember: PspTeamMember, filters?: GetReportsDto){
+     const { page = 1, limit = 10 } = filters || {};
+        const skip = (page - 1) * limit;
+        const query: any = { adminId: teamMember.id };
+
+        if (filters.type) {
+            query.type = filters.type;
+        }
+
+        if (filters.startDate && filters.endDate) {
+            query.createdAt = {
+                $gte: new Date(filters.startDate),
+                $lte: new Date(filters.endDate),
+            };
+        }
+
+        if (filters.search) {
+            query.reportName = { $regex: filters.search, $options: 'i' };
+        }
+
+        const [reports, totalReports] = await  Promise.all ([this.reportModel
+            .find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+            this.reportModel.countDocuments(query),
+
+        ])
+     
+
+       const data= reports.map((report) => ({
+            reportId: report._id,
+            title: report.reportName,
+            reportType: report.type,
+            generationDate: report.createdAt,
+            period: {
+                from: moment(report.startDate).format('DD/MM'),
+                to: moment(report.endDate).format('DD/MM'),
+            },
+        }));
+        return {
+            reports: data,
+            paging:{
+            totalReports,
+            page:page,
+            pages:Math.ceil(totalReports / limit),
+            size: limit,
+            
+            }
+        }
+
+}
+    
+
+
+    async getPspTeamMemberReportById(reportId: string, teamMember: PspTeamMember) {
+        const report = await this.reportModel
+            .findOne({
+                _id: reportId,
+                adminId: teamMember.id,
+            })
+            .lean();
+
+        if (!report) {
+            throw new NotFoundException(
+                'Report not found.',
+            );
+        }
+
+        return {
+            report
+        };
     }
 
 

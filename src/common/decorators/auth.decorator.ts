@@ -14,6 +14,7 @@ import { AdminUser, AuthUser, PspAdminUser, PspTeamMember } from '../types';
 import { AuthGuard } from '@common/guards/actor.guard';
 import { AdminAuthGuard } from '@common/guards/admin.guard';
 import { PspAdminAuthGuard } from '@common/guards/pspAdmin.guard';
+import { PspTeamMemberAuthGuard } from '@common/guards/pspTeamMember.guard';
 
 export function AgentAuth() {
   return applyDecorators(UseGuards(AgentAuthGuard));
@@ -42,6 +43,11 @@ export function AdminAuth() {
 export function PspAdminAuth() {
   return applyDecorators(UseGuards(PspAdminAuthGuard));
 }
+
+export function PspTeamMemberAuth() {
+  return applyDecorators(UseGuards(PspTeamMemberAuthGuard));
+}
+
 
 
 export const AuthenticatedAgent = createParamDecorator(

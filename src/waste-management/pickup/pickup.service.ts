@@ -42,6 +42,8 @@ import { events } from '@common/constants';
 import { NotificationEvent } from '@src/notification/dto/notification.event';
 import { filter } from 'rxjs';
 import { string } from 'joi';
+import { PspMembersDocument, PSPMembers} from '@models/psp-members.model';
+import { PspTeamMember } from '@common/types';
 
 @Injectable()
 export class PickupService {
@@ -58,6 +60,8 @@ export class PickupService {
     private readonly corporateModel: Model<Corporate>,
     @InjectModel(FacilityManager.name)
     private readonly facilityManagerModel: Model<FacilityManager>,
+    @InjectModel(PSPMembers.name)
+    private readonly pspMembersModel: Model<PspMembersDocument>,
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
@@ -552,6 +556,16 @@ export class PickupService {
     dto: AssignTeamMemberDto,
   ) {
     const pickup = await this.pickupModel.findById(pickupId);
+    const teamMember = await this.pspMembersModel.findOne({
+      _id: dto.teamMemberId,
+      psp_id: new Types.ObjectId(psp.id),
+    });
+
+    if (!teamMember) {
+      throw new NotFoundException(
+        `Team member with ID ${dto.teamMemberId} not found in your PSP`,
+      );
+    }
 
     if (!pickup) {
       throw new NotFoundException(`Pickup with ID ${pickupId} not found`);
@@ -559,7 +573,7 @@ export class PickupService {
 
     // Update pickup status and assign team member
     pickup.status = Status.Assigned;
-    pickup.assignedTo = dto.teamMemberId;
+    pickup.assignedTo = teamMember.name;
     pickup.agentNote = dto.note;
     pickup.pspId = new Types.ObjectId(psp.id);
 
@@ -569,6 +583,75 @@ export class PickupService {
   }
 
 
+  async getPickupAssignedToTeammember(
+    pspTeamMember: PspTeamMember,
+    filters?: GetPickupDto,
+  ) {
+    const { page = 1, limit = 10, search } = filters || {};
+    const skip = (page - 1) * limit;
+    const query: any = {
+      assignedTo: pspTeamMember.name,
+      status: { $ne: Status.Assigned },
+    };
+
+    if (search) {
+      query.$or = [
+        { address: { $regex: search, $options: 'i' } },
+        { customerName: { $regex: search, $options: 'i' } },
+        { representative: { $regex: search, $options: 'i' } },
+        { phoneNumber: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const [pickups, totalCount] = await Promise.all([
+      this.pickupModel
+        .find(query)
+        .select(
+          'id address accountId customerName updatedAt status accountType assignedTo',
+        )
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+        .lean(),
+      this.pickupModel.countDocuments(query),
+    ]);
+
+    const { users } = await this.inferUsers(pickups);
+
+    const formattedPickups = pickups.map((pickup) => {
+      const user = users[pickup.accountType].find(
+        (user) => user._id.toString() === pickup.accountId.toString(),
+      );
+      return {
+        wasteId: pickup._id,
+        address: pickup.address,
+        accountId: pickup.accountId,
+        accountType: pickup.accountType,
+        customerName: user
+          ? `${user.firstName} ${user.lastName}`
+          : pickup.customerName,
+        fillUpLevel: 'N/A',
+        assignedTo: pickup.assignedTo || 'N/A',
+        dateAssigned: pickup.updatedAt,
+      };
+    });
+
+    const paging = {
+      totalRecords: totalCount,
+      currentPage: page,
+      totalPages: Math.ceil(totalCount / limit)
+      }
+    
+    return {
+      teamMemberInfo: {
+        username: pspTeamMember.name,
+        memberId: pspTeamMember.id,
+      },
+      pickups: formattedPickups,
+      paging,
+    }
+  }
+  
   //update pickups status
   async updatePickupStatus(id: string, { status }: UpdatePickupStatusDto) {
     const pickup = await this.pickupModel
@@ -580,6 +663,7 @@ export class PickupService {
 
     return pickup;
   }
+  
   
 
 

@@ -17,7 +17,7 @@ export class PspWasteManagementController {
     private readonly wasteManagementService: LawmaWasteManagementService,
   ) {}
 
-  @Get('pickups')
+  @Get('pickups/pending')
   async getPickupRequests(
     @AuthenticatedPspAdmin() psp: PspAdminUser,
     @Query() filters?: GetPickupDto,

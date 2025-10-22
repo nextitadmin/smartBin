@@ -9,17 +9,26 @@ import {
   Administrator,
   AdministratorSchema,
 } from '@models/administrator.model';
-import { AuthModule } from '../auth/auth.module';
 import { PspAuthController } from './auth/auth.controller';
 import { PspAuthService } from './auth/auth.service';
+import { PspTeamAuthService } from './psps-team/auth/auth.service';
 import { PspTeamManagementController } from './team-management/teamManagement.controller';
 import { PspTeamManagement } from './team-management/teamManagement.service';
 import { PspTeamAuthController } from './psps-team/auth/auth.controller';
-import { PspTeamAuthService } from './psps-team/auth/auth.service';
+import { PspWasteManagementController } from '../waste-management/psp.waste-management.controller';
+import { LawmaWasteManagementService } from '../waste-management/waste-management.service';
+import { PickupModule } from '@src/waste-management/pickup/pickup.module';
+import { PspTeamWasteManagementController } from '../waste-management/psp-team.waste-management.controller';
+import { PSPReportController } from '../report/psp.controller';
+import { AdminReportService } from '../report/report.service';
+import { ReportModule } from '@src/report/report.module';
+import { PSPTeamMemberReportController } from '../report/psp-team.controller';
+import { AuthService } from '../auth/auth.service';
+
 
 @Module({
-  controllers: [PspController, PspAuthController, PspTeamManagementController, PspTeamAuthController],
-  providers: [PspService, PspAuthService, PspTeamManagement, PspTeamAuthService],
+  controllers: [PspController, PspAuthController,PspTeamManagementController,PspTeamAuthController, PspWasteManagementController, PspTeamWasteManagementController, PSPReportController, PSPTeamMemberReportController],
+  providers: [PspService, PspAuthService,PspTeamAuthService,PspTeamManagement, LawmaWasteManagementService, AdminReportService,AuthService],
   imports: [
     MongooseModule.forFeature([
       { name: PSP.name, schema: PSPSchema },
@@ -27,8 +36,9 @@ import { PspTeamAuthService } from './psps-team/auth/auth.service';
       { name: Administrator.name, schema: AdministratorSchema },
       { name: Lga.name, schema: LgaSchema },
     ]),
-    AuthModule,
+    PickupModule,
+    ReportModule,
   ],
-  exports: [PspAuthService],
+  exports: [PspAuthService,PspTeamAuthService],
 })
 export class PspModule {}
