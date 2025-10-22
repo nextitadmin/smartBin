@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, Put, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { PspService } from './psp.service';
-import { CreatePspDTO, CreatePspMembersDTO } from './dto/psp.dto';
+import { ChangeStatusPspDto, CreatePspDTO, CreatePspMembersDTO } from './dto/psp.dto';
 import { SuccessResponse } from '@common/http';
 import {
   IdDTO,
@@ -60,6 +60,13 @@ export class PspController {
   async getPsp(@Param() param: IdDTO) {
     const response = await this.pspService.getPsp(param.id);
     return new SuccessResponse('psp fetched', response);
+  }
+
+
+  @Get(':id/change-status')
+  async deactivatePsp(@Param() param: IdDTO, @Body() body: ChangeStatusPspDto) {
+    const response = await this.pspService.chagePspStatus(param.id, body.status);
+    return new SuccessResponse('psp deactivated', response);
   }
 
   @Get(':id/members')
