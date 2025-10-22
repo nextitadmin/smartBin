@@ -45,6 +45,10 @@ export class PspAuthService {
             throw new NotFoundException('Psp not found');
         }
 
+        if(psp.status !== "active"){
+            throw new UnauthorizedException('Your account is currently deactivated. Please contact support your administrator');
+        }
+
         const isPasswordMatch = comparePassword(password, psp.password);
         if (!isPasswordMatch) {
             throw new UnauthorizedException('Invalid email or password');

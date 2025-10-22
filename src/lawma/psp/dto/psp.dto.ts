@@ -126,3 +126,12 @@ export class PspResetPasswordDto {
   @IsString()
   confirmPassword: string;
 }
+export class ChangeStatusPspDto {
+  @ApiProperty({
+    enum: ['active', 'inactive'],
+    example: 'active'
+  })
+  @IsString()
+  @IsIn(['active', 'inactive'])
+  status: string;
+}

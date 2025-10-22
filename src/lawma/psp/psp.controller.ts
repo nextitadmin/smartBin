@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post, Put, Req } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { PspService } from './psp.service';
-import { CreatePspDTO, CreatePspMembersDTO } from './dto/psp.dto';
+import { ChangeStatusPspDto, CreatePspDTO, CreatePspMembersDTO } from './dto/psp.dto';
 import { SuccessResponse } from '@common/http';
 import {
   IdDTO,
@@ -32,17 +32,17 @@ export class PspController {
     return new SuccessResponse('psp created', response);
   }
 
-  // @Post('/:id/members')
-  // async createPspMembers(
-  //   @Param() param: IdDTO,
-  //   @Body() pspMembers: CreatePspMembersDTO,
-  // ) {
-  //   const response = await this.pspService.createPspMembers({
-  //     psp_id: param.id,
-  //     ...pspMembers,
-  //   });
-  //   return new SuccessResponse('psp members created', response);
-  // }
+  @Post('/:id/members')
+  async createPspMembers(
+    @Param() param: IdDTO,
+    @Body() pspMembers: CreatePspMembersDTO,
+  ) {
+    const response = await this.pspService.createPspMembers({
+      psp_id: param.id,
+      ...pspMembers,
+    });
+    return new SuccessResponse('psp members created', response);
+  }
 
   @Get('/lgas')
   async getPspLgas() {
@@ -62,22 +62,29 @@ export class PspController {
     return new SuccessResponse('psp fetched', response);
   }
 
-  // @Get(':id/members')
-  // async getPspMembers(@Param() param: IdDTO) {
-  //   const response = await this.pspService.getPspMembers(param.id);
-  //   return new SuccessResponse('psp members fetched', response);
-  // }
 
-  // @Put(':id/members/:memberId')
-  // async updatePspMembersStatus(
-  //   @Param() param: UpdatePspMembersStatusParamDTO,
-  //   @Body() body: UpdatePspMembersStatusBodyDTO,
-  // ) {
-  //   const response = await this.pspService.updatePspMembersStatus({
-  //     pspId: param.pspId,
-  //     memberId: param.memberId,
-  //     status: body.status,
-  //   });
-  //   return new SuccessResponse('psp members updated', response);
-  // }
+  @Get(':id/change-status')
+  async deactivatePsp(@Param() param: IdDTO, @Body() body: ChangeStatusPspDto) {
+    const response = await this.pspService.chagePspStatus(param.id, body.status);
+    return new SuccessResponse('psp deactivated', response);
+  }
+
+  @Get(':id/members')
+  async getPspMembers(@Param() param: IdDTO) {
+    const response = await this.pspService.getPspMembers(param.id);
+    return new SuccessResponse('psp members fetched', response);
+  }
+
+  @Put(':id/members/:memberId')
+  async updatePspMembersStatus(
+    @Param() param: UpdatePspMembersStatusParamDTO,
+    @Body() body: UpdatePspMembersStatusBodyDTO,
+  ) {
+    const response = await this.pspService.updatePspMembersStatus({
+      pspId: param.pspId,
+      memberId: param.memberId,
+      status: body.status,
+    });
+    return new SuccessResponse('psp members updated', response);
+  }
 }
