@@ -40,7 +40,7 @@ export class PspTeamAuthService {
     async login(body: PspLoginDto) {
         const { email, password } = body;
 
-        const psp = await this.pspMemberModel.findOne({ administrator_email: email });
+        const psp = await this.pspMemberModel.findOne({ email });
 
         if (!psp) {
             throw new NotFoundException('Psp not found');
