@@ -19,9 +19,13 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { CacheKeys } from '@src/shared/constants';
 import { generateRandomChars } from '@common/utils';
+import { ConfigService } from '@nestjs/config';
+import { ConfigAttributes } from '@src/config';
 
 @Injectable()
 export class PspService {
+  protected clientUrl:ConfigAttributes['frontendUrl'];
+
   constructor(
     @InjectModel(PSP.name)
     private readonly psp: Model<PspDocument>,
@@ -30,12 +34,13 @@ export class PspService {
     @InjectModel(Lga.name) private lga: Model<Lga>,
     private readonly ee: EventEmitter2,
     @Inject(CACHE_MANAGER) private cacheService: Cache,
-  ) {}
+    private readonly configService: ConfigService<ConfigAttributes>,
+  ) {
+    this.clientUrl = this.configService.get<string>('frontendUrl')
+  }
 
   async createPsp(psp: CreatePspDTO, admin: AdminUser) {
     const password = generateRandomChars(6, 'alphanum');
-
-    console.log(password)
 
     const pspData = await this.psp.create({ ...psp, password: password });
 
@@ -46,7 +51,7 @@ export class PspService {
       String(pspData._id),
     );
 
-    const resetLink = `http://localhost:3001/resetPassword/${resetCode}`;
+    const resetLink = `${this.clientUrl}/psp-admin/resetpassword/${resetCode}`
 
     this.ee.emit(
       AuditLogEvents.UserActivity,

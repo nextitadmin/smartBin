@@ -50,3 +50,14 @@ export type PspAdminUser = {
   userAgent?: string;
   lga_id?: Types.ObjectId;
 }
+
+export type PspTeamMember = {
+  id: string;
+  email: string;
+  name: string;
+  token?:string;
+  ipAddress?:string;
+  userAgent?: string;
+}
+
+
