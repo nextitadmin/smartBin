@@ -7,7 +7,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { AdminUser, PspAdminUser } from '../types';
+import { PspAdminUser } from '../types';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from './public.guard';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
@@ -18,7 +18,7 @@ export class PspAdminAuthGuard implements CanActivate {
   constructor(
     @Inject(CACHE_MANAGER) private cacheService: Cache,
     private readonly reflector: Reflector,
-    private readonly authService: PspAuthService
+    private readonly pspAuthService: PspAuthService,
   ) {}
 
   private logger = new Logger(PspAdminAuthGuard.name);
@@ -43,17 +43,18 @@ export class PspAdminAuthGuard implements CanActivate {
       throw new UnauthorizedException('Not Authorized');
     }
 
-    const administrator = await this.authService.getAdminDetailsByToken(token);
-    if (!true) {
+    const administrator =
+      await this.pspAuthService.getAdminDetailsByToken(token);
+    if (!administrator) {
       this.logger.warn('failed to auth: no user object in request');
       throw new UnauthorizedException('not authenticated!');
     }
 
     req.pspAdmin = {
       id: String(administrator._id),
-      email:administrator.administrator_email,
+      email: administrator.administrator_email,
       name: administrator.administrator_name,
-      token: token
+      token: token,
     };
 
     return true;

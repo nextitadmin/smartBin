@@ -25,7 +25,7 @@ import { PspAdminUser } from '@common/types';
 
 @ApiTags('PSPs Team Management')
 @Controller({
-  path: 'psps/team',
+  path: 'lawma/psps/team',
   version: '1',
 })
 @PspAdminAuth()

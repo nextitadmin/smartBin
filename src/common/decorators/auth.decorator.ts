@@ -45,9 +45,8 @@ export function PspAdminAuth() {
 }
 
 export function PspTeamMemberAuth() {
-  return applyDecorators(UseGuards(PspTeamMemberAuthGuard));
+  return applyDecorators(UseGuards(PspTeamMemberAuthGuard))
 }
-
 
 
 export const AuthenticatedAgent = createParamDecorator(
