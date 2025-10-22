@@ -27,7 +27,7 @@ export class PspTeamMemberAuthGuard implements CanActivate {
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
     const req: Request & {
       user: Record<string, any>;
-      pspAdmin?: PspAdminUser;
+      pspTeamMember?: PspTeamMember;
     } = ctx.switchToHttp().getRequest();
 
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -50,7 +50,7 @@ export class PspTeamMemberAuthGuard implements CanActivate {
       throw new UnauthorizedException('not authenticated!');
     }
 
-    req.pspAdmin = {
+    req.pspTeamMember = {
       id: String(teamMember._id),
       email:teamMember.email,
       name: teamMember.name,
