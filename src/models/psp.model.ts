@@ -4,6 +4,11 @@ import { SchemaTypes, Types } from 'mongoose';
 
 export type PspDocument = PSP & Document;
 
+export enum PSPStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+}
+
 @Schema({ collection: 'psps', timestamps: true, versionKey: false })
 export class PSP {
   @Prop({
@@ -54,6 +59,11 @@ export class PSP {
     required: true,
   })
   company_address: string;
+
+  @Prop({
+    enum: Object.values(PSPStatus), default: PSPStatus.ACTIVE
+  })
+  status: string;
 
   @Prop({
     type: SchemaTypes.Date,

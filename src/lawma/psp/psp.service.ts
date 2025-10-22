@@ -104,6 +104,16 @@ export class PspService {
     return this.psp.findById(pspId);
   }
 
+  async chagePspStatus(pspId:string, status:string){
+    await this.psp.updateOne({ _id: pspId}, {
+      $set:{
+        status: status
+      }
+    })
+    
+    return null;
+  }
+
   async getPspMembers(pspId: string) {
     return this.pspMembers.find({ psp_id: pspId, deleted_at: null });
   }
