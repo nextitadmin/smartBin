@@ -29,6 +29,9 @@ export class PspAdminAuthGuard implements CanActivate {
       pspAdmin?: PspAdminUser;
     } = ctx.switchToHttp().getRequest();
 
+    console.log("=======Got here ======")
+    console.log(req.pspAdmin);
+
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       ctx.getHandler(),
       ctx.getClass(),
