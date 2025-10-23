@@ -63,9 +63,9 @@ export class PspController {
   }
 
 
-  @Get(':id/change-status')
+  @Put(':id/change-status')
   async deactivatePsp(@Param() param: IdDTO, @Body() body: ChangeStatusPspDto) {
-    const response = await this.pspService.chagePspStatus(param.id, body.status);
+    const response = await this.pspService.changePspStatus(param.id, body.status);
     return new SuccessResponse('psp deactivated', response);
   }
 
