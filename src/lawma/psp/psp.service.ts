@@ -104,7 +104,7 @@ export class PspService {
     return this.psp.findById(pspId);
   }
 
-  async chagePspStatus(pspId:string, status:string){
+  async changePspStatus(pspId:string, status:string){
     await this.psp.updateOne({ _id: pspId}, {
       $set:{
         status: status
