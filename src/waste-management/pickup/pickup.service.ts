@@ -591,7 +591,7 @@ export class PickupService {
     const skip = (page - 1) * limit;
     const query: any = {
       assignedTo: pspTeamMember.name,
-      status: { $ne: Status.Assigned },
+      status: Status.Assigned,
     };
 
     if (search) {

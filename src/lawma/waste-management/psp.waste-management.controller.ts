@@ -1,10 +1,25 @@
-import { Controller, Get, Query,Param,Body,Post,Patch } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  Param,
+  Body,
+  Post,
+  Patch,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { LawmaWasteManagementService } from './waste-management.service';
-import { PspAdminAuth, AuthenticatedPspAdmin} from '@common/decorators/auth.decorator';
+import {
+  PspAdminAuth,
+  AuthenticatedPspAdmin,
+} from '@common/decorators/auth.decorator';
 import { PspAdminUser } from '@common/types';
 import { Status } from '@models/pickup';
-import { GetPickupDto ,AssignTeamMemberDto, UpdatePickupStatusDto} from '@src/waste-management/pickup/dto/pickup.dto';
+import {
+  GetPickupDto,
+  AssignTeamMemberDto,
+  UpdatePickupStatusDto,
+} from '@src/waste-management/pickup/dto/pickup.dto';
 
 @ApiTags('PSP/Waste Management')
 @Controller({
@@ -32,34 +47,26 @@ export class PspWasteManagementController {
 
   @Get('completed')
   async getCompletedPickups(
-       @AuthenticatedPspAdmin() psp: PspAdminUser,
+    @AuthenticatedPspAdmin() psp: PspAdminUser,
     @Query() filters?: GetPickupDto,
-  ){
-    return this.wasteManagementService.getCompletedPickups(psp,filters)
+  ) {
+    return this.wasteManagementService.getCompletedPickups(psp, filters);
   }
 
-    @Patch('pickups/:id/status')
-    async updateStatus(
-      @Param('id') id: string,
-      @Query() dto: UpdatePickupStatusDto,
-    ) {
-      return this.wasteManagementService.updatePickupStatus(id, dto);
-    }
+  @Patch('pickups/:id/assign-team-member')
+  async assignTeamMember(
+    @AuthenticatedPspAdmin() psp: PspAdminUser,
+    @Param('id') id: string,
+    @Body() dto: AssignTeamMemberDto,
+  ) {
+    return this.wasteManagementService.assignTeamMember(psp, id, dto);
+  }
 
-    @Patch('pickups/:id/assign-team-member')
-    async assignTeamMember(
-        @AuthenticatedPspAdmin() psp: PspAdminUser,
-      @Param('id') id: string,
-      @Body() dto:AssignTeamMemberDto,
-    ) {
-      return this.wasteManagementService.assignTeamMember(psp,id, dto);
-    }
-
-    @Get('assigned-pickups')
-    async getAssignedPickups(
-      @AuthenticatedPspAdmin() psp: PspAdminUser,
-      @Query() filters?: GetPickupDto,
-    ) {
-      return this.wasteManagementService.getAssignedPickups(psp, filters);
-    }
+  @Get('assigned-pickups')
+  async getAssignedPickups(
+    @AuthenticatedPspAdmin() psp: PspAdminUser,
+    @Query() filters?: GetPickupDto,
+  ) {
+    return this.wasteManagementService.getAssignedPickups(psp, filters);
+  }
 }

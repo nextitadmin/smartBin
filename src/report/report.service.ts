@@ -84,6 +84,8 @@ export class ReportService {
             customerType: dto.customerType,
             customerName: dto.customerName,
             data,
+            startDate: dto.startDate,
+            endDate: dto.endDate,
             period: {
                 from: moment(dto.startDate).format('DD/MM'),
                 to: moment(dto.endDate).format('DD/MM'),
@@ -373,27 +375,6 @@ export class ReportService {
             .skip(skip)
             .limit(limit)
             .lean();
-
-        // return reports.map((report, index) => ({
-        //     sn: index + 1,
-        //     title: report.reportName,
-        //     reportType: report.type,
-        //     generationDate: report.createdAt,
-        //     period: {
-        //         from: moment(filters.startDate).format('DD/MM'),
-        //         to: moment(filters.endDate).format('DD/MM'),
-        //     },
-
-        //     ...report,
-        //     paging:{
-        //         totalReports:reports.length,
-        //         page:page,
-        //         pages:Math.ceil(reports.length / limit),
-        //         size: limit,
-                
-        //         }
-        // }));
-
         return {
             reports,
             paging:{
@@ -438,6 +419,8 @@ export class ReportService {
             lga: dto.lga,
             filters: dto.filters,
             data,
+            startDate: dto.startDate,
+            endDate: dto.endDate,
             period: {
                 from: moment(dto.startDate).format('DD/MM'),
                 to: moment(dto.endDate).format('DD/MM'),
@@ -475,7 +458,9 @@ export class ReportService {
             data = await this.adminSmartbinReport(dto);
         }else if (type === ReportType.SmartbinDelivered) {
             data = await this.adminDeliveredSmartbinReport(dto);
-       
+        }else {
+            throw new NotFoundException('Unsupported report type for PSP.');
+        }
 
         const report = await this.reportModel.create({
             adminId:admin.id,
@@ -484,6 +469,8 @@ export class ReportService {
             lga: dto.lga,
             filters: dto.filters,
             data,
+            startDate: dto.startDate,
+            endDate: dto.endDate,
             period: {
                 from: moment(dto.startDate).format('DD/MM'),
                 to: moment(dto.endDate).format('DD/MM'),
@@ -506,7 +493,7 @@ export class ReportService {
                 totalRecords: data.length,
             },
         };
-    }
+    
 
 }
 
@@ -525,12 +512,14 @@ export class ReportService {
         }
 
         const report = await this.reportModel.create({
-            adminId: teamMember.id, // Assuming team members can generate reports and their ID is stored as adminId
+            adminId: teamMember.id, 
             reportName: dto.reportName,
             type,
             lga: dto.lga,
             filters: dto.filters,
             data,
+            startDate: dto.startDate,
+            endDate: dto.endDate,
             period: {
                 from: moment(dto.startDate).format('DD/MM'),
                 to: moment(dto.endDate).format('DD/MM'),
@@ -544,13 +533,13 @@ export class ReportService {
                 id: report._id,
                 reportName: report.reportName,
                 type: report.type,
-                generatedBy: report.adminId, // This will be the team member's ID
+                generatedBy: report.adminId, 
                 generatedAt: report.createdAt,
                 period: {
                     from: moment(dto.startDate).format('DD/MM'),
                     to: moment(dto.endDate).format('DD/MM'),
                 },
-                totalRecords: data.pickups.length, // Assuming data.pickups exists
+                totalRecords: data.pickups.length,
             },
         };
     }
@@ -560,7 +549,7 @@ export class ReportService {
 
         const query: any = {
             status: Status.Completed,
-            assignedTo: teamMember.name, // Filter by team member's name
+            assignedTo: teamMember.name, 
         };
 
         if (filters?.branch) {
@@ -615,10 +604,10 @@ export class ReportService {
         const { type } = dto;
 
         let data: any;
-       if (type === ReportType.WastePickup) {
-            data = await this.adminWasteDisposalReport(dto);
-        } else if (type === ReportType.WasteDisposed) {
+       if (type === ReportType.WasteDisposed) {
             data = await this.pspWasteDisposedReport(admin,dto);
+        }else {
+            throw new NotFoundException('Unsupported report type for PSP Team Member.');
         }
        
 
@@ -629,6 +618,8 @@ export class ReportService {
             lga: dto.lga,
             filters: dto.filters,
             data,
+            startDate: dto.startDate,
+            endDate: dto.endDate,
             period: {
                 from: moment(dto.startDate).format('DD/MM'),
                 to: moment(dto.endDate).format('DD/MM'),
