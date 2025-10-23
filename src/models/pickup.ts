@@ -8,6 +8,8 @@ export type PickupDocument = Pickup & Document;
 export enum Status {
   Pending = 'pending',
   Cancelled = 'cancelled',
+  SchedulePickup = 'schedule-pickup',
+Assigned = 'assigned',
   Delivered = 'delivered',
   Completed = 'completed',
 }
@@ -68,6 +70,9 @@ export class Pickup {
 
   @Prop()
   representative?: string;
+
+  @Prop({ type: SchemaTypes.ObjectId, ref: 'PSP' })
+pspId?: Types.ObjectId;
 
   @Prop({ enum: Object.values(Status), default: Status.Pending })
   status: Status;
@@ -133,6 +138,7 @@ export class Pickup {
 
   @Prop()
   assignedTo?: string;
+
 
   @Prop()
   paymentDue?: Date;

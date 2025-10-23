@@ -7,7 +7,7 @@ import { Model, Types } from 'mongoose';
 import { Report, ReportType } from '@models/report.model';
 import { CreateReportDto, CustomerType, GetReportsDto, CreateAdminReportDto } from './dtos/report.dto';
 import { SuccessResponse } from '@common/http';
-import { AuthUser } from '@common/types';
+import { AuthUser, PspAdminUser } from '@common/types';
 import { AdminUser } from '@common/types';
 import {
     Transaction,
@@ -23,6 +23,7 @@ import { UserRole } from '@models/types';
 import { Agent } from '@models/users/agent.model';
 import { FacilityManager } from '@models/users/facility-manager.model';
 import { FacilityUsers } from '@models/facility-users.model';
+import { PspTeamMember } from '@common/types';
 
 @Injectable()
 export class ReportService {
@@ -83,6 +84,8 @@ export class ReportService {
             customerType: dto.customerType,
             customerName: dto.customerName,
             data,
+            startDate: dto.startDate,
+            endDate: dto.endDate,
             period: {
                 from: moment(dto.startDate).format('DD/MM'),
                 to: moment(dto.endDate).format('DD/MM'),
@@ -372,27 +375,6 @@ export class ReportService {
             .skip(skip)
             .limit(limit)
             .lean();
-
-        // return reports.map((report, index) => ({
-        //     sn: index + 1,
-        //     title: report.reportName,
-        //     reportType: report.type,
-        //     generationDate: report.createdAt,
-        //     period: {
-        //         from: moment(filters.startDate).format('DD/MM'),
-        //         to: moment(filters.endDate).format('DD/MM'),
-        //     },
-
-        //     ...report,
-        //     paging:{
-        //         totalReports:reports.length,
-        //         page:page,
-        //         pages:Math.ceil(reports.length / limit),
-        //         size: limit,
-                
-        //         }
-        // }));
-
         return {
             reports,
             paging:{
@@ -437,6 +419,8 @@ export class ReportService {
             lga: dto.lga,
             filters: dto.filters,
             data,
+            startDate: dto.startDate,
+            endDate: dto.endDate,
             period: {
                 from: moment(dto.startDate).format('DD/MM'),
                 to: moment(dto.endDate).format('DD/MM'),
@@ -474,7 +458,9 @@ export class ReportService {
             data = await this.adminSmartbinReport(dto);
         }else if (type === ReportType.SmartbinDelivered) {
             data = await this.adminDeliveredSmartbinReport(dto);
-       
+        }else {
+            throw new NotFoundException('Unsupported report type for PSP.');
+        }
 
         const report = await this.reportModel.create({
             adminId:admin.id,
@@ -483,6 +469,8 @@ export class ReportService {
             lga: dto.lga,
             filters: dto.filters,
             data,
+            startDate: dto.startDate,
+            endDate: dto.endDate,
             period: {
                 from: moment(dto.startDate).format('DD/MM'),
                 to: moment(dto.endDate).format('DD/MM'),
@@ -505,22 +493,122 @@ export class ReportService {
                 totalRecords: data.length,
             },
         };
-    }
+    
 
 }
 
 
- async generatePSPReport(
-        admin: AdminUser,
+ async generatePspTeamMemberReport(
+        teamMember: PspTeamMember,
         dto: CreateAdminReportDto,
     ): Promise<SuccessResponse> {
         const { type } = dto;
 
         let data: any;
-       if (type === ReportType.WastePickup) {
-            data = await this.adminWasteDisposalReport(dto);
-        }else if (type === ReportType.WasteDisposed) {
-            data = await this.adminWasteDisposedReport(dto);
+        if (type === ReportType.WasteDisposed) {
+            data = await this.pspTeamMemberWasteDisposedReport(teamMember, dto);
+        } else {
+            throw new NotFoundException('Unsupported report type for PSP Team Member.');
+        }
+
+        const report = await this.reportModel.create({
+            adminId: teamMember.id, 
+            reportName: dto.reportName,
+            type,
+            lga: dto.lga,
+            filters: dto.filters,
+            data,
+            startDate: dto.startDate,
+            endDate: dto.endDate,
+            period: {
+                from: moment(dto.startDate).format('DD/MM'),
+                to: moment(dto.endDate).format('DD/MM'),
+            },
+        });
+
+        return {
+            success: true,
+            message: 'Report generated successfully',
+            data: {
+                id: report._id,
+                reportName: report.reportName,
+                type: report.type,
+                generatedBy: report.adminId, 
+                generatedAt: report.createdAt,
+                period: {
+                    from: moment(dto.startDate).format('DD/MM'),
+                    to: moment(dto.endDate).format('DD/MM'),
+                },
+                totalRecords: data.pickups.length,
+            },
+        };
+    }
+
+    async pspTeamMemberWasteDisposedReport(teamMember: PspTeamMember, dto: CreateAdminReportDto) {
+        const { startDate, endDate, filters } = dto;
+
+        const query: any = {
+            status: Status.Completed,
+            assignedTo: teamMember.name, 
+        };
+
+        if (filters?.branch) {
+            query.branch = filters.branch;
+        }
+
+        if (startDate && endDate) {
+            query.updatedAt = {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate),
+            };
+        }
+
+        const records = await this.pickupModel.aggregate([
+            { $match: query }
+        ])
+            .sort({ updatedAt: -1 });
+
+        let totalWeight = 0;
+
+        const binDisposalAnalytics = this.groupDisposalsByMonth(records, startDate, endDate);
+
+        const pickups = records.map((item) => {
+            const weight = item.weight || 0;
+            totalWeight += weight;
+            return {
+                wasteId: item._id,
+                name: item?.customerName || item?.representative,
+                pickupDate: item.pickupDate,
+                pickupTime: item.pickupTime,
+                address: item.address,
+                status: item.status,
+                weight,
+                assignedTo: item?.assignedTo,
+            };
+        });
+        return {
+            binDisposalAnalytics,
+            pickups,
+            summary: {
+                totalPickups: records.length,
+                totalWeight,
+            },
+        };
+    }
+
+
+ async generatePSPReport(
+        admin: PspAdminUser,
+        dto: CreateAdminReportDto,
+    ): Promise<SuccessResponse> {
+        const { type } = dto;
+
+        let data: any;
+       if (type === ReportType.WasteDisposed) {
+            data = await this.pspWasteDisposedReport(admin,dto);
+        }else {
+            throw new NotFoundException('Unsupported report type for PSP Team Member.');
+        }
        
 
         const report = await this.reportModel.create({
@@ -530,6 +618,8 @@ export class ReportService {
             lga: dto.lga,
             filters: dto.filters,
             data,
+            startDate: dto.startDate,
+            endDate: dto.endDate,
             period: {
                 from: moment(dto.startDate).format('DD/MM'),
                 to: moment(dto.endDate).format('DD/MM'),
@@ -554,7 +644,7 @@ export class ReportService {
         };
     }
 
-}
+
 
 
 
@@ -613,22 +703,28 @@ export class ReportService {
     }
 
 
-      private groupDisposalsByMonth(disposals: any[]) {
-    const months = Array.from({ length: 12 }, (_, i) => ({
-      month: new Date(0, i).toLocaleString('default', { month: 'short' }),
-      count: 0,
-      totalWeight: 0,
-    }));
+    private groupDisposalsByMonth(disposals: any[], startDate: string | Date, endDate: string | Date) {
+        const start = moment(startDate);
+        const end = moment(endDate);
+        const monthMap = new Map<string, { month: string; count: number; totalWeight: number }>();
+
+        let current = start.clone().startOf('month');
+        while (current.isBefore(end) || current.isSame(end, 'month')) {
+            const monthKey = current.format('YYYY-MMM');
+            monthMap.set(monthKey, { month: current.format('MMM'), count: 0, totalWeight: 0 });
+            current.add(1, 'month');
+        }
 
     for (const disposal of disposals) {
-      const date = new Date(disposal.pickupDate);
-      const monthIndex = date.getMonth();
-
-      months[monthIndex].count += 1;
-      months[monthIndex].totalWeight += disposal.weight || 0;
+        const date = moment(disposal.updatedAt);
+        const monthKey = date.format('YYYY-MMM');
+        if (monthMap.has(monthKey)) {
+            const monthData = monthMap.get(monthKey);
+            monthData.count += 1;
+            monthData.totalWeight += disposal.weight || 0;
+        }
     }
-
-    return months;
+    return Array.from(monthMap.values());
   }
 
     async adminWasteDisposalReport(dto: CreateAdminReportDto,year?: number) {
@@ -654,10 +750,7 @@ export class ReportService {
             .sort({ createdAt: -1 })
         let totalWeight = 0;
 
-        const filteredDisposals = records.filter(
-      (d) => d.pickupDate
-    );
-    const binDisposalAnalytics = this.groupDisposalsByMonth(filteredDisposals);
+    const binDisposalAnalytics = this.groupDisposalsByMonth(records, startDate, endDate);
 
         const pickups = records.map((item) => {
             
@@ -714,9 +807,7 @@ export class ReportService {
             .lean();
         let totalWeight = 0;
 
-            const filteredDisposals = records.filter(
-      (d) => new Date(d.pickupDate).getMonth() === month,
-    );
+    const binDisposalAnalytics = this.groupDisposalsByMonth(records, startDate, endDate);
 
         const pickups = records.map((item) => {
 
@@ -738,7 +829,61 @@ export class ReportService {
 
             };
         });
-    const binDisposalAnalytics = this.groupDisposalsByMonth(filteredDisposals);
+        return {
+            binDisposalAnalytics,
+            pickups,
+            summary: {
+                totalPickups: records.length,
+                totalWeight,
+            },
+        };
+    }
+
+    async pspWasteDisposedReport(psp: PspAdminUser, dto: CreateAdminReportDto, month?: number) {
+        const { startDate, endDate, filters } = dto;
+
+        const query: any = { status: Status.Completed, pspId: new Types.ObjectId(psp.id) };
+
+        if (filters?.branch) {
+            query.branch = filters.branch;
+        }
+
+        if (startDate && endDate) {
+            query.updatedAt = {
+                $gte: new Date(startDate),
+                $lte: new Date(endDate),
+            };
+        }
+
+        const records = await this.pickupModel.aggregate([
+            { $match: query }
+        ])
+            .sort({ updatedAt: -1 });
+
+        let totalWeight = 0;
+
+        const binDisposalAnalytics = this.groupDisposalsByMonth(records, startDate, endDate);
+
+        const pickups = records.map((item) => {
+
+            const weight = item.weight || 0;
+
+            totalWeight += weight;
+
+            return {
+                wasteId: item._id,
+                name: item?.customerName || item?.representative,
+                pickupDate: item.pickupDate,
+                pickupTime: item.pickupTime,
+                address: item.address,
+                status: item.status,
+                weight,
+
+
+                assignedTo: item?.assignedTo,
+
+            };
+        });
         return {
             binDisposalAnalytics,
             pickups,
@@ -877,6 +1022,134 @@ export class ReportService {
 
     }
 
+async getPspReports(admin:PspAdminUser , filters?: GetReportsDto ) {
+        const { page = 1, limit = 10 } = filters || {};
+        const skip = (page - 1) * limit;
+        const query: any = { adminId: admin.id };
+
+        if (filters.type) {
+            query.type = filters.type;
+        }
+
+        if (filters.startDate && filters.endDate) {
+            query.createdAt = {
+                $gte: new Date(filters.startDate),
+                $lte: new Date(filters.endDate),
+            };
+        }
+
+        if (filters.search) {
+            query.reportName = { $regex: filters.search, $options: 'i' };
+        }
+
+        const [reports, totalReports] = await  Promise.all ([this.reportModel
+            .find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+            this.reportModel.countDocuments(query),
+
+        ])
+     
+
+       const data= reports.map((report) => ({
+            reportId: report._id,
+            title: report.reportName,
+            reportType: report.type,
+            generationDate: report.createdAt,
+            period: {
+                from: moment(report.startDate).format('DD/MM'),
+                to: moment(report.endDate).format('DD/MM'),
+            },
+        }));
+        return {
+            reports: data,
+            paging:{
+            totalReports,
+            page:page,
+            pages:Math.ceil(totalReports / limit),
+            size: limit,
+            
+            }
+        }
+
+    }
+async getPspTeamMemberReports(teamMember: PspTeamMember, filters?: GetReportsDto){
+     const { page = 1, limit = 10 } = filters || {};
+        const skip = (page - 1) * limit;
+        const query: any = { adminId: teamMember.id };
+
+        if (filters.type) {
+            query.type = filters.type;
+        }
+
+        if (filters.startDate && filters.endDate) {
+            query.createdAt = {
+                $gte: new Date(filters.startDate),
+                $lte: new Date(filters.endDate),
+            };
+        }
+
+        if (filters.search) {
+            query.reportName = { $regex: filters.search, $options: 'i' };
+        }
+
+        const [reports, totalReports] = await  Promise.all ([this.reportModel
+            .find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .lean(),
+            this.reportModel.countDocuments(query),
+
+        ])
+     
+
+       const data= reports.map((report) => ({
+            reportId: report._id,
+            title: report.reportName,
+            reportType: report.type,
+            generationDate: report.createdAt,
+            period: {
+                from: moment(report.startDate).format('DD/MM'),
+                to: moment(report.endDate).format('DD/MM'),
+            },
+        }));
+        return {
+            reports: data,
+            paging:{
+            totalReports,
+            page:page,
+            pages:Math.ceil(totalReports / limit),
+            size: limit,
+            
+            }
+        }
+
+}
+    
+
+
+    async getPspTeamMemberReportById(reportId: string, teamMember: PspTeamMember) {
+        const report = await this.reportModel
+            .findOne({
+                _id: reportId,
+                adminId: teamMember.id,
+            })
+            .lean();
+
+        if (!report) {
+            throw new NotFoundException(
+                'Report not found.',
+            );
+        }
+
+        return {
+            report
+        };
+    }
+
 
     async getAdminReportById(reportId: string,admin:AdminUser) {
         const report = await this.reportModel
@@ -897,7 +1170,24 @@ export class ReportService {
         };
     }
 
+  async getPspReportById(reportId: string,admin:PspAdminUser) {
+        const report = await this.reportModel
+            .findOne({
+                _id: reportId,
+                adminId: admin.id,
+            })
+            .lean();
 
+        if (!report) {
+            throw new NotFoundException(
+                'Report not found.',
+            );
+        }
+
+        return {
+            report
+        };
+    }
 
    
 }

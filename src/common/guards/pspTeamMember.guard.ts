@@ -7,11 +7,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { AdminUser, PspAdminUser, PspTeamMember } from '../types';
+import { AdminUser, PspAdminUser } from '../types';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from './public.guard';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { PspTeamAuthService } from '@src/lawma/psp/psps-team/auth/auth.service';
+import { PspTeamMember } from '../types';
 // import { PspAuthService } from '@src/lawma/psp/auth/auth.service';
 
 @Injectable()

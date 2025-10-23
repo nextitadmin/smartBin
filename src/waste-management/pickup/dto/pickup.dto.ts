@@ -1,6 +1,6 @@
 import { Status } from '@models/pickup';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsString , IsOptional} from 'class-validator';
+import { IsDateString, IsString , IsOptional, IsEmail, IsEnum} from 'class-validator';
 
 export class RequestPickupDto {
   @ApiProperty()
@@ -38,6 +38,40 @@ export class GetPickupDto{
   @IsOptional()
   limit?: number;
 
+}
+
+export class GetPickupsForPspDto{
+   @ApiPropertyOptional()
+  @IsOptional()
+  search?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  page?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  limit?: number;
+}
+
+  export class AssignTeamMemberDto {
+    @ApiProperty()
+    @IsString()
+    teamMemberId: string;
+
+    @ApiProperty()
+    @IsEmail()
+    teamMemberEmail: string;
+  
+  @ApiProperty()
+  @IsString()
+  note: string;
+
+  }
 
 
+export class UpdatePickupStatusDto {
+  @ApiProperty( {enum: Status})
+  @IsEnum( Status)
+  status: Status;
 }

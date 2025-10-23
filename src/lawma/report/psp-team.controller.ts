@@ -1,54 +1,50 @@
 import { Controller, Post, Get, Param, Query, Body } from '@nestjs/common';
-import { ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { ReportType } from '@models/report.model';
 import { Types } from 'mongoose';
-import { ReportService } from '@src/report/report.service';
 import { AdminReportService } from './report.service';
 import {
   CreateAdminReportDto,
   GetReportsDto,
 } from '@src/report/dtos/report.dto';
 import { SuccessResponse } from '@common/http';
-import {
-  AdminAuth,
-  AuthenticatedAdmin,
-} from '@common/decorators/auth.decorator';
-import {PspAdminAuth, AuthenticatedPspAdmin} from '@common/decorators/auth.decorator';
-import { AdminUser, PspAdminUser } from '@common/types';
+import { PspTeamMember } from '@common/types';
+import {PspTeamMemberAuth,AuthenticatedPspTeamMember} from '@common/decorators/auth.decorator';
 
-@ApiTags('PSP/Report')
+
+@ApiTags('PSP-Team-Member/Report')
 @Controller({
-  path: 'lawma/psp/reports',
+  path: '/psp/team-member/reports',
   version: '1',
 })
-@PspAdminAuth()
-export class PSPReportController {
+@PspTeamMemberAuth()
+export class PSPTeamMemberReportController {
   constructor(private readonly reportService: AdminReportService) {}
 
   @Post('report')
   async createReport(
-    @AuthenticatedPspAdmin() admin: PspAdminUser,
+    @AuthenticatedPspTeamMember() admin: PspTeamMember,
     @Body() dto: CreateAdminReportDto,
   ) {
-    const data = await this.reportService.generatePSPReport(admin, dto);
+    const data = await this.reportService.generatePspTeamMemberReport(admin, dto);
     return data;
   }
 
   @Get()
   async getReports(
-    @AuthenticatedPspAdmin() admin: PspAdminUser,
+    @AuthenticatedPspTeamMember() admin: PspTeamMember,
     @Query() filters: GetReportsDto,
   ) {
-    const reports = await this.reportService.getPspReports(admin, filters);
+    const reports = await this.reportService.getPspTeamMemberReports(admin, filters);
     return new SuccessResponse('Reports retrieved successfully', reports);
   }
 
   @Get(':id')
   async getReportById(
-    @AuthenticatedPspAdmin() admin: AdminUser,
+    @AuthenticatedPspTeamMember() admin: PspTeamMember,
     @Param('id') id: string,
   ) {
-    const report = await this.reportService.getAdminReportById(id, admin);
+    const report = await this.reportService.getPspTeamMemberReportById(id, admin);
     return new SuccessResponse('Report retrieved successfully', report);
   }
 }

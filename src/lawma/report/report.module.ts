@@ -5,7 +5,6 @@ import { ReportModule } from '@src/report/report.module';
 import { AuthModule } from '../auth/auth.module';
 import { LawmaAdminReportController } from './lawma-admin.report';
 import { SmartbinPartnersReportController } from './smartbin-partner.controller';
-import { PSPReportController } from './psp.controller';
 
 @Module({
   imports: [ReportModule, AuthModule],
@@ -13,7 +12,6 @@ import { PSPReportController } from './psp.controller';
     SuperAdminReportController,
     LawmaAdminReportController,
     SmartbinPartnersReportController,
-    PSPReportController,
   ],
   providers: [AdminReportService],
   exports: [AdminReportService],

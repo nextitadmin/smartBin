@@ -48,6 +48,7 @@ import { TeamModule } from './team/team.module';
 // import { SuperAdminController } from './super-admin/super-admin.controller';
 import { SuperAdminModule } from './super-admin/super-admin.module';
 import { LawmaModule } from './lawma/lawma.module';
+
 @Module({
   imports: [
     ConfigModule.forRoot(configModuleOpts),
@@ -80,8 +81,9 @@ import { LawmaModule } from './lawma/lawma.module';
     TeamModule,
     SuperAdminModule,
     LawmaModule,
+   
   ],
-  controllers: [AppController],
+  controllers: [AppController,],
   providers: [
     {
       provide: APP_GUARD,
