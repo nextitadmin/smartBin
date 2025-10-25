@@ -14,7 +14,7 @@ import {
   IdDTO,
   UpdatePspMembersStatusBodyDTO,
   UpdatePspMembersStatusParamDTO,
-} from '../dto/psp.dto';
+} from '../../dto/psp.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { PspTeamManagement } from './teamManagement.service';
 import {

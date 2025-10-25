@@ -1,5 +1,5 @@
 import { InjectModel } from "@nestjs/mongoose";
-import { CreatePspMembersDTO, UpdatePspMembersStatusBodyDTO } from "../dto/psp.dto";
+import { CreatePspMembersDTO, UpdatePspMembersStatusBodyDTO } from "../../dto/psp.dto";
 import { PSP, PspDocument } from "@models/psp.model";
 import { Model } from "mongoose";
 import { PSPMembers, PspMembersDocument } from "@models/psp-members.model";
