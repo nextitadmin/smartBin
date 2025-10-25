@@ -9,12 +9,14 @@ import {
   Put,
 } from '@nestjs/common';
 import {
+  ChangeStatusPspTeamDto,
   CreatePspMembersDTO,
   DeletePspMembersParamDTO,
   IdDTO,
+  memberIdDTO,
   UpdatePspMembersStatusBodyDTO,
   UpdatePspMembersStatusParamDTO,
-} from '../dto/psp.dto';
+} from '../../dto/psp.dto';
 import { ApiTags } from '@nestjs/swagger';
 import { PspTeamManagement } from './teamManagement.service';
 import {
@@ -70,4 +72,10 @@ export class PspTeamManagementController {
 
     return new SuccessResponse('psp member removed successfully', response);
   }
+
+   @Put('members/:memberId/change-status')
+    async deactivatePsp(@Param() param: memberIdDTO, @Body() body: ChangeStatusPspTeamDto) {
+      const response = await this.pspTeamService.changePspTeamStatus(param.memberId, body.status);
+      return new SuccessResponse('psp deactivated', response);
+    }
 }

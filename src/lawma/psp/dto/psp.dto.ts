@@ -88,6 +88,12 @@ export class IdDTO {
   id: string;
 }
 
+export class memberIdDTO {
+  @ApiProperty()
+  @IsString()
+  memberId: string;
+}
+
 export class PspLoginDto {
   @ApiProperty()
   @IsEmail()
@@ -129,7 +135,17 @@ export class PspResetPasswordDto {
 export class ChangeStatusPspDto {
   @ApiProperty({
     enum: ['active', 'inactive'],
-    example: 'active'
+    example: 'active',
+  })
+  @IsString()
+  @IsIn(['active', 'inactive'])
+  status: string;
+}
+
+export class ChangeStatusPspTeamDto {
+  @ApiProperty({
+    enum: ['active', 'inactive'],
+    example: 'active',
   })
   @IsString()
   @IsIn(['active', 'inactive'])

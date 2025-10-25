@@ -21,7 +21,7 @@ import {
   PspLoginDto,
   PspResetPasswordDto,
   PspVerifyResetCodeDto,
-} from '../dto/psp.dto';
+} from '../../dto/psp.dto';
 import {
   MailNotificationEvents,
   SendEmailEvent,

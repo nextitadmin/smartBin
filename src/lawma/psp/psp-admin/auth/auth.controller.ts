@@ -7,7 +7,7 @@ import {
   PspResetPasswordDto,
   PspVerifyResetCodeDto,
   VerifyPspLogin,
-} from '../dto/psp.dto';
+} from '../../dto/psp.dto';
 import { SuccessResponse } from '@common/http';
 import {
   AuthenticatedPspAdmin,
