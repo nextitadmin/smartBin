@@ -81,9 +81,8 @@ import { LawmaModule } from './lawma/lawma.module';
     TeamModule,
     SuperAdminModule,
     LawmaModule,
-   
   ],
-  controllers: [AppController,],
+  controllers: [AppController],
   providers: [
     {
       provide: APP_GUARD,

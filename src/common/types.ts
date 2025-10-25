@@ -36,28 +36,33 @@ export type AdminUser = {
   email: string;
   role: AdministratorRole;
   name: string;
-  token?:string;
-  ipAddress?:string;
+  token?: string;
+  ipAddress?: string;
   userAgent?: string;
-}
+};
 
 export type PspAdminUser = {
   id: string;
   email: string;
   name: string;
-  token?:string;
-  ipAddress?:string;
+  token?: string;
+  ipAddress?: string;
   userAgent?: string;
   lga_id?: Types.ObjectId;
-}
+};
 
 export type PspTeamMember = {
   id: string;
   email: string;
   name: string;
-  token?:string;
-  ipAddress?:string;
+  token?: string;
+  ipAddress?: string;
   userAgent?: string;
-}
+};
 
-
+export type SmartbinPartnerUser = {
+  id: string;
+  email: string;
+  name: string;
+  role: AdministratorRole.SmartBinPartner;
+};
