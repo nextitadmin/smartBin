@@ -27,14 +27,12 @@ import {
   SendEmailEvent,
 } from '@src/notification/dto/event';
 import { ApplicationEnvironment } from '@common/constants';
-import { PSPMembers } from '@models/psp-members.model';
 
 @Injectable()
-export class PspTeamAuthService {
+export class PspAuthService {
   constructor(
     @Inject(CACHE_MANAGER) private cacheService: Cache,
-    @InjectModel(PSPMembers.name)
-    private readonly pspMemberModel: Model<PSPMembers>,
+    @InjectModel(PSP.name) private readonly pspModel: Model<PSP>,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
     private ee: EventEmitter2,
@@ -48,7 +46,7 @@ export class PspTeamAuthService {
   async login(body: PspLoginDto) {
     const { email, password } = body;
 
-    const psp = await this.pspMemberModel.findOne({ email });
+    const psp = await this.pspModel.findOne({ administrator_email: email });
 
     if (!psp) {
       throw new NotFoundException('Psp not found');
@@ -77,11 +75,11 @@ export class PspTeamAuthService {
     this.ee.emit(
       MailNotificationEvents.Account.VerificationOTP,
       new SendEmailEvent({
-        to: String(psp.email),
+        to: String(psp.administrator_email),
         from: `"LAWMA REG" <no-reply@resend.dev>`,
         subject: 'Your Login Verification Code',
         context: {
-          firstName: psp.name,
+          firstName: psp.administrator_name,
           loginCode,
         },
       }),
@@ -97,27 +95,27 @@ export class PspTeamAuthService {
       throw new UnauthorizedException('Session expired. Please log in again.');
     }
 
-    const pspMember = await this.pspMemberModel
+    const pspAdmin = await this.pspModel
       .findOne({
         _id: pspId,
       })
       .select('-password')
       .lean();
 
-    if (!pspMember) {
+    if (!pspAdmin) {
       throw new BadRequestException('Invalid or expired login code');
     }
     const secret = String(this.configService.get<string>('JWT_SECRET'));
     const token = jwt.sign(
       {
-        id: pspMember._id,
-        email: pspMember.email,
+        id: pspAdmin._id,
+        email: pspAdmin.administrator_email,
       },
       secret,
       { expiresIn: '7d' },
     );
 
-    return { message: 'Login successful', token, data: pspMember };
+    return { message: 'Login successful', token, data: pspAdmin };
   }
 
   async requestPasswordReset(body: PspForgotPasswordDto) {
@@ -125,23 +123,21 @@ export class PspTeamAuthService {
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
     const expiry = 600000;
 
-    const pspMember = await this.pspMemberModel.findOne({
-      administrator_email: email,
-    });
-    if (pspMember) {
+    const psp = await this.pspModel.findOne({ administrator_email: email });
+    if (psp) {
       await this.cacheService.set(
         CacheKeys.PspResetPasswordCode(String(resetCode)),
-        String(pspMember._id),
+        String(psp._id),
         expiry,
       );
       this.ee.emit(
         MailNotificationEvents.Account.ForgotPassword,
         new SendEmailEvent({
-          to: pspMember.email,
+          to: psp.administrator_email,
           from: `"LAWMA REG" <accounts@lawma.co>`,
           subject: 'Password Reset Request',
           context: {
-            firstName: pspMember.name,
+            firstName: psp.administrator_name,
             resetCode,
           },
         }),
@@ -159,17 +155,17 @@ export class PspTeamAuthService {
     const pspId = await this.cacheService.get(
       CacheKeys.PspResetPasswordCode(code),
     );
-    const pspMember = await this.pspMemberModel.findById(pspId);
+    const psp = await this.pspModel.findById(pspId);
 
-    if (!pspMember) {
+    if (!psp) {
       throw new BadRequestException('Invalid or expired reset code');
     }
 
     const secret = this.configService.get('jwt.secret', { infer: true });
     const token = jwt.sign(
       {
-        id: pspMember._id,
-        email: pspMember.email,
+        id: psp._id,
+        email: psp.administrator_email,
       },
       secret,
       { expiresIn: '7d' },
@@ -182,7 +178,7 @@ export class PspTeamAuthService {
     if (body.password !== body.confirmPassword || body.password.length < 6)
       throw new BadRequestException('Passwords do not match or are too short');
 
-    await this.pspMemberModel.updateOne(
+    await this.pspModel.updateOne(
       { _id: pspId },
       { $set: { password: body.password } },
     );
@@ -190,15 +186,15 @@ export class PspTeamAuthService {
     return { message: 'Password reset successful' };
   }
 
-  async getPspMemberDetailsByToken(token: string) {
+  async getAdminDetailsByToken(token: string) {
     const decoded = this.jwtService.verify(token);
 
-    const pspMember = await this.pspMemberModel.findById(decoded.id);
-    if (!pspMember) {
+    const pspAdmin = await this.pspModel.findById(decoded.id);
+    if (!pspAdmin) {
       return null;
     }
 
-    return pspMember;
+    return pspAdmin;
   }
 
   async logout(token: string) {
