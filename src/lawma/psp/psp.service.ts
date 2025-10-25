@@ -164,6 +164,9 @@ export class PspService {
     return this.rbacService.getRoles(createdBy);
   }
 
+  async getPermissions() {
+    return this.rbacService.getPermissions();
+  }
   async addRole(payload: AddRoleDto & { createdBy: string }) {
     return this.rbacService.createRole(payload);
   }

@@ -102,6 +102,12 @@ export class PspController {
     return new SuccessResponse('roles fetched', roles);
   }
 
+  @Get('permissions')
+  async getPermissions(@AuthenticatedPspAdmin() pspUser: PspAdminUser) {
+    const permissions = await this.pspService.getPermissions();
+    return new SuccessResponse('permissions fetched', permissions);
+  }
+
   @Post('roles')
   async createRole(
     @AuthenticatedPspAdmin() pspUser: PspAdminUser,

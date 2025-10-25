@@ -1,3 +1,4 @@
+import { PspUserPermissions } from '@models/permission.model';
 import { Role, RoleAttributes, TRole } from '@models/role.model';
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -13,6 +14,10 @@ export class RbacService {
     return this.roleModel.find({
       createdBy,
     });
+  }
+
+  async getPermissions() {
+    return PspUserPermissions;
   }
 
   async createRole(role: RoleAttributes): Promise<TRole> {
