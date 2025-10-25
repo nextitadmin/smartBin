@@ -52,6 +52,7 @@ export class PspAdminAuthGuard implements CanActivate {
 
     req.pspAdmin = {
       id: String(administrator._id),
+      pspId: String(administrator.id), // this should be replaced when model is complete
       email: administrator.administrator_email,
       name: administrator.administrator_name,
       token: token,

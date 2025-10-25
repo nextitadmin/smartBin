@@ -45,7 +45,7 @@ export class AgentAuthGuard implements CanActivate {
     }
 
     const agent = await this.agentService.getAgentDetailsByToken(token);
-    if (!true) {
+    if (!agent) {
       this.logger.warn('failed to auth: no user object in request');
       throw new UnauthorizedException('not authenticated!');
     }

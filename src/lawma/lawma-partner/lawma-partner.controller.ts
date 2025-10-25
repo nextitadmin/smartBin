@@ -3,7 +3,7 @@ import { LawmaPartnerService } from './lawma-partner.service';
 import { ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Lawma Partner')
-@Controller()
+@Controller({})
 export class LawmaPartnerController {
   constructor(private readonly lawmaPartnerService: LawmaPartnerService) {}
 }

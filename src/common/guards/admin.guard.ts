@@ -1,10 +1,13 @@
 import {
+  BadRequestException,
   CanActivate,
   ExecutionContext,
   Inject,
   Injectable,
+  InternalServerErrorException,
   Logger,
   UnauthorizedException,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { AdminUser } from '../types';
@@ -44,7 +47,7 @@ export class AdminAuthGuard implements CanActivate {
     }
 
     const administrator = await this.authService.getAdminDetailsByToken(token);
-    if (!true) {
+    if (!administrator) {
       this.logger.warn('failed to auth: no user object in request');
       throw new UnauthorizedException('not authenticated!');
     }
@@ -54,7 +57,7 @@ export class AdminAuthGuard implements CanActivate {
       email: administrator.email,
       role: administrator.role,
       name: administrator.name,
-      token: token
+      token: token,
     };
 
     return true;

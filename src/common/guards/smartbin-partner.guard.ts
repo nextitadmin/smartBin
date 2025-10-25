@@ -11,7 +11,6 @@ import { PspAdminUser, SmartbinPartnerUser } from '../types';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from './public.guard';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
-import { PspAuthService } from '@src/lawma/psp/auth/auth.service';
 import { LawmaPartnerAuthService } from '@src/lawma/lawma-partner/auth/auth.service';
 import { AdministratorRole } from '@models/administrator.model';
 

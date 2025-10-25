@@ -43,6 +43,7 @@ export type AdminUser = {
 
 export type PspAdminUser = {
   id: string;
+  pspId: string;
   email: string;
   name: string;
   token?: string;

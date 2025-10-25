@@ -24,6 +24,7 @@ import { PSPTeamMemberReportController } from '../report/psp-team.controller';
 import { AuthService } from '../auth/auth.service';
 import { PspTeamManagementController } from './psp-admin/team-management/teamManagement.controller';
 import { PspTeamManagement } from './psp-admin/team-management/teamManagement.service';
+import { RbacModule } from '@src/rbac/rbac.module';
 
 @Module({
   controllers: [
@@ -54,6 +55,7 @@ import { PspTeamManagement } from './psp-admin/team-management/teamManagement.se
     ]),
     PickupModule,
     ReportModule,
+    RbacModule,
   ],
   exports: [PspAuthService, PspTeamAuthService],
 })
