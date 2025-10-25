@@ -9,37 +9,29 @@ import {
   Administrator,
   AdministratorSchema,
 } from '@models/administrator.model';
-import { PspAuthController } from './psp-admin/auth/auth.controller';
-import { PspAuthService } from './psp-admin/auth/auth.service';
-import { PspTeamAuthService } from './psps-team/auth/auth.service';
-import { PspTeamAuthController } from './psps-team/auth/auth.controller';
+import { PspAuthController } from './psp-members/auth/auth.controller';
+import { PspAuthService } from './psp-members/auth/auth.service';
 import { PspWasteManagementController } from '../waste-management/psp.waste-management.controller';
 import { LawmaWasteManagementService } from '../waste-management/waste-management.service';
 import { PickupModule } from '@src/waste-management/pickup/pickup.module';
-import { PspTeamWasteManagementController } from '../waste-management/psp-team.waste-management.controller';
 import { PSPReportController } from '../report/psp.controller';
 import { AdminReportService } from '../report/report.service';
 import { ReportModule } from '@src/report/report.module';
-import { PSPTeamMemberReportController } from '../report/psp-team.controller';
 import { AuthService } from '../auth/auth.service';
-import { PspTeamManagementController } from './psp-admin/team-management/teamManagement.controller';
-import { PspTeamManagement } from './psp-admin/team-management/teamManagement.service';
+import { PspTeamManagementController } from './psp-members/team-management/teamManagement.controller';
+import { PspTeamManagement } from './psp-members/team-management/teamManagement.service';
 
 @Module({
   controllers: [
     PspController,
     PspAuthController,
     PspTeamManagementController,
-    PspTeamAuthController,
     PspWasteManagementController,
-    PspTeamWasteManagementController,
-    PSPReportController,
-    PSPTeamMemberReportController,
+    PSPReportController
   ],
   providers: [
     PspService,
     PspAuthService,
-    PspTeamAuthService,
     PspTeamManagement,
     LawmaWasteManagementService,
     AdminReportService,
@@ -55,6 +47,6 @@ import { PspTeamManagement } from './psp-admin/team-management/teamManagement.se
     PickupModule,
     ReportModule,
   ],
-  exports: [PspAuthService, PspTeamAuthService],
+  exports: [PspAuthService],
 })
 export class PspModule {}
