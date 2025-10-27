@@ -1,4 +1,4 @@
-import { PSPMembers, PspMembersDocument } from '@models/psp-members.model';
+import { PSPUsers, PspUsersDocument } from '@models/psp-users.model';
 import { PSP, PspDocument } from '@models/psp.model';
 import { Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
@@ -8,7 +8,7 @@ import { UpdatePspMembersStatusBodyDTO } from './dto/psp.dto';
 import { Lga } from '@models/lgas.model';
 import { Administrator, AdministratorRole } from '@models/administrator.model';
 import { AuditLogEvents, LogActionEvent } from '../audit-log/dto/event';
-import { LOGTYPE } from '@models/audit-log.model';
+import { LOGTYPE, UserType } from '@models/audit-log.model';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AdminUser } from '@common/types';
 import {
@@ -31,8 +31,8 @@ export class PspService {
   constructor(
     @InjectModel(PSP.name)
     private readonly psp: Model<PspDocument>,
-    @InjectModel(PSPMembers.name)
-    private readonly pspMembers: Model<PspMembersDocument>,
+    @InjectModel(PSPUsers.name)
+    private readonly pspMembers: Model<PspUsersDocument>,
     @InjectModel(Lga.name) private lga: Model<Lga>,
     private readonly ee: EventEmitter2,
     @Inject(CACHE_MANAGER) private cacheService: Cache,
@@ -61,6 +61,7 @@ export class PspService {
       new LogActionEvent({
         administrator: admin,
         action: LOGTYPE.PspAdded,
+        userType: UserType.Admin,
       }),
     );
 

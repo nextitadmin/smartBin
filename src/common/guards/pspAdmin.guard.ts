@@ -11,7 +11,7 @@ import { PspAdminUser } from '../types';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from './public.guard';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
-import { PspAuthService } from '@src/lawma/psp/psp-members/auth/auth.service';
+import { PspAuthService } from '@src/lawma/psp/psp-users/auth/auth.service';
 
 @Injectable()
 export class PspUserAuthGuard implements CanActivate {

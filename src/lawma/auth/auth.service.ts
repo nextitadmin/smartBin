@@ -30,7 +30,7 @@ import { ConfigAttributes } from '@src/config';
 import { ApplicationEnvironment } from '@common/constants';
 import { Request as UserRequest } from 'express';
 import { AuditLogEvents, LogActionEvent } from '../audit-log/dto/event';
-import { LOGTYPE } from '@models/audit-log.model';
+import { LOGTYPE, UserType } from '@models/audit-log.model';
 
 @Injectable()
 export class AuthService implements OnModuleInit {
@@ -124,6 +124,7 @@ export class AuthService implements OnModuleInit {
       new LogActionEvent({
         administrator: eventObj,
         action: LOGTYPE.UserLoggedIn,
+        userType: UserType.Admin
       }),
     );
 

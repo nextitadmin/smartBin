@@ -11,6 +11,12 @@ export enum LOGTYPE {
   StatusChanged = 'Status Changed',
 }
 
+export enum UserType {
+  Admin = 'admin',
+  PSP = 'psp'
+}
+
+
 @Schema({ timestamps: true })
 export class AuditLog extends Document {
   @Prop({ type: Types.ObjectId, ref: 'Administrator', required: true })
@@ -31,6 +37,12 @@ export class AuditLog extends Document {
 
   @Prop({ type: SchemaTypes.String, required: true })
   platform?: string;
+
+  @Prop({
+    type: SchemaTypes.String,
+    enum: Object.values(UserType),
+  })
+  userType: UserType;
 
   @Prop({ type: SchemaTypes.String, required: true })
   ipAddress?: string;

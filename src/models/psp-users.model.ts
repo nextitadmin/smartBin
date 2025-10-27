@@ -2,15 +2,15 @@ import { getHashedPassword } from '@common/utils';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { SchemaTypes, Types } from 'mongoose';
 
-export enum PSPMembersStatus {
+export enum PSPUsersStatus {
   ACTIVE = 'active',
   INACTIVE = 'inactive',
 }
 
-export type PspMembersDocument = PSPMembers & Document;
+export type PspUsersDocument = PSPUsers & Document;
 
-@Schema({ collection: 'psp-members', timestamps: true, versionKey: false })
-export class PSPMembers {
+@Schema({ collection: 'psp-users', timestamps: true, versionKey: false })
+export class PSPUsers {
   @Prop({
     type: SchemaTypes.ObjectId,
     required: true,
@@ -47,15 +47,15 @@ export class PSPMembers {
   @Prop({
     type: SchemaTypes.String,
     required: true,
-    enum: Object.values(PSPMembersStatus),
-    default: PSPMembersStatus.ACTIVE,
+    enum: Object.values(PSPUsersStatus),
+    default: PSPUsersStatus.ACTIVE,
   })
-  status: PSPMembersStatus;
+  status: PSPUsersStatus;
 }
 
-export const PSPMembersSchema = SchemaFactory.createForClass(PSPMembers);
+export const PSPUsersSchema = SchemaFactory.createForClass(PSPUsers);
 
-PSPMembersSchema.pre('save', function (next) {
+PSPUsersSchema.pre('save', function (next) {
   if (this.isModified('password')) {
     this.password = getHashedPassword(this.password);
   }

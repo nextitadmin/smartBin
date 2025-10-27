@@ -20,7 +20,6 @@ import {
 import { AuthGuard } from '@common/guards/actor.guard';
 import { AdminAuthGuard } from '@common/guards/admin.guard';
 import { PspUserAuthGuard } from '@common/guards/pspAdmin.guard';
-// import { PspTeamMemberAuthGuard } from '@common/guards/pspTeamMember.guard';
 import { SmartbinPartnerAuthGuard } from '@common/guards/smartbin-partner.guard';
 
 export function AgentAuth() {

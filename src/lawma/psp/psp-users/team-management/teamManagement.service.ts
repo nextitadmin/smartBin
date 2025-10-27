@@ -5,7 +5,7 @@ import {
 } from '../../dto/psp.dto';
 import { PSP, PspDocument } from '@models/psp.model';
 import { Model } from 'mongoose';
-import { PSPMembers, PspMembersDocument } from '@models/psp-members.model';
+import { PSPUsers, PspUsersDocument } from '@models/psp-users.model';
 import { generateRandomChars } from '@common/utils';
 import { CacheKeys } from '@src/shared/constants';
 import { Inject } from '@nestjs/common';
@@ -23,8 +23,8 @@ export class PspTeamManagement {
   protected clientUrl: ConfigAttributes['frontendUrl'];
   constructor(
     @InjectModel(PSP.name) private readonly psp: Model<PspDocument>,
-    @InjectModel(PSPMembers.name)
-    private readonly pspMembers: Model<PspMembersDocument>,
+    @InjectModel(PSPUsers.name)
+    private readonly pspMembers: Model<PspUsersDocument>,
     @Inject(CACHE_MANAGER) private cacheService: Cache,
     private readonly ee: EventEmitter2,
     private readonly configService: ConfigService<ConfigAttributes>,
@@ -106,7 +106,7 @@ export class PspTeamManagement {
       { _id: pspMemberId },
       {
         $set: {
-          status: status
+          status: status,
         },
       },
     );
