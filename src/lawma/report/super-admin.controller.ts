@@ -1,10 +1,9 @@
 import { Controller,Post,Get, Param, Query, Body } from '@nestjs/common';
-import {  ApiQuery, ApiTags } from '@nestjs/swagger';
+import {  ApiTags } from '@nestjs/swagger';
 import { ReportType } from '@models/report.model';
 import { Types } from 'mongoose';
-import { ReportService } from '@src/report/report.service';
 import { AdminReportService } from './report.service';
-import { CreateAdminReportDto, GetReportsDto } from '@src/report/dtos/report.dto';
+import { CreateAdminReportDto, CreateAutoReportDto, GetReportsDto } from '@src/report/dtos/report.dto';
 import { SuccessResponse } from '@common/http';
 import { AdminAuth,AuthenticatedAdmin } from '@common/decorators/auth.decorator';
 import { AdminUser } from '@common/types';

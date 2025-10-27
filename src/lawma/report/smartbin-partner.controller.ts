@@ -13,20 +13,21 @@ import {
   AdminAuth,
   AuthenticatedAdmin,
 } from '@common/decorators/auth.decorator';
-import { AdminUser } from '@common/types';
+import {SmartbinPartnerUser} from '@common/types';
+import { SmartbinPartnerAuth, AuthenticatedSmartbinPartner} from '@common/decorators/auth.decorator';
 
 @ApiTags('Smartbin-Partners/Report')
 @Controller({
   path: 'lawma/smartbin-partners/reports',
   version: '1',
 })
-@AdminAuth()
+@SmartbinPartnerAuth()
 export class SmartbinPartnersReportController {
   constructor(private readonly reportService: AdminReportService) {}
 
   @Post('report')
   async createReport(
-    @AuthenticatedAdmin() admin: AdminUser,
+    @AuthenticatedSmartbinPartner() admin: SmartbinPartnerUser,
     @Body() dto: CreateAdminReportDto,
   ) {
     const data = await this.reportService.generateSmartbinPartnerReport(
@@ -38,19 +39,19 @@ export class SmartbinPartnersReportController {
 
   @Get()
   async getReports(
-    @AuthenticatedAdmin() admin: AdminUser,
+    @AuthenticatedSmartbinPartner() admin: SmartbinPartnerUser,
     @Query() filters: GetReportsDto,
   ) {
-    const reports = await this.reportService.getAdminReports(admin, filters);
+    const reports = await this.reportService.getSmartbinPartnerReports(admin, filters);
     return new SuccessResponse('Reports retrieved successfully', reports);
   }
 
   @Get(':id')
   async getReportById(
-    @AuthenticatedAdmin() admin: AdminUser,
+    @AuthenticatedSmartbinPartner() admin:SmartbinPartnerUser,
     @Param('id') id: string,
   ) {
-    const report = await this.reportService.getAdminReportById(id, admin);
+    const report = await this.reportService.getSmartbinPartnerReportById(id, admin);
     return new SuccessResponse('Report retrieved successfully', report);
   }
 }

@@ -5,9 +5,10 @@ import { ReportModule } from '@src/report/report.module';
 import { AuthModule } from '../auth/auth.module';
 import { LawmaAdminReportController } from './lawma-admin.report';
 import { SmartbinPartnersReportController } from './smartbin-partner.controller';
+import { LawmaPartnerModule } from '../lawma-partner/lawma-partner.module';
 
 @Module({
-  imports: [ReportModule, AuthModule],
+  imports: [ReportModule, AuthModule,LawmaPartnerModule],
   controllers: [
     SuperAdminReportController,
     LawmaAdminReportController,

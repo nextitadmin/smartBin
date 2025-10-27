@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { AdminUser, PspAdminUser } from '@common/types';
+import { AdminUser, PspAdminUser,SmartbinPartnerUser } from '@common/types';
 import {
-  CreateAdminReportDto,GetReportsDto,
+  CreateAdminReportDto,CreateAutoReportDto,GetReportsDto,
 } from '@src/report/dtos/report.dto';
 import { ReportService } from '@src/report/report.service';
 import { PspTeamMember } from '@common/types';
@@ -20,11 +20,31 @@ export class AdminReportService {
     return this.reportService.generateAdminReport(admin, dto);
   }
 
+
+  async getAdminReports(admin: AdminUser, filters: GetReportsDto) {
+    return this.reportService.getAdminReports(admin, filters);
+  }
+
+  async getAdminReportById(id: string, admin: AdminUser) {
+    return this.reportService.getAdminReportById(id, admin);
+  }
+
   async generateSmartbinPartnerReport(
-    admin: AdminUser,
+    admin: SmartbinPartnerUser,
     dto: CreateAdminReportDto,
   ) {
     return this.reportService.generateSmartbinPartnerReport(admin, dto);
+  }
+
+  async getSmartbinPartnerReports(
+    admin: SmartbinPartnerUser,
+    filters: GetReportsDto,
+  ) {
+    return this.reportService.getSmartbinPartnerReports(admin, filters);
+  }
+
+  async getSmartbinPartnerReportById(id: string, admin: SmartbinPartnerUser) {
+    return this.reportService.getSmartbinPartnerReportById(id, admin);
   }
 
   async generatePSPReport(admin: PspAdminUser, dto: CreateAdminReportDto) {
@@ -33,11 +53,6 @@ export class AdminReportService {
 
   async generatePspTeamMemberReport(teamMember: PspTeamMember, dto: CreateAdminReportDto) {
     return this.reportService.generatePspTeamMemberReport(teamMember, dto);
-  }
-
-
-  async getAdminReports(admin: AdminUser, filters: GetReportsDto) {
-    return this.reportService.getAdminReports(admin, filters);
   }
 
 async  getPspReports(admin: PspAdminUser, filters: GetReportsDto) {
@@ -55,7 +70,5 @@ async getPspTeamMemberReports(teamMember: PspTeamMember, filters: GetReportsDto)
   async getPspReportById(id: string, admin: PspAdminUser) {
     return this.reportService.getPspReportById(id, admin);
   }
-  async getAdminReportById(id: string, admin: AdminUser) {
-    return this.reportService.getAdminReportById(id, admin);
-  }
+  
 }
