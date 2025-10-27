@@ -122,6 +122,7 @@ export class LawmaPartnerAuthService {
       await this.administratorModel.create({
         name: 'Lawma Partner',
         email: 'smartbin-partner@lawma.co',
+          phoneNumber: '08123456787',
         password: 'password',
         role: AdministratorRole.SmartBinPartner,
         status: AdministratorStatus.Active,
