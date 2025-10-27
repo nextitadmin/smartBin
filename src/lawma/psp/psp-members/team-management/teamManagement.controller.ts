@@ -21,7 +21,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { PspTeamManagement } from './teamManagement.service';
 import {
   AuthenticatedPspAdmin,
-  PspAdminAuth,
+  PspUserAuth,
 } from '@common/decorators/auth.decorator';
 import { PspAdminUser } from '@common/types';
 
@@ -30,7 +30,7 @@ import { PspAdminUser } from '@common/types';
   path: 'lawma/psps/team',
   version: '1',
 })
-@PspAdminAuth()
+@PspUserAuth()
 export class PspTeamManagementController {
   constructor(private readonly pspTeamService: PspTeamManagement) {}
 

@@ -13,7 +13,7 @@ import {
   AdminAuth,
   AuthenticatedAdmin,
 } from '@common/decorators/auth.decorator';
-import {PspAdminAuth, AuthenticatedPspAdmin} from '@common/decorators/auth.decorator';
+import {PspUserAuth, AuthenticatedPspAdmin} from '@common/decorators/auth.decorator';
 import { AdminUser, PspAdminUser } from '@common/types';
 
 @ApiTags('PSP/Report')
@@ -21,7 +21,7 @@ import { AdminUser, PspAdminUser } from '@common/types';
   path: 'lawma/psp/reports',
   version: '1',
 })
-@PspAdminAuth()
+@PspUserAuth()
 export class PSPReportController {
   constructor(private readonly reportService: AdminReportService) {}
 

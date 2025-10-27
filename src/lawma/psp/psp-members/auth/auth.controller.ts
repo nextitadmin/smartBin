@@ -11,7 +11,7 @@ import {
 import { SuccessResponse } from '@common/http';
 import {
   AuthenticatedPspAdmin,
-  PspAdminAuth,
+  PspUserAuth,
 } from '@common/decorators/auth.decorator';
 import { PspAdminUser } from '@common/types';
 
@@ -54,7 +54,7 @@ export class PspAuthController {
   }
 
   @Post('reset-password')
-  @PspAdminAuth()
+  @PspUserAuth()
   async resetPassword(
     @AuthenticatedPspAdmin() psp: PspAdminUser,
     @Body() body: PspResetPasswordDto,
@@ -65,7 +65,7 @@ export class PspAuthController {
   }
 
   @Post('logout')
-  @PspAdminAuth()
+  @PspUserAuth()
   async logout(@AuthenticatedPspAdmin() psp: PspAdminUser) {
     const response = await this.pspAuthService.logout(psp.token);
     return new SuccessResponse(response.message, null);

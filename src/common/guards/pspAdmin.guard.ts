@@ -14,14 +14,14 @@ import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { PspAuthService } from '@src/lawma/psp/psp-members/auth/auth.service';
 
 @Injectable()
-export class PspAdminAuthGuard implements CanActivate {
+export class PspUserAuthGuard implements CanActivate {
   constructor(
     @Inject(CACHE_MANAGER) private cacheService: Cache,
     private readonly reflector: Reflector,
     private readonly pspAuthService: PspAuthService,
   ) {}
 
-  private logger = new Logger(PspAdminAuthGuard.name);
+  private logger = new Logger(PspUserAuthGuard.name);
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
     const req: Request & {

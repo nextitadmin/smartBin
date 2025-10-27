@@ -10,7 +10,7 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { LawmaWasteManagementService } from './waste-management.service';
 import {
-  PspAdminAuth,
+  PspUserAuth,
   AuthenticatedPspAdmin,
 } from '@common/decorators/auth.decorator';
 import { PspAdminUser } from '@common/types';
@@ -26,7 +26,7 @@ import {
   path: 'psp/waste-management',
   version: '1',
 })
-@PspAdminAuth()
+@PspUserAuth()
 export class PspWasteManagementController {
   constructor(
     private readonly wasteManagementService: LawmaWasteManagementService,
