@@ -45,7 +45,7 @@ export class PSPReportController {
 
   @Get(':id')
   async getReportById(
-    @AuthenticatedPspUser() admin: PspUser,
+    @AuthenticatedPspUser() admin: PspUser & AdminUser,
     @Param('id') id: string,
   ) {
     const report = await this.reportService.getAdminReportById(id, admin);

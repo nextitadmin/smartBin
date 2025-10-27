@@ -73,7 +73,8 @@ export class AdminReportService {
   async getPspReportById(id: string, admin: PspUser) {
     return this.reportService.getPspReportById(id, admin);
   }
-  async getAdminReportById(id: string, admin: PspUser) {
+
+  async getAdminReportById(id: string, admin: AdminUser) {
     return this.reportService.getAdminReportById(id, admin);
   }
 }
