@@ -15,8 +15,10 @@ import {
 import {
   AdminAuth,
   AuthenticatedAdmin,
+  AuthenticatedPspAdmin,
 } from '@common/decorators/auth.decorator';
-import { AdminUser } from '@common/types';
+import { AdminUser, PspAdminUser } from '@common/types';
+import { AddRoleDto } from '@src/rbac/dto/rbac.dto';
 
 @ApiTags('PSPs')
 @Controller({
@@ -66,10 +68,12 @@ export class PspController {
     return new SuccessResponse('psp fetched', response);
   }
 
-
   @Put(':id/change-status')
   async deactivatePsp(@Param() param: IdDTO, @Body() body: ChangeStatusPspDto) {
-    const response = await this.pspService.changePspStatus(param.id, body.status);
+    const response = await this.pspService.changePspStatus(
+      param.id,
+      body.status,
+    );
     return new SuccessResponse('psp deactivated', response);
   }
 
@@ -90,5 +94,29 @@ export class PspController {
       status: body.status,
     });
     return new SuccessResponse('psp members updated', response);
+  }
+
+  @Get('roles')
+  async getRoles(@AuthenticatedPspAdmin() pspUser: PspAdminUser) {
+    const roles = await this.pspService.getRoles(pspUser.pspId);
+    return new SuccessResponse('roles fetched', roles);
+  }
+
+  @Get('permissions')
+  async getPermissions(@AuthenticatedPspAdmin() pspUser: PspAdminUser) {
+    const permissions = await this.pspService.getPermissions();
+    return new SuccessResponse('permissions fetched', permissions);
+  }
+
+  @Post('roles')
+  async createRole(
+    @AuthenticatedPspAdmin() pspUser: PspAdminUser,
+    @Body() payload: AddRoleDto,
+  ) {
+    await this.pspService.addRole({
+      ...payload,
+      createdBy: pspUser.pspId,
+    });
+    return new SuccessResponse('role add', null);
   }
 }

@@ -18,21 +18,20 @@ import { PSPReportController } from '../report/psp.controller';
 import { AdminReportService } from '../report/report.service';
 import { ReportModule } from '@src/report/report.module';
 import { AuthService } from '../auth/auth.service';
-import { PspTeamManagementController } from './psp-members/team-management/teamManagement.controller';
-import { PspTeamManagement } from './psp-members/team-management/teamManagement.service';
+// import { PspTeamManagementController } from './psp-admin/team-management/teamManagement.controller';
+// import { PspTeamManagement } from './psp-admin/team-management/teamManagement.service';
+import { RbacModule } from '@src/rbac/rbac.module';
 
 @Module({
   controllers: [
     PspController,
     PspAuthController,
-    PspTeamManagementController,
     PspWasteManagementController,
     PSPReportController
   ],
   providers: [
     PspService,
     PspAuthService,
-    PspTeamManagement,
     LawmaWasteManagementService,
     AdminReportService,
     AuthService,
@@ -46,6 +45,7 @@ import { PspTeamManagement } from './psp-members/team-management/teamManagement.
     ]),
     PickupModule,
     ReportModule,
+    RbacModule,
   ],
   exports: [PspAuthService],
 })

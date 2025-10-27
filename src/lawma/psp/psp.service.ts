@@ -21,10 +21,12 @@ import { CacheKeys } from '@src/shared/constants';
 import { generateRandomChars } from '@common/utils';
 import { ConfigService } from '@nestjs/config';
 import { ConfigAttributes } from '@src/config';
+import { RbacService } from '@src/rbac/rbac.service';
+import { AddRoleDto } from '@src/rbac/dto/rbac.dto';
 
 @Injectable()
 export class PspService {
-  protected clientUrl:ConfigAttributes['frontendUrl'];
+  protected clientUrl: ConfigAttributes['frontendUrl'];
 
   constructor(
     @InjectModel(PSP.name)
@@ -35,8 +37,9 @@ export class PspService {
     private readonly ee: EventEmitter2,
     @Inject(CACHE_MANAGER) private cacheService: Cache,
     private readonly configService: ConfigService<ConfigAttributes>,
+    private readonly rbacService: RbacService,
   ) {
-    this.clientUrl = this.configService.get<string>('frontendUrl')
+    this.clientUrl = this.configService.get<string>('frontendUrl');
   }
 
   async createPsp(psp: CreatePspDTO, admin: AdminUser) {
@@ -51,7 +54,7 @@ export class PspService {
       String(pspData._id),
     );
 
-    const resetLink = `${this.clientUrl}/psp-admin/resetpassword/${resetCode}`
+    const resetLink = `${this.clientUrl}/psp-admin/resetpassword/${resetCode}`;
 
     this.ee.emit(
       AuditLogEvents.UserActivity,
@@ -104,13 +107,16 @@ export class PspService {
     return this.psp.findById(pspId);
   }
 
-  async changePspStatus(pspId:string, status:string){
-    await this.psp.updateOne({ _id: pspId}, {
-      $set:{
-        status: status
-      }
-    })
-    
+  async changePspStatus(pspId: string, status: string) {
+    await this.psp.updateOne(
+      { _id: pspId },
+      {
+        $set: {
+          status: status,
+        },
+      },
+    );
+
     return null;
   }
 
@@ -152,5 +158,16 @@ export class PspService {
     return this.pspMembers.findByIdAndUpdate(pspMembersId, {
       deleted_at: new Date(),
     });
+  }
+
+  async getRoles(createdBy: string) {
+    return this.rbacService.getRoles(createdBy);
+  }
+
+  async getPermissions() {
+    return this.rbacService.getPermissions();
+  }
+  async addRole(payload: AddRoleDto & { createdBy: string }) {
+    return this.rbacService.createRole(payload);
   }
 }

@@ -7,26 +7,27 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { PspAdminUser } from '../types';
+import { PspAdminUser, SmartbinPartnerUser } from '../types';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from './public.guard';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
-import { PspAuthService } from '@src/lawma/psp/psp-members/auth/auth.service';
+import { LawmaPartnerAuthService } from '@src/lawma/lawma-partner/auth/auth.service';
+import { AdministratorRole } from '@models/administrator.model';
 
 @Injectable()
-export class PspAdminAuthGuard implements CanActivate {
+export class SmartbinPartnerAuthGuard implements CanActivate {
   constructor(
     @Inject(CACHE_MANAGER) private cacheService: Cache,
     private readonly reflector: Reflector,
-    private readonly pspAuthService: PspAuthService,
+    private readonly lawmaPartnerAuthService: LawmaPartnerAuthService,
   ) {}
 
-  private logger = new Logger(PspAdminAuthGuard.name);
+  private logger = new Logger(SmartbinPartnerAuthGuard.name);
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
     const req: Request & {
       user: Record<string, any>;
-      pspAdmin?: PspAdminUser;
+      smartbinPartner?: SmartbinPartnerUser;
     } = ctx.switchToHttp().getRequest();
 
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -44,18 +45,17 @@ export class PspAdminAuthGuard implements CanActivate {
     }
 
     const administrator =
-      await this.pspAuthService.getAdminDetailsByToken(token);
+      await this.lawmaPartnerAuthService.getAdminDetailsByToken(token);
     if (!administrator) {
       this.logger.warn('failed to auth: no user object in request');
       throw new UnauthorizedException('not authenticated!');
     }
 
-    req.pspAdmin = {
+    req.smartbinPartner = {
       id: String(administrator._id),
-      pspId: String(administrator.id), // this should be replaced when model is complete
-      email: administrator.administrator_email,
-      name: administrator.administrator_name,
-      token: token,
+      email: administrator.email,
+      name: administrator.name,
+      role: AdministratorRole.SmartBinPartner,
     };
 
     return true;
