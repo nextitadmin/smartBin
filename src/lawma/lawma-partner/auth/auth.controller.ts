@@ -7,7 +7,9 @@ import { LawmaPartnerAuthService } from './auth.service';
 import { SuccessResponse } from '@common/http';
 import { SmartbinPartnerUser } from '@common/types';
 import { AuthenticatedSmartbinPartner } from '@common/decorators/auth.decorator';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Lawma Partner Auth')
 @Controller({
   path: 'lawma-partner/auth',
   version: '1',

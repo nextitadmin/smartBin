@@ -4,16 +4,76 @@ import {
   IsString,
   IsObject,
   IsDateString,
-  isEnum,
+  IsNotEmpty,
+  IsBoolean,
+  IsArray,
+  IsEmail
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { ReportType } from '@models/report.model';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import { Frequency } from '@models/report.model';
 
 export enum CustomerType {
   Corporate = 'Corporate',
   Resident = 'Resident',
+}
+
+
+export class CreateAutoReportDto {
+  @ApiProperty({
+    enum: ReportType,
+    enumName: 'ReportType',
+    description: 'Type of report to generate',
+  })
+  type: ReportType; 
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty()
+  reportName: string; 
+
+  @ApiProperty()
+  @IsBoolean()
+  @Type(() => Boolean)
+  isAuto: boolean; 
+
+  @ApiProperty({
+    enum: Frequency,
+    enumName: 'Frequency',
+    description: 'Frequency of the auto report',
+  })
+  @IsEnum(Frequency)
+  frequency?: Frequency;
+
+
+  @ApiPropertyOptional({
+    description: 'Day of the week for weekly reports (e.g., Monday)',
+  })
+  @IsString()
+  @IsOptional()
+  day: string; 
+
+  @ApiProperty()
+  @IsString()
+  time: string; 
+
+  @ApiProperty()
+  @IsEmail()
+  primaryEmail: string;
+
+  @ApiPropertyOptional()
+  @IsArray()
+  @IsOptional()
+  @IsEmail({}, { each: true })
+  secondaryEmails?: string[];
+
+
+  @ApiProperty()
+  @IsOptional()
+  @IsObject()
+  filters?: Record<string, any>;
 }
 
 export class CreateAdminReportDto {
