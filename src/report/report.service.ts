@@ -7,7 +7,7 @@ import { Model, Types } from 'mongoose';
 import { Report, ReportType } from '@models/report.model';
 import { CreateReportDto, CustomerType, GetReportsDto, CreateAdminReportDto } from './dtos/report.dto';
 import { SuccessResponse } from '@common/http';
-import { AuthUser, PspAdminUser } from '@common/types';
+import { AuthUser, PspUser } from '@common/types';
 import { AdminUser } from '@common/types';
 import {
     Transaction,
@@ -598,7 +598,7 @@ export class ReportService {
 
 
  async generatePSPReport(
-        admin: PspAdminUser,
+        admin: PspUser,
         dto: CreateAdminReportDto,
     ): Promise<SuccessResponse> {
         const { type } = dto;
@@ -839,7 +839,7 @@ export class ReportService {
         };
     }
 
-    async pspWasteDisposedReport(psp: PspAdminUser, dto: CreateAdminReportDto, month?: number) {
+    async pspWasteDisposedReport(psp: PspUser, dto: CreateAdminReportDto, month?: number) {
         const { startDate, endDate, filters } = dto;
 
         const query: any = { status: Status.Completed, pspId: new Types.ObjectId(psp.id) };
@@ -1022,7 +1022,7 @@ export class ReportService {
 
     }
 
-async getPspReports(admin:PspAdminUser , filters?: GetReportsDto ) {
+async getPspReports(admin:PspUser , filters?: GetReportsDto ) {
         const { page = 1, limit = 10 } = filters || {};
         const skip = (page - 1) * limit;
         const query: any = { adminId: admin.id };
@@ -1151,7 +1151,7 @@ async getPspTeamMemberReports(teamMember: PspTeamMember, filters?: GetReportsDto
     }
 
 
-    async getAdminReportById(reportId: string,admin:AdminUser) {
+    async getAdminReportById(reportId: string,admin:AdminUser|PspUser) {
         const report = await this.reportModel
             .findOne({
                 _id: reportId,
@@ -1170,7 +1170,7 @@ async getPspTeamMemberReports(teamMember: PspTeamMember, filters?: GetReportsDto
         };
     }
 
-  async getPspReportById(reportId: string,admin:PspAdminUser) {
+  async getPspReportById(reportId: string,admin:PspUser) {
         const report = await this.reportModel
             .findOne({
                 _id: reportId,

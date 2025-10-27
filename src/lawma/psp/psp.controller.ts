@@ -15,9 +15,9 @@ import {
 import {
   AdminAuth,
   AuthenticatedAdmin,
-  AuthenticatedPspAdmin,
+  AuthenticatedPspUser,
 } from '@common/decorators/auth.decorator';
-import { AdminUser, PspAdminUser } from '@common/types';
+import { AdminUser, PspUser } from '@common/types';
 import { AddRoleDto } from '@src/rbac/dto/rbac.dto';
 
 @ApiTags('PSPs')
@@ -97,20 +97,20 @@ export class PspController {
   }
 
   @Get('roles')
-  async getRoles(@AuthenticatedPspAdmin() pspUser: PspAdminUser) {
+  async getRoles(@AuthenticatedPspUser() pspUser: PspUser) {
     const roles = await this.pspService.getRoles(pspUser.pspId);
     return new SuccessResponse('roles fetched', roles);
   }
 
   @Get('permissions')
-  async getPermissions(@AuthenticatedPspAdmin() pspUser: PspAdminUser) {
+  async getPermissions(@AuthenticatedPspUser() pspUser: PspUser) {
     const permissions = await this.pspService.getPermissions();
     return new SuccessResponse('permissions fetched', permissions);
   }
 
   @Post('roles')
   async createRole(
-    @AuthenticatedPspAdmin() pspUser: PspAdminUser,
+    @AuthenticatedPspUser() pspUser: PspUser,
     @Body() payload: AddRoleDto,
   ) {
     await this.pspService.addRole({

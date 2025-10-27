@@ -13,7 +13,7 @@ import { Request } from 'express';
 import {
   AdminUser,
   AuthUser,
-  PspAdminUser,
+  PspUser,
   PspTeamMember,
   SmartbinPartnerUser,
 } from '../types';
@@ -49,10 +49,6 @@ export function AdminAuth() {
 export function PspUserAuth() {
   return applyDecorators(UseGuards(PspUserAuthGuard));
 }
-
-// export function PspTeamMemberAuth() {
-//   return applyDecorators(UseGuards(PspTeamMemberAuthGuard));
-// }
 
 export function SmartbinPartnerAuth() {
   return applyDecorators(UseGuards(SmartbinPartnerAuthGuard));
@@ -108,13 +104,13 @@ export const AuthenticatedAdmin = createParamDecorator(
   },
 );
 
-export const AuthenticatedPspAdmin = createParamDecorator(
+export const AuthenticatedPspUser = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
-    const req: Request & { pspAdmin: PspAdminUser } = ctx
+    const req: Request & { pspUser: PspUser } = ctx
       .switchToHttp()
       .getRequest();
     return {
-      ...req.pspAdmin,
+      ...req.pspUser,
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'],
     };

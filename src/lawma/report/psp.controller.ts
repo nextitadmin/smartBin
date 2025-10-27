@@ -13,8 +13,8 @@ import {
   AdminAuth,
   AuthenticatedAdmin,
 } from '@common/decorators/auth.decorator';
-import {PspUserAuth, AuthenticatedPspAdmin} from '@common/decorators/auth.decorator';
-import { AdminUser, PspAdminUser } from '@common/types';
+import {PspUserAuth, AuthenticatedPspUser} from '@common/decorators/auth.decorator';
+import { AdminUser, PspUser } from '@common/types';
 
 @ApiTags('PSP/Report')
 @Controller({
@@ -27,7 +27,7 @@ export class PSPReportController {
 
   @Post('report')
   async createReport(
-    @AuthenticatedPspAdmin() admin: PspAdminUser,
+    @AuthenticatedPspUser() admin: PspUser,
     @Body() dto: CreateAdminReportDto,
   ) {
     const data = await this.reportService.generatePSPReport(admin, dto);
@@ -36,7 +36,7 @@ export class PSPReportController {
 
   @Get()
   async getReports(
-    @AuthenticatedPspAdmin() admin: PspAdminUser,
+    @AuthenticatedPspUser() admin: PspUser,
     @Query() filters: GetReportsDto,
   ) {
     const reports = await this.reportService.getPspReports(admin, filters);
@@ -45,7 +45,7 @@ export class PSPReportController {
 
   @Get(':id')
   async getReportById(
-    @AuthenticatedPspAdmin() admin: AdminUser,
+    @AuthenticatedPspUser() admin: PspUser,
     @Param('id') id: string,
   ) {
     const report = await this.reportService.getAdminReportById(id, admin);

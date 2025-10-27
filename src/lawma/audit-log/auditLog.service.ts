@@ -1,4 +1,4 @@
-import { AuditLog, AuditLogSchema } from '@models/audit-log.model';
+import { AuditLog, AuditLogSchema, UserType } from '@models/audit-log.model';
 import { Injectable } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { InjectModel } from '@nestjs/mongoose';
@@ -16,7 +16,7 @@ export class AuditLogService {
 
   @OnEvent(AuditLogEvents.UserActivity)
   async logAction(event: LogActionEvent) {
-    const { administrator, action } = event.data;
+    const { administrator, action, userType } = event.data;
 
     const admin = await this.adminModel.findById(administrator.id).select('_id');
 
@@ -27,6 +27,7 @@ export class AuditLogService {
       action: action,
       platform: administrator.userAgent,
       ipAddress: administrator.ipAddress,
+      userType: userType
     });
   }
 

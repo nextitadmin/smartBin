@@ -31,7 +31,7 @@ import {
   UpdatePickupStatusDto,
   RequestPickupDto,
 } from '@src/waste-management/pickup/dto/pickup.dto';
-import { AdminUser, AuthUser, PspAdminUser } from '@common/types';
+import { AdminUser, AuthUser, PspUser } from '@common/types';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PspUsersDocument, PSPUsers } from '@models/psp-users.model';
 import { PspTeamMember } from '@common/types';
@@ -286,7 +286,7 @@ export class PickupService {
     };
   }
 
-  async getPendingPickups(psp: PspAdminUser, filters?: GetPickupsForPspDto) {
+  async getPendingPickups(psp: PspUser, filters?: GetPickupsForPspDto) {
     const { page = 1, limit = 10, search } = filters || {};
     const skip = (page - 1) * limit;
 
@@ -397,7 +397,7 @@ export class PickupService {
     return { users };
   }
 
-  async getAssignedPickups(psp: PspAdminUser, filters?: GetPickupsForPspDto) {
+  async getAssignedPickups(psp: PspUser, filters?: GetPickupsForPspDto) {
     const { page = 1, limit = 10, search } = filters || {};
     const skip = (page - 1) * limit;
     const query: any = {
@@ -462,7 +462,7 @@ export class PickupService {
     };
   }
 
-  async getCompletedPickups(psp: PspAdminUser, filters?: GetPickupsForPspDto) {
+  async getCompletedPickups(psp: PspUser, filters?: GetPickupsForPspDto) {
     const { page = 1, limit = 10, search } = filters || {};
     const skip = (page - 1) * limit;
 
@@ -527,7 +527,7 @@ export class PickupService {
   }
 
   async assignTeamMember(
-    psp: PspAdminUser,
+    psp: PspUser,
     pickupId: string,
     dto: AssignTeamMemberDto,
   ) {

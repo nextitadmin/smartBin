@@ -51,6 +51,18 @@ export class PSPUsers {
     default: PSPUsersStatus.ACTIVE,
   })
   status: PSPUsersStatus;
+
+  @Prop({
+    type: SchemaTypes.String,
+    required: true,
+  })
+  role: string;
+
+  @Prop({
+    type: SchemaTypes.Date,
+    required: false,
+  })
+  deleted_at: Date;
 }
 
 export const PSPUsersSchema = SchemaFactory.createForClass(PSPUsers);

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { AdminUser, PspAdminUser } from '@common/types';
+import { AdminUser, PspUser } from '@common/types';
 import {
   CreateAdminReportDto,GetReportsDto,
 } from '@src/report/dtos/report.dto';
@@ -27,7 +27,7 @@ export class AdminReportService {
     return this.reportService.generateSmartbinPartnerReport(admin, dto);
   }
 
-  async generatePSPReport(admin: PspAdminUser, dto: CreateAdminReportDto) {
+  async generatePSPReport(admin: PspUser, dto: CreateAdminReportDto) {
     return this.reportService.generatePSPReport(admin, dto);
   }
 
@@ -40,7 +40,7 @@ export class AdminReportService {
     return this.reportService.getAdminReports(admin, filters);
   }
 
-async  getPspReports(admin: PspAdminUser, filters: GetReportsDto) {
+async  getPspReports(admin: PspUser, filters: GetReportsDto) {
     return this.reportService.getPspReports(admin, filters);
   }
 
@@ -52,10 +52,10 @@ async getPspTeamMemberReports(teamMember: PspTeamMember, filters: GetReportsDto)
     return this.reportService.getPspTeamMemberReportById(id, teamMember);
   }
 
-  async getPspReportById(id: string, admin: PspAdminUser) {
+  async getPspReportById(id: string, admin: PspUser) {
     return this.reportService.getPspReportById(id, admin);
   }
-  async getAdminReportById(id: string, admin: AdminUser) {
+  async getAdminReportById(id: string, admin: PspUser) {
     return this.reportService.getAdminReportById(id, admin);
   }
 }

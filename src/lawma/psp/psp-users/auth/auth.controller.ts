@@ -10,10 +10,10 @@ import {
 } from '../../dto/psp.dto';
 import { SuccessResponse } from '@common/http';
 import {
-  AuthenticatedPspAdmin,
+  AuthenticatedPspUser,
   PspUserAuth,
 } from '@common/decorators/auth.decorator';
-import { PspAdminUser } from '@common/types';
+import { PspUser } from '@common/types';
 
 @ApiTags('PSPs Authentication')
 @Controller({
@@ -56,7 +56,7 @@ export class PspAuthController {
   @Post('reset-password')
   @PspUserAuth()
   async resetPassword(
-    @AuthenticatedPspAdmin() psp: PspAdminUser,
+    @AuthenticatedPspUser() psp: PspUser,
     @Body() body: PspResetPasswordDto,
   ) {
     const response = await this.pspAuthService.resetPassword(psp.id, body);
@@ -66,7 +66,7 @@ export class PspAuthController {
 
   @Post('logout')
   @PspUserAuth()
-  async logout(@AuthenticatedPspAdmin() psp: PspAdminUser) {
+  async logout(@AuthenticatedPspUser() psp: PspUser) {
     const response = await this.pspAuthService.logout(psp.token);
     return new SuccessResponse(response.message, null);
   }

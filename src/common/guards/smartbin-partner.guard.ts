@@ -7,7 +7,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { PspAdminUser, SmartbinPartnerUser } from '../types';
+import { SmartbinPartnerUser } from '../types';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from './public.guard';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';

@@ -20,10 +20,10 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { PspTeamManagement } from './teamManagement.service';
 import {
-  AuthenticatedPspAdmin,
+  AuthenticatedPspUser,
   PspUserAuth,
 } from '@common/decorators/auth.decorator';
-import { PspAdminUser } from '@common/types';
+import { PspUser } from '@common/types';
 
 @ApiTags('PSPs Team Management')
 @Controller({
@@ -36,7 +36,7 @@ export class PspTeamManagementController {
 
   @Post('members')
   async createPspMembers(
-    @AuthenticatedPspAdmin() pspAdmin: PspAdminUser,
+    @AuthenticatedPspUser() pspAdmin: PspUser,
     @Body() pspMembers: CreatePspMembersDTO,
   ) {
     const response = await this.pspTeamService.createPspMembers({
@@ -47,14 +47,14 @@ export class PspTeamManagementController {
   }
 
   @Get('members')
-  async getPspMembers(@AuthenticatedPspAdmin() pspAdmin: PspAdminUser) {
+  async getPspMembers(@AuthenticatedPspUser() pspAdmin: PspUser) {
     const response = await this.pspTeamService.getPspMembers(pspAdmin.id);
     return new SuccessResponse('psp members fetched', response);
   }
 
   @Put('members/:memberId')
   async updatePspMembersStatus(
-    @AuthenticatedPspAdmin() pspAdmin: PspAdminUser,
+    @AuthenticatedPspUser() pspAdmin: PspUser,
     @Param() param: UpdatePspMembersStatusParamDTO,
     @Body() body: UpdatePspMembersStatusBodyDTO,
   ) {

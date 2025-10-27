@@ -41,11 +41,12 @@ export type AdminUser = {
   userAgent?: string;
 };
 
-export type PspAdminUser = {
+export type PspUser = {
   id: string;
-  pspId: string;
+  pspId?: string;
   email: string;
   name: string;
+  role?:string;
   token?: string;
   ipAddress?: string;
   userAgent?: string;
