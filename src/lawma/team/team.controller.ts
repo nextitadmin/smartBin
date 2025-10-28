@@ -10,12 +10,13 @@ import {
   Param,
   Post,
   Put,
+  Patch
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { TeamService } from './team.service';
 import { AdminUser } from '@common/types';
 import { PaginatedSuccessResponse, SuccessResponse } from '@common/http';
-import { CreateLawmaTeamDto, UpdateLawmaTeamStatusDto } from './dto/team.dto';
+import { CreateLawmaTeamDto, UpdateLawmaTeamStatusDto, UpdateTeamMemberDetailsDto } from './dto/team.dto';
 import { IdParamDTO } from '@src/agent/dto/agent.dto';
 
 @ApiTags('Lawma - Team')
@@ -42,6 +43,15 @@ export class TeamController {
     const newTeam = await this.teamService.createTeam(team);
     return new SuccessResponse('Team created successfully', newTeam);
   }
+
+@Patch(':id')
+async updateTeamDetails(
+  @Param() { id }: IdParamDTO,
+  @Body() team: UpdateTeamMemberDetailsDto,
+) {
+  const updatedTeam = await this.teamService.updateTeamDetails(id, team);
+  return new SuccessResponse('Team details updated successfully', updatedTeam);
+}
 
   @Put(':id/status')
   async updateTeam(

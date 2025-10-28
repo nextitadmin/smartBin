@@ -7,7 +7,11 @@ import {
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { CreateLawmaTeamDto, UpdateLawmaTeamStatusDto } from './dto/team.dto';
+import {
+  CreateLawmaTeamDto,
+  UpdateLawmaTeamStatusDto,
+  UpdateTeamMemberDetailsDto,
+} from './dto/team.dto';
 import { getHashedPassword } from '@common/utils';
 import { Paging } from '@common/http';
 
@@ -57,6 +61,37 @@ export class TeamService {
       ...team,
       password: getHashedPassword('password'),
     });
+  }
+
+  async updateTeamDetails(id: string, team: UpdateTeamMemberDetailsDto) {
+    const teamMember = await this.teamMemberModel
+      .findById(id)
+      .select('name email phoneNumber role status createdAt');
+
+    if (!teamMember) {
+      throw new BadRequestException('Team not found');
+    }
+
+    const existingEmail = await this.teamMemberModel.findOne({
+      email: team.email,
+      _id: { $ne: id },
+    });
+
+    if (existingEmail) {
+      throw new BadRequestException(
+        'Team member with this email already exists',
+      );
+    }
+
+    await this.teamMemberModel.findByIdAndUpdate(id, {
+      $set: {
+        name: team.name,
+        email: team.email,
+        phoneNumber: team.phoneNumber,
+        role: team.role,
+      },
+    });
+    return teamMember;
   }
 
   async updateTeam(id: string, team: UpdateLawmaTeamStatusDto) {

@@ -1,6 +1,6 @@
 import { AdministratorRole } from '@models/administrator.model';
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString } from 'class-validator';
+import { IsString,IsEnum,IsOptional,IsEmail } from 'class-validator';
 
 export class CreateLawmaTeamDto {
   @ApiProperty()
@@ -24,4 +24,28 @@ export class UpdateLawmaTeamStatusDto {
   @ApiProperty()
   @IsString()
   status: string;
+}
+
+export class UpdateTeamMemberDetailsDto{
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  phoneNumber?: string;
+
+  @ApiProperty()
+  @IsEnum({enum:AdministratorRole})
+  @IsOptional()
+  role?: AdministratorRole;
+
 }
