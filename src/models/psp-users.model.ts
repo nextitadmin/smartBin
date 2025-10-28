@@ -9,7 +9,13 @@ export enum PSPUsersStatus {
 
 export type PspUsersDocument = PSPUsers & Document;
 
-@Schema({ collection: 'psp-users', timestamps: true, versionKey: false })
+@Schema({
+  collection: 'psp-users',
+  timestamps: true,
+  versionKey: false,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true },
+})
 export class PSPUsers {
   @Prop({
     type: SchemaTypes.ObjectId,
@@ -35,7 +41,10 @@ export class PSPUsers {
   })
   email: string;
 
-  @Prop({ required: true })
+  @Prop({
+    required: true,
+    set: (val: string) => getHashedPassword(val),
+  })
   password: string;
 
   @Prop({
@@ -66,10 +75,3 @@ export class PSPUsers {
 }
 
 export const PSPUsersSchema = SchemaFactory.createForClass(PSPUsers);
-
-PSPUsersSchema.pre('save', function (next) {
-  if (this.isModified('password')) {
-    this.password = getHashedPassword(this.password);
-  }
-  next();
-});

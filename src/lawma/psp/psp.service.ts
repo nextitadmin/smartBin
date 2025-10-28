@@ -43,7 +43,8 @@ export class PspService {
   }
 
   async createPsp(psp: CreatePspDTO, admin: AdminUser) {
-    const password = generateRandomChars(6, 'alphanum');
+    const password = generateRandomChars(9, 'alphanum');
+    console.log(password);
 
     const pspData = await this.psp.create({ ...psp });
 

@@ -91,14 +91,16 @@ export class PspAuthService {
     const pspId = await this.cacheService.get(
       CacheKeys.PspLoginCode(loginCode),
     );
+ 
 
     if (!pspId) {
       throw new UnauthorizedException('Session expired. Please log in again.');
     }
 
+
     const pspUser = await this.pspUserModel
       .findOne({
-        psp_id: pspId
+        _id: pspId
       })
       .select('-password')
       .lean();

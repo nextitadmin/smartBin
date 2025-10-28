@@ -29,11 +29,6 @@ export class PSP {
   })
   administrator_email: string;
 
-  @Prop({
-    required: true,
-    set: (val: string) => getHashedPassword(val),
-  })
-  password: string;
 
   @Prop({
     type: SchemaTypes.String,
