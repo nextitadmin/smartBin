@@ -76,8 +76,8 @@ export interface SmartBinAttributes {
   updatedAt?: Date;
   applicationHistory: [
     {
-      timestamp: Date; // date
-      status: string; // activated, delivered, scheduledForDelivery, delivered, cancelled //enum
+      timestamp: Date; 
+      status:SmartbinStatus
       description: string;
     },
   ];
@@ -90,8 +90,10 @@ class ApplicationHistoryItem {
   @Prop({ type: Date, required: true })
   timestamp: Date;
 
-  @Prop({ type: String, required: true })
-  status: string;
+  @Prop( { type: String,
+    enum: Object.values(SmartbinStatus),
+    default: SmartbinStatus.Pending})
+  status: SmartbinStatus;
 
   @Prop({ type: String, required: true })
   description: string;

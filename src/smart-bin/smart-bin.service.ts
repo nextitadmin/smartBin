@@ -54,6 +54,7 @@ import { CustomerType } from '@models/report.model';
 import { Paging } from '@common/http';
 import { TeamMember } from '@models/team.model';
 import { LAGOS_LGAS } from '@src/utility/utility.constants';
+import { timestamp } from 'rxjs';
 
 @Injectable()
 export class SmartBinService {
@@ -71,8 +72,9 @@ export class SmartBinService {
     @InjectModel(Transaction.name)
     private readonly transactionModel: Model<Transaction>,
     private readonly eventEmitter: EventEmitter2,
-    @InjectModel(TeamMember.name) private readonly teamMemberModel: Model<TeamMember>,
-  ) { }
+    @InjectModel(TeamMember.name)
+    private readonly teamMemberModel: Model<TeamMember>,
+  ) {}
 
   async getResidentBinApplication(residentId: string, page = 1, limit = 10) {
     const skip = (page - 1) * limit;
@@ -118,7 +120,6 @@ export class SmartBinService {
     return applications;
   }
 
-
   async getAgentBinApplication(filter: AgentBinApplicationFilter) {
     const page = filter.page ?? 1;
     const limit = filter.limit ?? 10;
@@ -141,12 +142,15 @@ export class SmartBinService {
       applications.map(async (app) => {
         let customerName = app.name || app.businessName;
         if (!customerName && app.userId) {
-
           if (app.customerType === 'Resident') {
-            const user = await this.residentModel.findById(app.userId, 'firstName lastName').lean();
+            const user = await this.residentModel
+              .findById(app.userId, 'firstName lastName')
+              .lean();
             customerName = `${user.firstName} ${user.lastName}`;
           } else if (app.customerType === 'Corporate') {
-            const corp = await this.corporateModel.findById(app.userId, 'businessName').lean();
+            const corp = await this.corporateModel
+              .findById(app.userId, 'businessName')
+              .lean();
             customerName = corp?.businessName;
           }
         }
@@ -155,8 +159,8 @@ export class SmartBinService {
           customerName,
           ...app,
         };
-      })
-    )
+      }),
+    );
 
     return {
       data,
@@ -168,7 +172,6 @@ export class SmartBinService {
       },
     };
   }
-
 
   async getCorporateBinApplication(corporateId: string, page = 1, limit = 10) {
     const skip = (page - 1) * limit;
@@ -239,7 +242,9 @@ export class SmartBinService {
   // overview
   async getSmartBinOverview() {
     const totalApplications = await this.smartbinModel.countDocuments();
-  const totalSmartbinUsers = await this.smartbinModel.distinct('userId').countDocuments();
+    const totalSmartbinUsers = await this.smartbinModel
+      .distinct('userId')
+      .countDocuments();
     const deliveredApplications = await this.smartbinModel.countDocuments({
       status: SmartbinStatus.Delivered,
     });
@@ -260,7 +265,7 @@ export class SmartBinService {
       },
     ]);
 
-  const lgaCounts = new Map(
+    const lgaCounts = new Map(
       smartbinUsersByLGAFromDB.map((item) => [item.lga, item.count]),
     );
 
@@ -294,7 +299,9 @@ export class SmartBinService {
   }
 
   async getAdminSmartbinOverview() {
-    const totalSmartbinUsers = await this.smartbinModel.distinct('userId').countDocuments();
+    const totalSmartbinUsers = await this.smartbinModel
+      .distinct('userId')
+      .countDocuments();
     const smartbinRequests = await this.smartbinModel.countDocuments();
     const deliveredSmartbins = await this.smartbinModel.countDocuments({
       status: SmartbinStatus.Delivered,
@@ -316,7 +323,7 @@ export class SmartBinService {
       },
     ]);
 
-  const lgaCounts = new Map(
+    const lgaCounts = new Map(
       smartbinUsersByLGAFromDB.map((item) => [item.lga, item.count]),
     );
 
@@ -332,8 +339,6 @@ export class SmartBinService {
       smartbinUsersByLGA,
     };
   }
-
-
 
   // delivered bins
   async getDeliveredSmartBins(page: number, limit: number) {
@@ -373,9 +378,6 @@ export class SmartBinService {
       },
     };
   }
-
-
-
 
   async getAllApplications(page: number, limit: number) {
     const skip = (page - 1) * limit;
@@ -420,20 +422,23 @@ export class SmartBinService {
     const page = filters?.page ?? 1;
     const limit = filters?.limit ?? 10;
     const skip = (page - 1) * limit;
-    const [
-      totalOrders,
-      orderValueAgg,
-      ongoingOrders,
-      completedOrders
-    ] = await Promise.all([
-      this.smartbinModel.countDocuments(),
-      this.transactionModel.aggregate([
-        { $match: { service: ServiceType.SmartBinPurchase, status: TransactionStatus.Successful } },
-        { $group: { _id: null, total: { $sum: '$amount' } } }
-      ]),
-      this.smartbinModel.countDocuments({ status: { $in: [SmartbinStatus.Pending, SmartbinStatus.Approved] } }),
-      this.smartbinModel.countDocuments({ status: SmartbinStatus.Delivered })
-    ]);
+    const [totalOrders, orderValueAgg, ongoingOrders, completedOrders] =
+      await Promise.all([
+        this.smartbinModel.countDocuments(),
+        this.transactionModel.aggregate([
+          {
+            $match: {
+              service: ServiceType.SmartBinPurchase,
+              status: TransactionStatus.Successful,
+            },
+          },
+          { $group: { _id: null, total: { $sum: '$amount' } } },
+        ]),
+        this.smartbinModel.countDocuments({
+          status: { $in: [SmartbinStatus.Pending, SmartbinStatus.Approved] },
+        }),
+        this.smartbinModel.countDocuments({ status: SmartbinStatus.Delivered }),
+      ]);
 
     const [orders, total] = await Promise.all([
       this.smartbinModel
@@ -454,7 +459,7 @@ export class SmartBinService {
       name: order?.name,
       phoneNumber: order?.phoneNumber,
       lga: order?.localGovernmentArea,
-      orderDate: order.createdAt, 
+      orderDate: order.createdAt,
       status: order.status,
     }));
 
@@ -476,75 +481,77 @@ export class SmartBinService {
   }
 
   // Assign team member to schedule delivery
-  async scheduleDelivery(
-    filters: scheduleDeliveryDto,
-) {
-  const smartbin = await this.smartbinModel.findById(filters.applicationId);
-  if (!smartbin) {
-    throw new NotFoundException('Bin application not found');
-  }
+  async scheduleDelivery(filters: scheduleDeliveryDto) {
+    const smartbin = await this.smartbinModel.findById(filters.applicationId);
+    if (!smartbin) {
+      throw new NotFoundException('Bin application not found');
+    }
 
-  if (smartbin.status === SmartbinStatus.Delivered) {
-    throw new BadRequestException('This SmartBin has already been delivered.');
-  }
+    if (smartbin.status === SmartbinStatus.Delivered) {
+      throw new BadRequestException(
+        'This SmartBin has already been delivered.',
+      );
+    }
 
-  const teamMember = await this.teamMemberModel.findById(filters.teamMemberId);
-  if (!teamMember) {
-    throw new NotFoundException('Team member not found');
-  }
+    const teamMember = await this.teamMemberModel.findById(
+      filters.teamMemberId,
+    );
+    if (!teamMember) {
+      throw new NotFoundException('Team member not found');
+    }
 
-  smartbin.status = SmartbinStatus.ScheduledForDelivery;
-  smartbin.assignedTo = String(teamMember._id); // <-- store relation to team member as string
-  smartbin.applicationHistory.push({
-    timestamp: new Date(),
-    status: SmartbinStatus.ScheduledForDelivery,
-    description: filters.comment || `Scheduled for delivery by ${teamMember.name}`,
-  });
+    smartbin.status = SmartbinStatus.ScheduledForDelivery;
+    smartbin.assignedTo = String(teamMember._id); // <-- store relation to team member as string
+    smartbin.applicationHistory.push({
+      timestamp: new Date(),
+      status: SmartbinStatus.ScheduledForDelivery,
+      description:
+        filters.comment || `Scheduled for delivery by ${teamMember.name}`,
+    });
 
-  await smartbin.save();
+    await smartbin.save();
 
-  // 1️⃣ email notification
-  this.eventEmitter.emit(
-    MailNotificationEvents.Application.SmartBinUpdate,
-    new SendEmailEvent({
-      to: teamMember.email,
-      from: `"LAWMA REG" <accounts@lawma.co>`,
-      subject: 'New SmartBin Delivery Assigned',
-      context: {
-        teamMember: teamMember.name,
-        binId: smartbin.binId,
-        address: smartbin.address,
-        customer: smartbin.name || smartbin.businessName,
-        comment: filters.comment,
+    // 1️⃣ email notification
+    this.eventEmitter.emit(
+      MailNotificationEvents.Application.SmartBinUpdate,
+      new SendEmailEvent({
+        to: teamMember.email,
+        from: `"LAWMA REG" <accounts@lawma.co>`,
+        subject: 'New SmartBin Delivery Assigned',
+        context: {
+          teamMember: teamMember.name,
+          binId: smartbin.binId,
+          address: smartbin.address,
+          customer: smartbin.name || smartbin.businessName,
+          comment: filters.comment,
+        },
+      }),
+    );
+
+    // 1️⃣ in-app notification
+    this.eventEmitter.emit(
+      events.notifications.created,
+      new NotificationEvent({
+        userId: String(teamMember.userId), // link notification to actual user
+        title: 'SmartBin Delivery Scheduled',
+        text: `You have been assigned to deliver SmartBin ${smartbin.binId}.`,
+        type: NotificationType.SmartBinUpdate,
+      }),
+    );
+
+    return {
+      message: 'SmartBin delivery scheduled successfully',
+      applicationId: filters.applicationId,
+      status: smartbin.status,
+      assignedTo: {
+        id: teamMember._id,
+        name: teamMember.name,
+        email: teamMember.email,
+        phoneNumber: teamMember.phoneNumber,
       },
-    }),
-  );
-
-  // 1️⃣ in-app notification 
-  this.eventEmitter.emit(
-    events.notifications.created,
-    new NotificationEvent({
-      userId: String(teamMember.userId), // link notification to actual user
-      title: 'SmartBin Delivery Scheduled',
-      text: `You have been assigned to deliver SmartBin ${smartbin.binId}.`,
-      type: NotificationType.SmartBinUpdate,
-    }),
-  );
-
-  return {
-    message: 'SmartBin delivery scheduled successfully',
-    applicationId: filters.applicationId,
-    status: smartbin.status,
-    assignedTo: {
-      id: teamMember._id,
-      name: teamMember.name,
-      email: teamMember.email,
-      phoneNumber: teamMember.phoneNumber,
-    },
-    comment: filters.comment,
-  };
-}
-
+      comment: filters.comment,
+    };
+  }
 
   // Get bin application by ID
   async getBinApplicationById(id: string) {
@@ -557,47 +564,102 @@ export class SmartBinService {
     }
     return smartbin;
   }
-  // Update bin application status
-  async updateBinApplicationStatus(user: AuthUser, id: string, status: string) {
-    const smartbin = await this.smartbinModel
-      .findByIdAndUpdate(id, { status }, { new: true })
-      .lean();
-    if (!smartbin) {
-      throw new NotFoundException('Bin application not found');
-    }
-    // 1️⃣ Email notification
-    this.eventEmitter.emit(
-      MailNotificationEvents.Application.SmartBinUpdate,
-      new SendEmailEvent({
-        to: user.email,
-        from: `"LAWMA REG" <accounts@lawma.co>`,
-        subject: 'SmartBin Application Status Update',
-        context: {
-          name: user.firstName,
-          status: status,
-          applicationId: id,
+ 
+  async updateStatus(orderId: string, newStatus: SmartbinStatus) {
+    const statusMessages = {
+      [SmartbinStatus.Pending]:
+        'Your application has been received and is awaiting approval',
+      [SmartbinStatus.Inventory]:
+        'Your smart bin has been allocated in inventory',
+      [SmartbinStatus.ScheduledForDelivery]:
+        'Your smart bin has been scheduled for delivery',
+      [SmartbinStatus.Delivered]: 'Your smart bin was delivered successfully',
+      [SmartbinStatus.Activated]: 'Smart bin has been successfully activated',
+    };
+
+    const order = await this.smartbinModel.findOneAndUpdate(
+      { _id: orderId },
+      {
+        $set: { status: newStatus },
+        $push: {
+          applicationHistory: {
+            status: newStatus,
+            timestamp: new Date(),
+            description: statusMessages[newStatus],
+          },
         },
-      }),
+      },
+      { new: true },
     );
 
-    // 2️⃣ In-app notification
-    this.eventEmitter.emit(
-      events.notifications.created,
-      new NotificationEvent({
-        userId: user.id,
-        title: 'SmartBin Application',
-        text: `Your SmartBin application status has been updated to ${status}.`,
-        type: NotificationType.SmartBinUpdate,
-      }),
-      // new SendInAppEvent({
-      //   userId: user.id,
-      //   text: `Your SmartBin application status has been updated to ${status}.`,
-      //   type: NotificationType.SmartBinUpdate,
-      //   isRead: false,
-      // }),
+    return order;
+  }
+
+
+  private async inferCustomerName(
+    userId: Types.ObjectId,
+    customerType: UserRole,
+  ): Promise<string> {
+    let customer: any;
+    if (customerType === UserRole.Resident) {
+      customer = await this.residentModel
+        .findById(userId)
+        .select('firstName lastName')
+        .lean();
+    } else if (customerType === UserRole.Corporate) {
+      customer = await this.corporateModel
+        .findById(userId)
+        .select('businessName')
+        .lean();
+    } else if (customerType === UserRole.Agent) {
+      customer = await this.agentModel
+        .findById(userId)
+        .select('firstName lastName')
+        .lean();
+    } else if (customerType === UserRole.Facility) {
+      customer = await this.facilityModel
+        .findById(userId)
+        .select('firstName lastName')
+        .lean();
+    }
+
+    if (!customer) {
+      return 'N/A';
+    }
+
+    if (customerType === UserRole.Corporate) {
+      return customer.businessName || 'N/A';
+    } else {
+      return `${customer.firstName || ''} ${customer.lastName || ''}`.trim();
+    }
+  }
+
+
+  async getOrderTimeline(id: string) {
+    const order = await this.smartbinModel
+      .findOne({ _id: id })
+      .select(
+        'id businessName name email address applicationHistory createdAt userId customerType',
+      )
+      .lean();
+
+    if (!order) throw new NotFoundException('Order not found');
+    const customerName = await this.inferCustomerName(
+      order.userId as Types.ObjectId,
+      order.customerType as UserRole,
     );
 
-    return smartbin;
+    return {
+      orderId: order._id,
+      dateProcessed: order.createdAt,
+      customerName: customerName,
+      customerType: order.customerType,
+      destination: order.address,
+      timeline: order.applicationHistory.sort(
+        (a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+      ),
+    };
   }
 
   async createFacilityBinApplication({
@@ -781,14 +843,17 @@ export class SmartBinService {
     const smartBin:
       | (SmartbinDocument & { payment: TransactionAttributes })
       | any = await this.smartbinModel
-        .findById(applicationId)
-        .populate('payment');
+      .findById(applicationId)
+      .populate('payment');
 
     if (!smartBin) {
       throw new NotFoundException('Bin application not found');
     }
 
-    if (smartBin.payment && smartBin.payment.status === TransactionStatus.Successful) {
+    if (
+      smartBin.payment &&
+      smartBin.payment.status === TransactionStatus.Successful
+    ) {
       throw new BadRequestException('Application already paid!');
     }
 

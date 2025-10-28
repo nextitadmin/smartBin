@@ -1,3 +1,4 @@
+import { SmartbinStatus } from '@models/smart-bin.model';
 import { Injectable } from '@nestjs/common';
 import { orderBinsDto, scheduleDeliveryDto } from '@src/smart-bin/dto/binAppDto';
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
@@ -21,6 +22,13 @@ export class LawmaSmartbinsService {
 
   async getBinApplicationDetails(applicationId: string) {
     return this.smartBinService.getBinApplicationDetails(applicationId);
+  }
+
+  async updateBinApplicationStatus(orderId: string, newStatus: SmartbinStatus){
+    return this.smartBinService.updateStatus(orderId, newStatus);
+  }
+  async getOrderTimeline(orderId: string) {
+    return this.smartBinService.getOrderTimeline(orderId);
   }
 
   async getDeliveredSmartBins(page: number, limit: number) {

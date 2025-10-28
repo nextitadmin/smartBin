@@ -31,6 +31,12 @@ export class AgentSmartbinService {
   async getApplicationById(id: string) {
     return this.smartbinService.getBinApplicationById(id);
   }
+  
+   async trackApplicationById(id: string) {
+    return this.smartbinService.getOrderTimeline(id);
+  }
+
+
 
   async deleteBinApplication(applicationId: string) {
     return this.smartbinService.deleteBinApplication(applicationId);
