@@ -231,20 +231,14 @@ export class ResidentController {
     );
   }
 
-  @Patch('smartbin/:applicationId/status')
-  async updateBinApplicationStatus(
-    @Param('applicationId') applicationId: string,
-    @Body() dto: UpdateSmartBinStatusDto,
-    @AuthenticatedResident() resident: AuthUser,
-  ) {
-    return this.residentService.updateBinApplicationStatus(
-      resident,
-      applicationId,
-      dto.status,
-    );
+ @Get('smart-bin-applications/:orderId/tracker')
+  @ResidentAuth()
+  async trackApplication(@Param('orderId') orderId: string) {
+    return this.residentService.trackApplication(orderId);
   }
 
   @Delete('smartbin/:applicationId')
+   @ResidentAuth()
   async deleteApplication(@Param('applicationId') applicationId: string) {
     await this.residentService.deleteBinApplication(applicationId);
     return new SuccessResponse('application deleted', null);

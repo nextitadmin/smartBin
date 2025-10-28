@@ -70,6 +70,12 @@ export class AgentSmartbinController {
   }
 
 
+    @Get(':orderId/status-timeline')
+    async getOrderTimeline(@Param('orderId') orderId: string) {
+      return this.agentSmartbinService.trackApplicationById(orderId);
+    }
+
+
   @Delete(':id')
   async deleteBinApplication(@Param() { id }: IdParamDTO) {
     const response = await this.agentSmartbinService.deleteBinApplication(id);

@@ -523,18 +523,12 @@ export class ResidentService {
     return data;
   }
 
-  async updateBinApplicationStatus(
-    user: AuthUser,
-    applicationId: string,
-    status: SmartBinApplicationStatus,
-  ) {
-    const data = await this.smartBinService.updateBinApplicationStatus(
-      user,
-      applicationId,
-      status,
-    );
-    return data;
+ 
+
+  async trackApplication(applicationId: string){
+    return this.smartBinService.getOrderTimeline(applicationId);
   }
+
 
   async deleteBinApplication(applicationId: string) {
     return this.smartBinService.deleteBinApplication(applicationId);

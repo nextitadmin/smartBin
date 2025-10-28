@@ -75,6 +75,11 @@ export class SmartBinController {
     );
   }
 
+  @Get('applications/:orderId/tracker')
+      async trackApplication(@Param('orderId') orderId: string) {
+        return this.smartBinService.getOrderTimeline(orderId);
+    }
+
   @Delete('applications/:id')
   async deleteBinApplication(
     @AuthenticatedFacilityManager() facilityManager: FacilityManagerUser,
