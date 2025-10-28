@@ -10,10 +10,10 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { LawmaWasteManagementService } from './waste-management.service';
 import {
-  PspAdminAuth,
-  AuthenticatedPspAdmin,
+  PspUserAuth,
+  AuthenticatedPspUser,
 } from '@common/decorators/auth.decorator';
-import { PspAdminUser } from '@common/types';
+import { PspUser } from '@common/types';
 import { Status } from '@models/pickup';
 import {
   GetPickupDto,
@@ -26,7 +26,7 @@ import {
   path: 'psp/waste-management',
   version: '1',
 })
-@PspAdminAuth()
+@PspUserAuth()
 export class PspWasteManagementController {
   constructor(
     private readonly wasteManagementService: LawmaWasteManagementService,
@@ -34,7 +34,7 @@ export class PspWasteManagementController {
 
   @Get('pickups/pending')
   async getPickupRequests(
-    @AuthenticatedPspAdmin() psp: PspAdminUser,
+    @AuthenticatedPspUser() psp: PspUser,
     @Query() filters?: GetPickupDto,
   ) {
     return this.wasteManagementService.getPickupRequest(psp, filters);
@@ -47,7 +47,7 @@ export class PspWasteManagementController {
 
   @Get('completed')
   async getCompletedPickups(
-    @AuthenticatedPspAdmin() psp: PspAdminUser,
+    @AuthenticatedPspUser() psp: PspUser,
     @Query() filters?: GetPickupDto,
   ) {
     return this.wasteManagementService.getCompletedPickups(psp, filters);
@@ -55,7 +55,7 @@ export class PspWasteManagementController {
 
   @Patch('pickups/:id/assign-team-member')
   async assignTeamMember(
-    @AuthenticatedPspAdmin() psp: PspAdminUser,
+    @AuthenticatedPspUser() psp: PspUser,
     @Param('id') id: string,
     @Body() dto: AssignTeamMemberDto,
   ) {
@@ -64,7 +64,7 @@ export class PspWasteManagementController {
 
   @Get('assigned-pickups')
   async getAssignedPickups(
-    @AuthenticatedPspAdmin() psp: PspAdminUser,
+    @AuthenticatedPspUser() psp: PspUser,
     @Query() filters?: GetPickupDto,
   ) {
     return this.wasteManagementService.getAssignedPickups(psp, filters);

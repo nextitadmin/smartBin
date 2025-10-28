@@ -7,26 +7,26 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import { PspAdminUser } from '../types';
+import { PspUser } from '../types';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from './public.guard';
 import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
-import { PspAuthService } from '@src/lawma/psp/psp-admin/auth/auth.service';
+import { PspAuthService } from '@src/lawma/psp/psp-users/auth/auth.service';
 
 @Injectable()
-export class PspAdminAuthGuard implements CanActivate {
+export class PspUserAuthGuard implements CanActivate {
   constructor(
     @Inject(CACHE_MANAGER) private cacheService: Cache,
     private readonly reflector: Reflector,
     private readonly pspAuthService: PspAuthService,
   ) {}
 
-  private logger = new Logger(PspAdminAuthGuard.name);
+  private logger = new Logger(PspUserAuthGuard.name);
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
     const req: Request & {
       user: Record<string, any>;
-      pspAdmin?: PspAdminUser;
+      pspUser?: PspUser;
     } = ctx.switchToHttp().getRequest();
 
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -43,18 +43,19 @@ export class PspAdminAuthGuard implements CanActivate {
       throw new UnauthorizedException('Not Authorized');
     }
 
-    const administrator =
-      await this.pspAuthService.getAdminDetailsByToken(token);
-    if (!administrator) {
+    const pspUser = await this.pspAuthService.getAdminDetailsByToken(token);
+    if (!pspUser) {
       this.logger.warn('failed to auth: no user object in request');
       throw new UnauthorizedException('not authenticated!');
     }
 
-    req.pspAdmin = {
-      id: String(administrator._id),
-      pspId: String(administrator.id), // this should be replaced when model is complete
-      email: administrator.administrator_email,
-      name: administrator.administrator_name,
+    const { _id, psp_id, email, name } = pspUser;
+
+    req.pspUser = {
+      id: String(_id),
+      pspId: String(psp_id), // this should be replaced when model is complete
+      email: email,
+      name: name,
       token: token,
     };
 

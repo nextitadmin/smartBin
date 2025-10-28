@@ -2,7 +2,7 @@ import { SuccessResponse } from '@common/http';
 import { Status } from '@models/pickup';
 import { Injectable } from '@nestjs/common';
 import { PickupService } from '@src/waste-management/pickup/pickup.service';
-import { AdminUser,PspAdminUser, PspTeamMember } from '@common/types';
+import { AdminUser,PspUser, PspTeamMember } from '@common/types';
 import { GetPickupDto ,AssignTeamMemberDto, UpdatePickupStatusDto} from '@src/waste-management/pickup/dto/pickup.dto';
 
 @Injectable()
@@ -22,7 +22,7 @@ export class LawmaWasteManagementService {
 
 
 
-  async getPickupRequest(psp:PspAdminUser, filters?: GetPickupDto) {
+  async getPickupRequest(psp:PspUser, filters?: GetPickupDto) {
     const pendingPickups = await this.pickupService.getPendingPickups(psp,filters);
     return new SuccessResponse('Pickup requests retrieved successfully', pendingPickups);
   }
@@ -31,7 +31,7 @@ export class LawmaWasteManagementService {
     const pickup = await this.pickupService.getPickupByWasteId(id);
     return new SuccessResponse('Pickup retrieved successfully', pickup);
   }
-  async getCompletedPickups (psp:PspAdminUser,filters?:GetPickupDto){
+  async getCompletedPickups (psp:PspUser, filters?:GetPickupDto){
     const completedPickups = await this.pickupService.getCompletedPickups(psp,filters)
     return new SuccessResponse ('Completed Pickups retrieved successfully', completedPickups)
   }
@@ -45,7 +45,7 @@ export class LawmaWasteManagementService {
   }
 
   async assignTeamMember(
-    psp:PspAdminUser,
+    psp:PspUser,
     id: string,
     dto:AssignTeamMemberDto,
   ) {
@@ -57,12 +57,12 @@ export class LawmaWasteManagementService {
     return new SuccessResponse('Team member assigned successfully', updatedPickup);
   }
 
-  async getAssignedPickups(psp:PspAdminUser, filters?: GetPickupDto) {
+  async getAssignedPickups(psp:PspUser, filters?: GetPickupDto) {
     const assignedPickups = await this.pickupService.getAssignedPickups(psp,filters);
     return new SuccessResponse('Assigned pickups retrieved successfully', assignedPickups);
   }
 
-  async getTeammemberAssignedPickup(pspTeamMember:PspTeamMember, filters?: GetPickupDto) {
+  async getTeammemberAssignedPickup(pspTeamMember:PspUser, filters?: GetPickupDto) {
     const assignedPickups = await this.pickupService.getPickupAssignedToTeammember(pspTeamMember,filters);
     return new SuccessResponse('Assigned pickups retrieved successfully', assignedPickups);
   }

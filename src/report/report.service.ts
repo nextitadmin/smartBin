@@ -15,7 +15,7 @@ import {
   CreateAutoReportDto,
 } from './dtos/report.dto';
 import { SuccessResponse } from '@common/http';
-import { AuthUser, PspAdminUser } from '@common/types';
+import { AuthUser, PspUser } from '@common/types';
 import { AdminUser } from '@common/types';
 import {
   Transaction,
@@ -652,7 +652,7 @@ export class ReportService {
   }
 
   async generatePSPReport(
-    admin: PspAdminUser,
+    admin: PspUser,
     dto: CreateAdminReportDto,
   ): Promise<SuccessResponse> {
     const { type } = dto;
@@ -974,7 +974,7 @@ export class ReportService {
   }
 
   async pspWasteDisposedReport(
-    psp: PspAdminUser,
+    psp: PspUser,
     dto: CreateAdminReportDto,
     month?: number,
   ) {
@@ -1280,7 +1280,7 @@ export class ReportService {
     };
   }
 
-  async getPspReports(admin: PspAdminUser, filters?: GetReportsDto) {
+  async getPspReports(admin: PspUser, filters?: GetReportsDto) {
     const { page = 1, limit = 10 } = filters || {};
     const skip = (page - 1) * limit;
     const query: any = { adminId: admin.id };
@@ -1441,7 +1441,7 @@ export class ReportService {
     };
   }
 
-  async getPspReportById(reportId: string, admin: PspAdminUser) {
+  async getPspReportById(reportId: string, admin: PspUser) {
     const report = await this.reportModel
       .findOne({
         _id: reportId,

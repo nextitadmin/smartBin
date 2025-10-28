@@ -3,6 +3,7 @@ import { AdminUser } from "@common/types";
 export interface LogActionEventData {
   administrator: AdminUser;
   action: string;
+  userType: string;
 };
 
 export enum LogStatement {

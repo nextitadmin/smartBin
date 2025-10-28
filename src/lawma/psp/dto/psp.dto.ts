@@ -1,4 +1,4 @@
-import { PSPMembersStatus } from '@models/psp-members.model';
+import { PSPUsersStatus } from '@models/psp-users.model';
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
@@ -74,12 +74,12 @@ export class DeletePspMembersParamDTO {
 
 export class UpdatePspMembersStatusBodyDTO {
   @ApiProperty({
-    enum: Object.values(PSPMembersStatus),
-    example: PSPMembersStatus.ACTIVE,
+    enum: Object.values(PSPUsersStatus),
+    example: PSPUsersStatus.ACTIVE,
   })
   @IsString()
-  @IsIn(Object.values(PSPMembersStatus))
-  status: PSPMembersStatus;
+  @IsIn(Object.values(PSPUsersStatus))
+  status: PSPUsersStatus;
 }
 
 export class IdDTO {

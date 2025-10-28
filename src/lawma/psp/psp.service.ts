@@ -1,4 +1,4 @@
-import { PSPMembers, PspMembersDocument } from '@models/psp-members.model';
+import { PSPUsers, PspUsersDocument } from '@models/psp-users.model';
 import { PSP, PspDocument } from '@models/psp.model';
 import { Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
@@ -8,7 +8,7 @@ import { UpdatePspMembersStatusBodyDTO } from './dto/psp.dto';
 import { Lga } from '@models/lgas.model';
 import { Administrator, AdministratorRole } from '@models/administrator.model';
 import { AuditLogEvents, LogActionEvent } from '../audit-log/dto/event';
-import { LOGTYPE } from '@models/audit-log.model';
+import { LOGTYPE, UserType } from '@models/audit-log.model';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AdminUser } from '@common/types';
 import {
@@ -31,8 +31,8 @@ export class PspService {
   constructor(
     @InjectModel(PSP.name)
     private readonly psp: Model<PspDocument>,
-    @InjectModel(PSPMembers.name)
-    private readonly pspMembers: Model<PspMembersDocument>,
+    @InjectModel(PSPUsers.name)
+    private readonly pspUser: Model<PspUsersDocument>,
     @InjectModel(Lga.name) private lga: Model<Lga>,
     private readonly ee: EventEmitter2,
     @Inject(CACHE_MANAGER) private cacheService: Cache,
@@ -45,7 +45,21 @@ export class PspService {
   async createPsp(psp: CreatePspDTO, admin: AdminUser) {
     const password = generateRandomChars(6, 'alphanum');
 
-    const pspData = await this.psp.create({ ...psp, password: password });
+    const pspData = await this.psp.create({ ...psp });
+
+    await this.pspUser.create({
+      psp_id: pspData._id,
+      psp_details: {
+        _id: pspData._id,
+        company_name: pspData.company_name
+      },
+      name: pspData.administrator_name,
+      email: pspData.administrator_email,
+      password: password,
+      phone_number: pspData.administrator_phone,
+      status: "active",
+      role: "administrator",
+    })
 
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
 
@@ -61,6 +75,7 @@ export class PspService {
       new LogActionEvent({
         administrator: admin,
         action: LOGTYPE.PspAdded,
+        userType: UserType.Admin,
       }),
     );
 
@@ -89,13 +104,16 @@ export class PspService {
   }
 
   async createPspMembers(pspMembers: CreatePspMembersDTO & { psp_id: string }) {
+    const password = generateRandomChars(6, 'alphanum');
+    
     const psp = await this.psp
       .findById(pspMembers.psp_id)
       .select('company_name');
-    return this.pspMembers.create({
+    return this.pspUser.create({
       ...pspMembers,
       psp_details: psp,
       psp_id: pspMembers.psp_id,
+      password: password
     });
   }
 
@@ -121,7 +139,7 @@ export class PspService {
   }
 
   async getPspMembers(pspId: string) {
-    return this.pspMembers.find({ psp_id: pspId, deleted_at: null });
+    return this.pspUser.find({ psp_id: pspId, deleted_at: null });
   }
 
   async updatePsp(pspId: string, psp: PspDocument) {
@@ -133,7 +151,7 @@ export class PspService {
     memberId,
     status,
   }: UpdatePspMembersStatusBodyDTO & { pspId: string; memberId: string }) {
-    return this.pspMembers.findByIdAndUpdate(
+    return this.pspUser.findByIdAndUpdate(
       {
         _id: memberId,
         psp_id: pspId,
@@ -155,7 +173,7 @@ export class PspService {
 
   async deletePspMembers(pspMembersId: string) {
     // return this.pspMembers.findByIdAndDelete(pspMembersId);
-    return this.pspMembers.findByIdAndUpdate(pspMembersId, {
+    return this.pspUser.findByIdAndUpdate(pspMembersId, {
       deleted_at: new Date(),
     });
   }

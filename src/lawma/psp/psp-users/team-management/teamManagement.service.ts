@@ -5,7 +5,7 @@ import {
 } from '../../dto/psp.dto';
 import { PSP, PspDocument } from '@models/psp.model';
 import { Model } from 'mongoose';
-import { PSPMembers, PspMembersDocument } from '@models/psp-members.model';
+import { PSPUsers, PspUsersDocument } from '@models/psp-users.model';
 import { generateRandomChars } from '@common/utils';
 import { CacheKeys } from '@src/shared/constants';
 import { Inject } from '@nestjs/common';
@@ -23,8 +23,8 @@ export class PspTeamManagement {
   protected clientUrl: ConfigAttributes['frontendUrl'];
   constructor(
     @InjectModel(PSP.name) private readonly psp: Model<PspDocument>,
-    @InjectModel(PSPMembers.name)
-    private readonly pspMembers: Model<PspMembersDocument>,
+    @InjectModel(PSPUsers.name)
+    private readonly pspUser: Model<PspUsersDocument>,
     @Inject(CACHE_MANAGER) private cacheService: Cache,
     private readonly ee: EventEmitter2,
     private readonly configService: ConfigService<ConfigAttributes>,
@@ -32,25 +32,25 @@ export class PspTeamManagement {
     this.clientUrl = this.configService.get<string>('frontendUrl');
   }
 
-  async createPspMembers(pspMembers: CreatePspMembersDTO & { psp_id: string }) {
+  async createPspMembers(pspUser: CreatePspMembersDTO & { psp_id: string }) {
     const password = generateRandomChars(8, 'alphanum');
 
     const psp = await this.psp
-      .findById(pspMembers.psp_id)
+      .findById(pspUser.psp_id)
       .select('company_name');
 
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
 
-    const pspMember = await this.pspMembers.create({
-      ...pspMembers,
+    const createdPspUser = await this.pspUser.create({
+      ...pspUser,
       psp_details: psp,
-      psp_id: pspMembers.psp_id,
+      psp_id: pspUser.psp_id,
       password: password,
     });
 
     await this.cacheService.set(
       CacheKeys.PspResetPasswordCode(String(resetCode)),
-      String(pspMember._id),
+      String(createdPspUser._id),
     );
 
     const resetLink = `${this.clientUrl}/psp-team/resetPassword/${resetCode}`;
@@ -58,11 +58,11 @@ export class PspTeamManagement {
     this.ee.emit(
       MailNotificationEvents.Account.ResetPassword,
       new SendEmailEvent({
-        to: pspMember.email,
+        to: createdPspUser.email,
         from: `"LAWMA REG" <accounts@lawma.co>`,
         subject: 'Reset Your Password',
         context: {
-          firstName: pspMember.name,
+          firstName: createdPspUser.name,
           resetLink: resetLink,
         },
       }),
@@ -70,7 +70,7 @@ export class PspTeamManagement {
   }
 
   async getPspMembers(pspId: string) {
-    return this.pspMembers.find({ psp_id: pspId, deleted_at: null });
+    return this.pspUser.find({ psp_id: pspId, deleted_at: null });
   }
 
   async updatePsp(pspId: string, psp: PspDocument) {
@@ -82,7 +82,7 @@ export class PspTeamManagement {
     memberId,
     status,
   }: UpdatePspMembersStatusBodyDTO & { pspId: string; memberId: string }) {
-    return this.pspMembers.findByIdAndUpdate(
+    return this.pspUser.findByIdAndUpdate(
       {
         _id: memberId,
         psp_id: pspId,
@@ -95,18 +95,18 @@ export class PspTeamManagement {
     );
   }
 
-  async deletePspMembers(pspMembersId: string) {
-    return this.pspMembers.findByIdAndUpdate(pspMembersId, {
+  async deletePspMembers(pspUserId: string) {
+    return this.pspUser.findByIdAndUpdate(pspUserId, {
       deleted_at: new Date(),
     });
   }
 
-  async changePspTeamStatus(pspMemberId: string, status: string) {
-    await this.pspMembers.updateOne(
-      { _id: pspMemberId },
+  async changePspTeamStatus(pspUserId: string, status: string) {
+    await this.pspUser.updateOne(
+      { _id: pspUserId },
       {
         $set: {
-          status: status
+          status: status,
         },
       },
     );

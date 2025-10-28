@@ -1,12 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
-import { AdminUser, PspAdminUser,SmartbinPartnerUser } from '@common/types';
+import { AdminUser, PspUser, SmartbinPartnerUser } from '@common/types';
 import {
-  CreateAdminReportDto,CreateAutoReportDto,GetReportsDto,
+  CreateAdminReportDto,
+  CreateAutoReportDto,
+  GetReportsDto,
 } from '@src/report/dtos/report.dto';
 import { ReportService } from '@src/report/report.service';
 import { PspTeamMember } from '@common/types';
-
 
 @Injectable()
 export class AdminReportService {
@@ -20,14 +21,6 @@ export class AdminReportService {
     return this.reportService.generateAdminReport(admin, dto);
   }
 
-
-  async getAdminReports(admin: AdminUser, filters: GetReportsDto) {
-    return this.reportService.getAdminReports(admin, filters);
-  }
-
-  async getAdminReportById(id: string, admin: AdminUser) {
-    return this.reportService.getAdminReportById(id, admin);
-  }
 
   async generateSmartbinPartnerReport(
     admin: SmartbinPartnerUser,
@@ -47,19 +40,29 @@ export class AdminReportService {
     return this.reportService.getSmartbinPartnerReportById(id, admin);
   }
 
-  async generatePSPReport(admin: PspAdminUser, dto: CreateAdminReportDto) {
+  async generatePSPReport(admin: PspUser, dto: CreateAdminReportDto) {
     return this.reportService.generatePSPReport(admin, dto);
   }
 
-  async generatePspTeamMemberReport(teamMember: PspTeamMember, dto: CreateAdminReportDto) {
+  async generatePspTeamMemberReport(
+    teamMember: PspTeamMember,
+    dto: CreateAdminReportDto,
+  ) {
     return this.reportService.generatePspTeamMemberReport(teamMember, dto);
   }
 
-async  getPspReports(admin: PspAdminUser, filters: GetReportsDto) {
+  async getAdminReports(admin: AdminUser, filters: GetReportsDto) {
+    return this.reportService.getAdminReports(admin, filters);
+  }
+
+  async getPspReports(admin: PspUser, filters: GetReportsDto) {
     return this.reportService.getPspReports(admin, filters);
   }
 
-async getPspTeamMemberReports(teamMember: PspTeamMember, filters: GetReportsDto) {
+  async getPspTeamMemberReports(
+    teamMember: PspTeamMember,
+    filters: GetReportsDto,
+  ) {
     return this.reportService.getPspTeamMemberReports(teamMember, filters);
   }
 
@@ -67,8 +70,11 @@ async getPspTeamMemberReports(teamMember: PspTeamMember, filters: GetReportsDto)
     return this.reportService.getPspTeamMemberReportById(id, teamMember);
   }
 
-  async getPspReportById(id: string, admin: PspAdminUser) {
+  async getPspReportById(id: string, admin: PspUser) {
     return this.reportService.getPspReportById(id, admin);
   }
-  
+
+  async getAdminReportById(id: string, admin: AdminUser) {
+    return this.reportService.getAdminReportById(id, admin);
+  }
 }

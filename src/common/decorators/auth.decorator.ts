@@ -13,14 +13,13 @@ import { Request } from 'express';
 import {
   AdminUser,
   AuthUser,
-  PspAdminUser,
+  PspUser,
   PspTeamMember,
   SmartbinPartnerUser,
 } from '../types';
 import { AuthGuard } from '@common/guards/actor.guard';
 import { AdminAuthGuard } from '@common/guards/admin.guard';
-import { PspAdminAuthGuard } from '@common/guards/pspAdmin.guard';
-import { PspTeamMemberAuthGuard } from '@common/guards/pspTeamMember.guard';
+import { PspUserAuthGuard } from '@common/guards/pspAdmin.guard';
 import { SmartbinPartnerAuthGuard } from '@common/guards/smartbin-partner.guard';
 
 export function AgentAuth() {
@@ -47,12 +46,8 @@ export function AdminAuth() {
   return applyDecorators(UseGuards(AdminAuthGuard));
 }
 
-export function PspAdminAuth() {
-  return applyDecorators(UseGuards(PspAdminAuthGuard));
-}
-
-export function PspTeamMemberAuth() {
-  return applyDecorators(UseGuards(PspTeamMemberAuthGuard));
+export function PspUserAuth() {
+  return applyDecorators(UseGuards(PspUserAuthGuard));
 }
 
 export function SmartbinPartnerAuth() {
@@ -109,13 +104,13 @@ export const AuthenticatedAdmin = createParamDecorator(
   },
 );
 
-export const AuthenticatedPspAdmin = createParamDecorator(
+export const AuthenticatedPspUser = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
-    const req: Request & { pspAdmin: PspAdminUser } = ctx
+    const req: Request & { pspUser: PspUser } = ctx
       .switchToHttp()
       .getRequest();
     return {
-      ...req.pspAdmin,
+      ...req.pspUser,
       ipAddress: req.ip,
       userAgent: req.headers['user-agent'],
     };

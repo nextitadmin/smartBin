@@ -14,19 +14,18 @@ import { Transaction, TransactionSchema } from '@models/transaction.model';
 import { PickupService } from './pickup.service';
 import { Pickup, PickupSchema } from '@models/pickup';
 import { AgentModule } from '@src/agent/agent.module';
-import { PSPMembers,PSPMembersSchema } from '@models/psp-members.model';
-
+import { PSPUsers, PSPUsersSchema } from '@models/psp-users.model';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: Pickup.name, schema: PickupSchema },
       { name: Transaction.name, schema: TransactionSchema },
-      {name: Resident.name, schema: ResidentSchema},
-      {name: Agent.name, schema: AgentSchema},
-      {name: Corporate.name, schema: CorporateSchema},
-      {name: FacilityManager.name, schema: FacilityManagerSchema},
-      {name:PSPMembers.name, schema: PSPMembersSchema}
+      { name: Resident.name, schema: ResidentSchema },
+      { name: Agent.name, schema: AgentSchema },
+      { name: Corporate.name, schema: CorporateSchema },
+      { name: FacilityManager.name, schema: FacilityManagerSchema },
+      { name: PSPUsers.name, schema: PSPUsersSchema },
     ]),
   ],
   providers: [PickupService],
