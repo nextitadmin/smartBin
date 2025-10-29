@@ -67,6 +67,8 @@ async function bootstrap() {
 
   const port = config.get('port', { infer: true });
 
+  app.set('trust proxy')
+
   await app.listen(port);
 }
 bootstrap();

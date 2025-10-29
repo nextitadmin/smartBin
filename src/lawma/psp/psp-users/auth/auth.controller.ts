@@ -14,6 +14,7 @@ import {
   PspUserAuth,
 } from '@common/decorators/auth.decorator';
 import { PspUser } from '@common/types';
+import { Request as UserRequest } from 'express';
 
 @ApiTags('PSPs Authentication')
 @Controller({
@@ -30,8 +31,8 @@ export class PspAuthController {
   }
 
   @Post('verify-login')
-  async verifyLogin(@Body() body: VerifyPspLogin) {
-    const psp = await this.pspAuthService.verifyLoginCode(body.code);
+  async verifyLogin(@Body() body: VerifyPspLogin, @Req() req: UserRequest) {
+    const psp = await this.pspAuthService.verifyLoginCode(body.code, req);
     return new SuccessResponse(psp.message, {
       token: psp.token,
       attributes: psp.data,

@@ -28,6 +28,9 @@ import {
 } from '@src/notification/dto/event';
 import { ApplicationEnvironment } from '@common/constants';
 import { PSPUsers } from '@models/psp-users.model';
+import { Request as UserRequest } from 'express';
+import { AuditLogEvents, LogActionEvent } from '@src/lawma/audit-log/dto/event';
+import { LOGTYPE, UserType } from '@models/audit-log.model';
 
 @Injectable()
 export class PspAuthService {
@@ -87,20 +90,18 @@ export class PspAuthService {
     );
   }
 
-  async verifyLoginCode(loginCode: string) {
+  async verifyLoginCode(loginCode: string, req: UserRequest) {
     const pspId = await this.cacheService.get(
       CacheKeys.PspLoginCode(loginCode),
     );
- 
 
     if (!pspId) {
       throw new UnauthorizedException('Session expired. Please log in again.');
     }
 
-
     const pspUser = await this.pspUserModel
       .findOne({
-        _id: pspId
+        _id: pspId,
       })
       .select('-password')
       .lean();
@@ -116,6 +117,24 @@ export class PspAuthService {
       },
       secret,
       { expiresIn: '7d' },
+    );
+
+    const eventObj = {
+      id: String(pspUser._id),
+      name: pspUser.name,
+      email: pspUser.email,
+      role: pspUser.role,
+      ipAddress: req.headers['x-forwarded-for'] as string,
+      userAgent: req.headers['user-agent'],
+    };
+
+    this.ee.emit(
+      AuditLogEvents.UserActivity,
+      new LogActionEvent({
+        administrator: eventObj as any,
+        action: LOGTYPE.UserLoggedIn,
+        userType: UserType.PSP,
+      }),
     );
 
     return { message: 'Login successful', token, data: pspUser };

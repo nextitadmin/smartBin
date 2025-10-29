@@ -10,7 +10,7 @@ import { Administrator, AdministratorRole } from '@models/administrator.model';
 import { AuditLogEvents, LogActionEvent } from '../audit-log/dto/event';
 import { LOGTYPE, UserType } from '@models/audit-log.model';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { AdminUser } from '@common/types';
+import { AdminUser, PspUser } from '@common/types';
 import {
   MailNotificationEvents,
   SendEmailEvent,
@@ -37,7 +37,7 @@ export class PspService {
     private readonly ee: EventEmitter2,
     @Inject(CACHE_MANAGER) private cacheService: Cache,
     private readonly configService: ConfigService<ConfigAttributes>,
-    private readonly rbacService: RbacService,
+    private readonly rbacService: RbacService
   ) {
     this.clientUrl = this.configService.get<string>('frontendUrl');
   }
@@ -126,7 +126,7 @@ export class PspService {
     return this.psp.findById(pspId);
   }
 
-  async changePspStatus(pspId: string, status: string) {
+  async changePspStatus(pspId: string, status: string, admin: AdminUser) {
     await this.psp.updateOne(
       { _id: pspId },
       {
@@ -135,6 +135,14 @@ export class PspService {
         },
       },
     );
+
+    const userAction = status === "inactive" ? LOGTYPE.PspDeactivated : LOGTYPE.PspActivated
+
+    this.ee.emit(AuditLogEvents.UserActivity,  new LogActionEvent({
+      action: userAction,
+      administrator: admin,
+      userType: UserType.Admin
+    }))
 
     return null;
   }

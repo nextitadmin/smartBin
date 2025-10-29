@@ -36,13 +36,11 @@ export class PspTeamManagementController {
 
   @Post('members')
   async createPspMembers(
-    @AuthenticatedPspUser() pspAdmin: PspUser,
+    @AuthenticatedPspUser() pspUser: PspUser,
     @Body() pspMembers: CreatePspMembersDTO,
   ) {
-    const response = await this.pspTeamService.createPspMembers({
-      psp_id: pspAdmin.id,
-      ...pspMembers,
-    });
+
+    const response = await this.pspTeamService.createPspMembers(pspMembers, pspUser );
     return new SuccessResponse('psp members created', response);
   }
 

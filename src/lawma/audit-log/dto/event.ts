@@ -1,7 +1,7 @@
-import { AdminUser } from "@common/types";
+import { AdminUser, PspUser } from "@common/types";
 
 export interface LogActionEventData {
-  administrator: AdminUser;
+  administrator: AdminUser & PspUser;
   action: string;
   userType: string;
 };

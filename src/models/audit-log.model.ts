@@ -5,9 +5,10 @@ export enum LOGTYPE {
   UserLoggedIn = 'User Logged In',
   PasswordChanged = 'Password Changed',
   PspAdded = 'Psp Added',
+  PspActivated = 'Psp Activated',
   PspDeactivated = 'Psp Deactivated',
-  TeamMemberAdded = 'Team Member Added',
-  TeamMemberRemoved = 'Team Member Removed',
+  PspTeamMemberAdded = 'Team Member Added',
+  PspTeamMemberRemoved = 'Team Member Removed',
   StatusChanged = 'Status Changed',
 }
 

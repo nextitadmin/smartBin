@@ -18,6 +18,7 @@ import {
 } from '@src/notification/dto/event';
 import { ConfigAttributes } from '@src/config';
 import { ConfigService } from '@nestjs/config';
+import { PspUser } from '@common/types';
 
 export class PspTeamManagement {
   protected clientUrl: ConfigAttributes['frontendUrl'];
@@ -32,19 +33,17 @@ export class PspTeamManagement {
     this.clientUrl = this.configService.get<string>('frontendUrl');
   }
 
-  async createPspMembers(pspUser: CreatePspMembersDTO & { psp_id: string }) {
-    const password = generateRandomChars(8, 'alphanum');
+  async createPspMembers(body: CreatePspMembersDTO, pspUser: PspUser ) {
+    const password = generateRandomChars(10, 'alphanum');
 
-    const psp = await this.psp
-      .findById(pspUser.psp_id)
-      .select('company_name');
+    const pspAdmin = await this.pspUser.findById(pspUser.id).select('psp_id psp_details')
 
     const resetCode = Math.floor(10000 + Math.random() * 90000).toString();
 
     const createdPspUser = await this.pspUser.create({
-      ...pspUser,
-      psp_details: psp,
-      psp_id: pspUser.psp_id,
+      ...body,
+      psp_details: pspAdmin.psp_details,
+      psp_id: pspAdmin.psp_id,
       password: password,
     });
 
@@ -67,6 +66,8 @@ export class PspTeamManagement {
         },
       }),
     );
+
+    // this.ee.emit()
   }
 
   async getPspMembers(pspId: string) {

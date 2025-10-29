@@ -19,6 +19,7 @@ import {
 } from '@common/decorators/auth.decorator';
 import { AdminUser, PspUser } from '@common/types';
 import { AddRoleDto } from '@src/rbac/dto/rbac.dto';
+import { Request as UserRequest } from 'express';
 
 @ApiTags('PSPs')
 @Controller({
@@ -69,10 +70,11 @@ export class PspController {
   }
 
   @Put(':id/change-status')
-  async deactivatePsp(@Param() param: IdDTO, @Body() body: ChangeStatusPspDto) {
+  async deactivatePsp(@Param() param: IdDTO, @Body() body: ChangeStatusPspDto, @AuthenticatedAdmin() admin: AdminUser) {
     const response = await this.pspService.changePspStatus(
       param.id,
       body.status,
+      admin
     );
     return new SuccessResponse('psp deactivated', response);
   }

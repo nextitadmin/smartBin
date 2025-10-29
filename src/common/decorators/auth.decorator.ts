@@ -98,7 +98,7 @@ export const AuthenticatedAdmin = createParamDecorator(
     const req: Request & { admin: AdminUser } = ctx.switchToHttp().getRequest();
     return {
       ...req.admin,
-      ipAddress: req.ip,
+      ipAddress: req.headers['x-forwarded-for'],
       userAgent: req.headers['user-agent'],
     };
   },
@@ -111,7 +111,7 @@ export const AuthenticatedPspUser = createParamDecorator(
       .getRequest();
     return {
       ...req.pspUser,
-      ipAddress: req.ip,
+      ipAddress: req.headers['x-forwarded-for'],
       userAgent: req.headers['user-agent'],
     };
   },
@@ -124,7 +124,7 @@ export const AuthenticatedPspTeamMember = createParamDecorator(
       .getRequest();
     return {
       ...req.pspTeamMember,
-      ipAddress: req.ip,
+      ipAddress: req.headers['x-forwarded-for'] as string,
       userAgent: req.headers['user-agent'],
     };
   },
@@ -137,7 +137,7 @@ export const AuthenticatedSmartbinPartner = createParamDecorator(
       .getRequest();
     return {
       ...req.smartbinPartner,
-      ipAddress: req.ip,
+      ipAddress: req.headers['x-forwarded-for'] as string,
       userAgent: req.headers['user-agent'],
     };
   },

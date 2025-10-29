@@ -115,7 +115,7 @@ export class AuthService implements OnModuleInit {
       name: administrator.name,
       email: administrator.email,
       role: administrator.role,
-      ipAddress: req.ip,
+      ipAddress: req.headers['x-forwarded-for'] as string,
       userAgent: req.headers['user-agent'],
     }
 

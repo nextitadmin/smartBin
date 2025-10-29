@@ -44,8 +44,7 @@ export class UpdateTeamMemberDetailsDto{
   phoneNumber?: string;
 
   @ApiProperty()
-  @IsEnum({enum:AdministratorRole})
+  @IsString()
   @IsOptional()
   role?: AdministratorRole;
-
 }
