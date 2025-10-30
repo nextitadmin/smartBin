@@ -9,6 +9,7 @@ import {
   IsOptional,
   IsString,
   IsDateString,
+  IsNumberString,
 } from 'class-validator';
 import { SmartbinStatus } from '@models/smart-bin.model';
 import { SmartBinApplicationStatus, UserRole } from '@models/types/index';
@@ -282,15 +283,18 @@ export class GetApplicationsDto {
   @IsOptional()
   search?: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsOptional()
-  @IsDateString()
-  startDate?: string;
+  @IsEnum(UserRole)
+  customerType?: UserRole;
 
-  @ApiProperty()
+  @ApiPropertyOptional()
   @IsOptional()
-  @IsDateString()
-  endDate?: string;
+  page?: number;
+
+@ApiPropertyOptional()
+  @IsOptional()
+  limit?: number;
 }
 
 export class GetApplicationResponseDto {
@@ -348,4 +352,16 @@ export class scheduleDeliveryDto {
   @IsOptional()
   @IsString()
   comment?: string;
+}
+
+export class GetOverviewDto {
+  @ApiPropertyOptional({ description: 'Filter by year' })
+  @IsOptional()
+  @IsNumberString()
+  year?: number;
+
+  @ApiPropertyOptional({ description: 'Filter by bin type', enum: BinType })
+  @IsOptional()
+  @IsEnum(BinType)
+  binType?: BinType;
 }

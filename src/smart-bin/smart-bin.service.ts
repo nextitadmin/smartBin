@@ -240,16 +240,27 @@ export class SmartBinService {
   }
 
   // overview
-  async getSmartBinOverview() {
-    const totalApplications = await this.smartbinModel.countDocuments();
-    const totalSmartbinUsers = await this.smartbinModel
-      .distinct('userId')
-      .countDocuments();
-    const deliveredApplications = await this.smartbinModel.countDocuments({
-      status: SmartbinStatus.Delivered,
-    });
+  async getSmartBinOverview(filters?: { year?: number; binType?: BinType }) {
+    const matchStage: any = {};
 
+    if (filters?.year) {
+      const year = Number(filters.year);
+      const startDate = new Date(year, 0, 1);
+      const endDate = new Date(year + 1, 0, 1);
+      matchStage.createdAt = { $gte: startDate, $lt: endDate };
+    }
+
+    if (filters?.binType) {
+      matchStage.binType = filters.binType;
+    }
+
+    const totalApplications = await this.smartbinModel.countDocuments(
+      matchStage,
+    );
     const smartbinUsersByLGAFromDB = await this.smartbinModel.aggregate([
+      {
+        $match: matchStage,
+      },
       {
         $group: {
           _id: '$localGovernmentArea',
@@ -273,42 +284,62 @@ export class SmartBinService {
       lga,
       count: lgaCounts.get(lga) || 0,
     }));
-    const recentlyDeliveredRecords = await this.smartbinModel
-      .find({ status: SmartbinStatus.Delivered })
-      .sort({ deliveredOn: -1 })
+    const recentRecords = await this.smartbinModel
+      .find(matchStage)
+      .sort({ createdAt: -1 })
       .limit(5)
       .lean();
 
-    const records = recentlyDeliveredRecords.map((app) => ({
-      id: String(app._id),
-      name: app?.assignedTo,
-      date: app.deliveredOn,
-      address: app.address,
-      binType: app.binType,
-      binId: app.binId,
-      lga: app.localGovernmentArea,
-    }));
-
+    const records= await Promise.all(
+      recentRecords.map(async (app) => {
+        const customerName = await this.inferCustomerName(
+          app.userId as Types.ObjectId,
+          app.customerType as UserRole,
+        );
+        return { 
+          id: String(app._id),
+          customerName: customerName,
+          deliveredBy: app?.assignedTo,
+          date: app.deliveredOn,
+          address: app.address,
+          binType: app.binType,
+          binId: app.binId,
+          lga: app.localGovernmentArea?.name,
+          status: app.status,
+        };
+      }),
+    );
     return {
       totalApplications,
-      totalSmartbinUsers,
       smartbinUsersByLGA,
-      deliveredApplications,
       records,
     };
   }
 
-  async getAdminSmartbinOverview() {
+  async getAdminSmartbinOverview(filters?: { year?: number; binType?: BinType }) {
+        const query: any = {};
+         if (filters?.year) {
+      const year = Number(filters.year);
+      const startDate = new Date(year, 0, 1);
+      const endDate = new Date(year + 1, 0, 1);
+      query.createdAt = { $gte: startDate, $lt: endDate };
+    }
+
+    if (filters?.binType) {
+      query.binType = filters.binType;
+    }
     const totalSmartbinUsers = await this.smartbinModel
       .distinct('userId')
       .countDocuments();
-    const smartbinRequests = await this.smartbinModel.countDocuments();
-    const deliveredSmartbins = await this.smartbinModel.countDocuments({
-      status: SmartbinStatus.Delivered,
-    });
+    const smartbinRequests = await this.smartbinModel.countDocuments( );
+    const deliveredSmartbins = await this.smartbinModel.countDocuments({status:SmartbinStatus.Delivered});
 
     const smartbinUsersByLGAFromDB = await this.smartbinModel.aggregate([
+       {
+        $match: query,
+      },
       {
+        
         $group: {
           _id: '$localGovernmentArea',
           count: { $sum: 1 },
@@ -341,31 +372,64 @@ export class SmartBinService {
   }
 
   // delivered bins
-  async getDeliveredSmartBins(page: number, limit: number) {
+  async getDeliveredSmartBins(filters: GetApplicationsDto) {
+    const { page = 1, limit = 10 } = filters || {};
     const skip = (page - 1) * limit;
+
+
+     const query: any = {status:SmartbinStatus.Delivered};
+    if (filters.type) {
+      query.binType = filters.type;
+    }
+   
+    if (filters.customerType) {
+      query.customerType = filters.customerType;
+    }
+
+    if (filters.search) {
+      query.$or = [
+        { name: { $regex: filters.search, $options: 'i' } },
+        { businessName: { $regex: filters.search, $options: 'i' } },
+        {
+          customerType: { $regex: filters.search, $options: 'i' },
+        },
+        {
+          address: { $regex: filters.search, $options: 'i' },
+        },
+        {
+          binType: { $regex: filters.search, $options: 'i' },
+        },
+      ];
+    }
     const [applications, total] = await Promise.all([
       this.smartbinModel
-        .find({ status: SmartbinStatus.Delivered })
+        .find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean(),
-      this.smartbinModel.countDocuments({ status: SmartbinStatus.Delivered }),
+      this.smartbinModel.countDocuments(query),
     ]);
 
-    const records = applications.map((app) => {
-      return {
-        id: String(app._id),
-        name: app?.assignedTo,
-        customerType: app?.customerType,
-        date: app.deliveredOn,
-        address: app.address,
-        binType: app.binType,
-        binId: app.binId,
-        lga: app.localGovernmentArea,
-        status: app.status,
-      };
-    });
+   const records = await Promise.all(
+      applications.map(async (app) => {
+        const customerName = await this.inferCustomerName(
+          app.userId as Types.ObjectId,
+          app.customerType as UserRole,
+        );
+        return {
+          id: String(app._id),
+          customerName,
+          assignedTo: app?.assignedTo,
+          customerType: app?.customerType,
+          date: app.deliveredOn,
+          address: app.address,
+          binType: app.binType,
+          status:app.status,
+          lga: app.localGovernmentArea,
+        };
+      }),
+    );
 
     return {
       records,
@@ -379,31 +443,64 @@ export class SmartBinService {
     };
   }
 
-  async getAllApplications(page: number, limit: number) {
+  async getAllApplications(filters: GetApplicationsDto) {
+    const { page = 1, limit = 10 } = filters || {};
     const skip = (page - 1) * limit;
+
+    const query: any = {};
+    if (filters.type) {
+      query.binType = filters.type;
+    }
+   
+    if (filters.customerType) {
+      query.customerType = filters.customerType;
+    }
+
+    if (filters.search) {
+      query.$or = [
+        { name: { $regex: filters.search, $options: 'i' } },
+        { businessName: { $regex: filters.search, $options: 'i' } },
+        {
+          customerType: { $regex: filters.search, $options: 'i' },
+        },
+        {
+          address: { $regex: filters.search, $options: 'i' },
+        },
+        {
+          binType: { $regex: filters.search, $options: 'i' },
+        },
+      ];
+    }
+
     const [applications, total] = await Promise.all([
       this.smartbinModel
-        .find()
+        .find(query)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .lean(),
-      this.smartbinModel.countDocuments(),
+      this.smartbinModel.countDocuments(query),
     ]);
 
-    const records = applications.map((app) => {
-      return {
-        id: String(app._id),
-        name: app?.assignedTo,
-        customerType: app?.customerType,
-        date: app.deliveredOn,
-        address: app.address,
-        binType: app.binType,
-        binId: app.binId,
-        lga: app.localGovernmentArea,
-        status: app.status,
-      };
-    });
+    const records = await Promise.all(
+      applications.map(async (app) => {
+        const customerName = await this.inferCustomerName(
+          app.userId as Types.ObjectId,
+          app.customerType as UserRole,
+        );
+        return {
+          id: String(app._id),
+          customerName,
+          assignedTo: app?.assignedTo,
+          customerType: app?.customerType,
+          date: app.createdAt,
+          address: app.address,
+          binType: app.binType,
+          lga: app.localGovernmentArea,
+          status: app.status,
+        };
+      }),
+    );
 
     return {
       records,
@@ -564,7 +661,7 @@ export class SmartBinService {
     }
     return smartbin;
   }
- 
+
   async updateStatus(orderId: string, newStatus: SmartbinStatus) {
     const statusMessages = {
       [SmartbinStatus.Pending]:
@@ -594,7 +691,6 @@ export class SmartBinService {
 
     return order;
   }
-
 
   private async inferCustomerName(
     userId: Types.ObjectId,
@@ -633,7 +729,6 @@ export class SmartBinService {
       return `${customer.firstName || ''} ${customer.lastName || ''}`.trim();
     }
   }
-
 
   async getOrderTimeline(id: string) {
     const order = await this.smartbinModel
@@ -815,27 +910,26 @@ export class SmartBinService {
       .findById(applicationId)
       .populate('payment')
       .lean();
-
-    let userDetails = null;
-
-    if (smartBin.customerType === 'Resident') {
-      userDetails = await this.residentModel
-        .findById(smartBin.userId)
-
-        .select(
-          'payerId firstName lastName email phoneNumber lawmaCustomerType',
-        );
-    } else if (smartBin.customerType === 'Corporate') {
-      userDetails = await this.corporateModel
-        .findById(smartBin.userId)
-        .select(
-          'payerId firstName lastName email phoneNumber lawmaCustomerType',
-        );
-    }
+ const customerName = await this.inferCustomerName(
+      smartBin.userId as Types.ObjectId,
+      smartBin.customerType as UserRole,
+    );
+    const data = {
+      id: String(smartBin._id),
+      deliveredBy: smartBin?.assignedTo || null,
+      customerName,
+      customerType: smartBin?.customerType,
+      deliveredOn: smartBin?.deliveredOn || null,
+      address: smartBin?.address,
+      status: smartBin?.status,
+      binType: smartBin?.binType,
+      binId: smartBin?.binId,
+      lga: smartBin?.localGovernmentArea,
+    
+    };
 
     return {
-      ...smartBin,
-      ...userDetails,
+      data,
     };
   }
 
