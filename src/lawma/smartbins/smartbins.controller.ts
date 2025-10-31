@@ -2,7 +2,7 @@ import { Controller, Get, Param, Patch, Put, Query } from '@nestjs/common';
 import { ApiTags, ApiQuery } from '@nestjs/swagger';
 import { LawmaSmartbinsService } from './smartbins.service';
 import { AdminAuth } from '@common/decorators/auth.decorator';
-import { GetApplicationsDto, orderBinsDto, GetOverviewDto } from '@src/smart-bin/dto/binAppDto';
+import { GetApplicationsDto, orderBinsDto, GetOverviewDto, GetDeliveredApplicationsDto } from '@src/smart-bin/dto/binAppDto';
 import { SmartbinStatus } from '@models/smart-bin.model';
 import { SuccessResponse } from '@common/http';
 
@@ -41,7 +41,7 @@ export class SmartbinsController {
   @Get('delivered')
   getDeliveredApplications(
     @Param() param: { status: string },
-   @Query() filters:GetApplicationsDto 
+   @Query() filters:GetDeliveredApplicationsDto
   ) {
     return this.smartbinService.getDeliveredSmartBins(filters);
   }
