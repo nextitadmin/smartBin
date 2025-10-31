@@ -1,7 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, SchemaTypes, Types } from 'mongoose';
 import { AccountStatus, UserRole } from '@models/types'; // adjust if needed
 import { getHashedPassword } from '@common/utils'; // adjust if needed
+import { Lga } from '@models/lgas.model';
 
 export interface FacilityManagerAttributes {
   payerId: string;
@@ -58,11 +59,15 @@ export class FacilityManager implements FacilityManagerAttributes {
   @Prop()
   pspCompany?: string;
 
-  @Prop()
-  localGovernmentArea?: string;
+  @Prop({
+    type: SchemaTypes.ObjectId,
+    ref: Lga.name,
+    required: true,
+  })
+  lgaId: Types.ObjectId;
 
   @Prop({ enum: AccountStatus, default: AccountStatus.Active })
-  status: AccountStatus
+  status: AccountStatus;
 
   @Prop({ enum: [UserRole.Facility], default: UserRole.Facility })
   role: UserRole.Facility;

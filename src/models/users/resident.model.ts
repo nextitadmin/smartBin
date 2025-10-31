@@ -3,6 +3,7 @@ import { Document, SchemaTypes, Types } from 'mongoose';
 import { getHashedPassword } from '@common/utils';
 import { Gender, UserRole, AccountStatus } from '@models/types';
 import { Agent } from './agent.model';
+import { Lga } from '@models/lgas.model';
 
 export enum LawmaCustomerType {
   Returning = 'Returning',
@@ -26,7 +27,7 @@ export interface ResidentAttributes {
   landmark?: string;
   nextPickupDate?: string;
   accountNo?: string;
-  localGovernmentArea?: string;
+  lgaId?: Types.ObjectId;
   buildingType?: string;
   password: string;
   registeredBy?: Types.ObjectId;
@@ -116,8 +117,12 @@ export class Resident implements ResidentAttributes {
   @Prop()
   accountNo?: string;
 
-  @Prop()
-  localGovernmentArea?: string;
+  @Prop({
+    type: SchemaTypes.ObjectId,
+    ref: Lga.name,
+    required: true,
+  })
+  lgaId: Types.ObjectId;
 
   @Prop()
   buildingType?: string;
