@@ -1,23 +1,27 @@
-import { SmartbinStatus } from '@models/smart-bin.model';
+import { BinType, SmartbinStatus } from '@models/smart-bin.model';
 import { Injectable } from '@nestjs/common';
-import { orderBinsDto, scheduleDeliveryDto } from '@src/smart-bin/dto/binAppDto';
+import {
+  GetApplicationsDto,
+  orderBinsDto,
+  scheduleDeliveryDto,
+} from '@src/smart-bin/dto/binAppDto';
 import { SmartBinService } from '@src/smart-bin/smart-bin.service';
 
 @Injectable()
 export class LawmaSmartbinsService {
   constructor(private readonly smartBinService: SmartBinService) {}
 
-  async getSmartBinOverview() {
-    return this.smartBinService.getSmartBinOverview();
+  async getSmartBinOverview(filters?: { year?: number; binType?: BinType }) {
+    return this.smartBinService.getSmartBinOverview(filters);
   }
 
-  async getAdminSmartbinOverview() {
-    return this.smartBinService.getAdminSmartbinOverview();
+  async getAdminSmartbinOverview(filters?: { year?: number; binType?: BinType }) {
+    return this.smartBinService.getAdminSmartbinOverview(filters);
   }
 
   
-  async getAllApplications(page: number, limit: number) {
-    return this.smartBinService.getAllApplications(page, limit);
+  async getAllApplications(filters:GetApplicationsDto) {
+    return this.smartBinService.getAllApplications(filters);
   }
 
   async getBinApplicationDetails(applicationId: string) {
@@ -31,8 +35,8 @@ export class LawmaSmartbinsService {
     return this.smartBinService.getOrderTimeline(orderId);
   }
 
-  async getDeliveredSmartBins(page: number, limit: number) {
-    return this.smartBinService.getDeliveredSmartBins(page, limit);
+  async getDeliveredSmartBins(filters:GetApplicationsDto) {
+    return this.smartBinService.getDeliveredSmartBins(filters);
   }
   
   async getAllBinOrders(filters?: orderBinsDto) {

@@ -2,7 +2,7 @@ import { Controller, Get, Param, Patch, Put, Query } from '@nestjs/common';
 import { ApiTags, ApiQuery } from '@nestjs/swagger';
 import { LawmaSmartbinsService } from './smartbins.service';
 import { AdminAuth } from '@common/decorators/auth.decorator';
-import { orderBinsDto } from '@src/smart-bin/dto/binAppDto';
+import { GetApplicationsDto, orderBinsDto, GetOverviewDto } from '@src/smart-bin/dto/binAppDto';
 import { SmartbinStatus } from '@models/smart-bin.model';
 import { SuccessResponse } from '@common/http';
 
@@ -16,22 +16,20 @@ export class SmartbinsController {
   constructor(private readonly smartbinService: LawmaSmartbinsService) {}
 
   @Get('superadmin/overview')
-  getOverview() {
-    return this.smartbinService.getSmartBinOverview();
+  getOverview(@Query() filters: GetOverviewDto) {
+    return this.smartbinService.getSmartBinOverview(filters);
   }
 
   @Get('lawma-admin/overview')
-  getLawmaAdminOverview() {
-    return this.smartbinService.getAdminSmartbinOverview();
+  getLawmaAdminOverview(@Query() filters: GetOverviewDto) {
+    return this.smartbinService.getAdminSmartbinOverview(filters);
   }
 
 
 
   @Get()
-  @ApiQuery({ name: 'page', required: false, type: String })
-  @ApiQuery({ name: 'limit', required: false, type: String })
-  getApplications(@Query('page') page = '1', @Query('limit') limit = '10') {
-    return this.smartbinService.getAllApplications(Number(page), Number(limit));
+  getApplications(@Query() filters:GetApplicationsDto ) {
+    return this.smartbinService.getAllApplications(filters);
   }
 
   @Get('application-details')
@@ -41,17 +39,11 @@ export class SmartbinsController {
   }
 
   @Get('delivered')
-  @ApiQuery({ name: 'page', required: false, type: String })
-  @ApiQuery({ name: 'limit', required: false, type: String })
   getDeliveredApplications(
     @Param() param: { status: string },
-    @Query('page') page = '1',
-    @Query('limit') limit = '10',
+   @Query() filters:GetApplicationsDto 
   ) {
-    return this.smartbinService.getDeliveredSmartBins(
-      Number(page),
-      Number(limit),
-    );
+    return this.smartbinService.getDeliveredSmartBins(filters);
   }
 
   @Get('orders')
