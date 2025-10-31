@@ -8,7 +8,7 @@ import { FacilityManager } from '@models/users/facility-manager.model';
 import { Bill } from '@models/bill.model';
 import { Wallet } from '@models/wallet.model';
 import { SmartBin, SmartbinStatus } from '@models/smart-bin.model';
-import { ServiceType, Transaction } from '@models/transaction.model';
+import { ServiceType, Transaction, TransactionStatus } from '@models/transaction.model';
 import { Pickup, Status } from '@models/pickup';
 import { TeamMember } from '@models/team.model';
 import { UserRole } from '@models/types';
@@ -134,11 +134,17 @@ export class SuperAdminService {
     const currentYear = now.getFullYear();
     const lastYear = currentYear - 1;
 
-
+  //  calculate totalrevenue from transactions that involves waste Disposal and smartbin purchases only
     const totalRevenue = await this.transactionModel.aggregate([
-      { $match: { status: 'successful' } },
+      {
+        $match: {
+          status: TransactionStatus.Successful,
+          service: { $in: [ServiceType.WasteDisposal, ServiceType.SmartBinPurchase] },
+        },
+      },
       { $group: { _id: null, total: { $sum: "$amount" } } },
     ]);
+
 
     // Monthly revenue for current year
     const monthlyRevenueData = await this.transactionModel.aggregate([
@@ -170,7 +176,7 @@ export class SuperAdminService {
       this.transactionModel.aggregate([
         {
           $match: {
-            status: 'successful',
+            status: TransactionStatus.Successful,
             createdAt: {
               $gte: new Date(`${currentYear}-01-01`),
               $lt: new Date(`${currentYear + 1}-01-01`),
@@ -200,38 +206,12 @@ export class SuperAdminService {
         100
         : 100;
 
-    // tOP PSP COMPANIES BY REVENUE
-    const topPSPcompanies = await this.transactionModel.aggregate([
-      {
-        $match: { status: 'successful', userType: 'psp' },
-      },
-      {
-        $group: {
-          _id: "$userId",
-          totalRevenue: { $sum: "$amount" },
-        },
-      },
-      { $sort: { totalRevenue: -1 } },
-      { $limit: 5 },
-      {
-        $lookup: {
-          from: "psps",
-          localField: "_id",
-          foreignField: "_id",
-          as: "psp"
-        }
-      },
-      { $unwind: "$psp" },
-      {
-        $project: {
-          _id: 0,
-          pspId: "$psp._id",
-          company_name: "$psp.company_name",
-          administrator_name: "$psp.administrator_name",
-          totalRevenue: 1,
-        }
-      }
-    ]);
+    // registered psp companies
+    const topPSPcompanies = await this.pspModel
+      .find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .lean();
 
     // BIN REQUEST METRICS
     const [pendingBinrequests, completedBinrequests, totalBinRequests] =
