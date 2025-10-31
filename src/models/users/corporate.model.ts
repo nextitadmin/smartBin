@@ -3,6 +3,7 @@ import { Document, SchemaTypes, Types } from 'mongoose';
 import { AccountStatus, UserRole } from '@models/types'; // Adjust this path as needed
 import { getHashedPassword } from '@common/utils'; // Adjust if needed
 import { Agent } from './agent.model';
+import { Lga } from '@models/lgas.model';
 
 export interface CorporateAttributes {
   agentId?: Types.ObjectId;
@@ -13,7 +14,7 @@ export interface CorporateAttributes {
   email: string;
   companyEmail?: string;
   companyPhoneNumber?: string;
-  localGovernmentArea?: string;
+  lgaId?: Types.ObjectId;
   pspCompany?: string;
   profilePicture?: string;
   phoneNumber?: string;
@@ -70,8 +71,12 @@ export class Corporate implements CorporateAttributes {
   @Prop({ required: false })
   companyPhoneNumber?: string;
 
-  @Prop({ required: false })
-  localGovernmentArea?: string;
+  @Prop({
+    type: SchemaTypes.ObjectId,
+    ref: Lga.name,
+    required: true,
+  })
+  lgaId: Types.ObjectId;
 
   @Prop({ required: false })
   pspCompany?: string;

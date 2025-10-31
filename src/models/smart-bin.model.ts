@@ -3,6 +3,7 @@ import { Document, SchemaTypes, Types } from 'mongoose';
 import { UserRole } from './types';
 import { Transaction } from './transaction.model';
 import { Type } from 'class-transformer';
+import { Lga, LGAAttributes } from './lgas.model';
 
 export enum SmartbinStatus {
   Pending = 'pending',
@@ -68,7 +69,7 @@ export interface SmartBinAttributes {
   houseNumber?: string;
   transactionReference?: string;
   flatNumber?: string;
-  localGovernmentArea?: string;
+  lgaId?: Types.ObjectId;
   approvalDate?: Date;
   deliveredOn?: Date;
   deliveredBy?: string;
@@ -76,8 +77,8 @@ export interface SmartBinAttributes {
   updatedAt?: Date;
   applicationHistory: [
     {
-      timestamp: Date; 
-      status:SmartbinStatus
+      timestamp: Date; // date
+      status: string; // activated, delivered, scheduledForDelivery, delivered, cancelled //enum
       description: string;
     },
   ];
@@ -90,10 +91,8 @@ class ApplicationHistoryItem {
   @Prop({ type: Date, required: true })
   timestamp: Date;
 
-  @Prop( { type: String,
-    enum: Object.values(SmartbinStatus),
-    default: SmartbinStatus.Pending})
-  status: SmartbinStatus;
+  @Prop({ type: String, required: true })
+  status: string;
 
   @Prop({ type: String, required: true })
   description: string;
@@ -247,13 +246,11 @@ export class SmartBin extends Document {
   flatNumber?: string;
 
   @Prop({
-    type: SchemaTypes.Mixed,
+    type: SchemaTypes.ObjectId,
+    ref: Lga.name,
     required: true,
   })
-  localGovernmentArea?: {
-    id: Types.ObjectId;
-    name: string;
-  };
+  lga_id?: Types.ObjectId;
 
   @Prop({ type: Date, required: false })
   deliveredOn?: Date;

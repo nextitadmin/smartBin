@@ -63,8 +63,14 @@ export class FacilityUsers {
   @Prop({ required: false })
   address: string;
 
-  @Prop({ required: false })
-  localGovernment: string;
+  @Prop({
+    type: SchemaTypes.Mixed,
+    required: true,
+  })
+  localGovernmentArea?: {
+    id: Types.ObjectId;
+    name: string;
+  };
 
   @Prop({
     type: String,
