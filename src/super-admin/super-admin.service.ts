@@ -129,28 +129,44 @@ export class SuperAdminService {
 
     const totalPSPCompanies = await this.pspModel.countDocuments().exec();
 
-    // revenue calculations
     const now = new Date();
     const currentYear = now.getFullYear();
     const lastYear = currentYear - 1;
 
-  //  calculate totalrevenue from transactions that involves waste Disposal and smartbin purchases only
-    const totalRevenue = await this.transactionModel.aggregate([
-      {
-        $match: {
-          status: TransactionStatus.Successful,
-          service: { $in: [ServiceType.WasteDisposal, ServiceType.SmartBinPurchase] },
+    // Helper function for yearly aggregation
+    const getYearlyRevenue = async (year: number) => {
+      const result = await this.transactionModel.aggregate([
+        {
+          $match: {
+            status: TransactionStatus.Successful,
+            service: {
+              $in: [ServiceType.WasteDisposal, ServiceType.SmartBinPurchase],
+            },
+            createdAt: {
+              $gte: new Date(`${year}-01-01`),
+              $lt: new Date(`${year + 1}-01-01`),
+            },
+          },
         },
-      },
-      { $group: { _id: null, total: { $sum: "$amount" } } },
+        { $group: { _id: null, total: { $sum: "$amount" } } },
+      ]).exec();
+      return result?.[0]?.total ?? 0;
+    };
+
+    const [currentYearRevenue, lastYearRevenue] = await Promise.all([
+      getYearlyRevenue(currentYear),
+      getYearlyRevenue(lastYear),
     ]);
 
+    const annualRevenueGrowth =
+      lastYearRevenue > 0
+        ? (((currentYearRevenue - lastYearRevenue) / lastYearRevenue) * 100).toFixed(2) + "%"
+        : "100%";
 
-    // Monthly revenue for current year
     const monthlyRevenueData = await this.transactionModel.aggregate([
       {
         $match: {
-          status: 'successful',
+          status: TransactionStatus.Successful,
           createdAt: {
             $gte: new Date(`${currentYear}-01-01`),
             $lt: new Date(`${currentYear + 1}-01-01`),
@@ -164,85 +180,70 @@ export class SuperAdminService {
         },
       },
       { $sort: { "_id.month": 1 } },
-    ]);
+    ]).exec();
 
     const monthlyRevenue = Array.from({ length: 12 }, (_, i) => {
       const month = monthlyRevenueData.find(m => m._id.month === i + 1);
       return month ? month.revenue : 0;
     });
 
-    // Annual revenue (growth)
-    const [currentYearRevenue, lastYearRevenue] = await Promise.all([
-      this.transactionModel.aggregate([
-        {
-          $match: {
-            status: TransactionStatus.Successful,
-            createdAt: {
-              $gte: new Date(`${currentYear}-01-01`),
-              $lt: new Date(`${currentYear + 1}-01-01`),
-            },
-          },
+    const topPSPcompanies = await this.pspModel.aggregate([
+      { $sort: { createdAt: -1 } },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: "psp-users",
+          localField: "_id",
+          foreignField: "psp_id",
+          as: "team_members",
         },
-        { $group: { _id: null, total: { $sum: "$amount" } } },
-      ]),
-      this.transactionModel.aggregate([
-        {
-          $match: {
-            status: 'successful',
-            createdAt: {
-              $gte: new Date(`${lastYear}-01-01`),
-              $lt: new Date(`${currentYear}-01-01`),
-            },
-          },
+      },
+      {
+        $addFields: {
+          teamMembersCount: { $size: "$team_members" },
         },
-        { $group: { _id: null, total: { $sum: "$amount" } } },
-      ]),
-    ]);
+      },
+      {
+        $project: {
+          _id: 1,
+          company_name: 1,
+          teamMembersCount: 1,
+        },
+      },
+    ]).exec();
 
-    const annualRevenueGrowth =
-      lastYearRevenue.length > 0
-        ? (((currentYearRevenue[0]?.total || 0) - lastYearRevenue[0]?.total) /
-          lastYearRevenue[0]?.total) *
-        100
-        : 100;
-
-    // registered psp companies
-    const topPSPcompanies = await this.pspModel
-      .find()
-      .sort({ createdAt: -1 })
-      .limit(5)
-      .lean();
-
-    // BIN REQUEST METRICS
     const [pendingBinrequests, completedBinrequests, totalBinRequests] =
       await Promise.all([
-        this.smartbinModel.countDocuments({ status: SmartbinStatus.Pending }).exec(),
-        this.smartbinModel.countDocuments({ status: SmartbinStatus.Delivered }).exec(),
+        this.smartbinModel
+          .countDocuments({ status: SmartbinStatus.Pending })
+          .exec(),
+        this.smartbinModel
+          .countDocuments({ status: SmartbinStatus.Delivered })
+          .exec(),
         this.smartbinModel.countDocuments().exec(),
       ]);
-
     return {
       registeredUsers: {
-        residentUsers: residentCount,
-        agentsUsers: agentCount,
-        corporatesUsers: corporateCount,
-        facilityManagers: facilityManagerCount,
-        totalRegisteredUsers,
+        resident: residentCount,
+        agent: agentCount,
+        corporate: corporateCount,
+        facilityManager: facilityManagerCount,
+        total: totalRegisteredUsers,
         percentageByUserType,
       },
       binRequests: {
-        pendingBinrequests,
-        completedBinrequests,
-        totalBinRequests,
+        pending: pendingBinrequests,
+        completed: completedBinrequests,
+        total: totalBinRequests,
       },
-      pspCompanies: {
-        registeredPSPs: totalPSPCompanies,
-        topPSPcompanies,
+      psp: {
+        total: totalPSPCompanies,
+        topCompanies: topPSPcompanies,
       },
       revenue: {
-        totalRevenue: totalRevenue[0]?.total || 0,
+        total: currentYearRevenue,
         monthlyRevenue,
-        annualRevenueGrowth: annualRevenueGrowth.toFixed(2) + "%",
+        annualGrowth: annualRevenueGrowth,
       },
     };
   }
