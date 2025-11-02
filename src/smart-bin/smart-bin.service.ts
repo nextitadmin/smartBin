@@ -55,6 +55,7 @@ import { Paging } from '@common/http';
 import { TeamMember } from '@models/team.model';
 import { LAGOS_LGAS } from '@src/utility/utility.constants';
 import { timestamp } from 'rxjs';
+import { IsPhoneNumber } from 'class-validator';
 
 @Injectable()
 export class SmartBinService {
@@ -74,7 +75,7 @@ export class SmartBinService {
     private readonly eventEmitter: EventEmitter2,
     @InjectModel(TeamMember.name)
     private readonly teamMemberModel: Model<TeamMember>,
-  ) {}
+  ) { }
 
   async getResidentBinApplication(residentId: string, page = 1, limit = 10) {
     const skip = (page - 1) * limit;
@@ -290,13 +291,13 @@ export class SmartBinService {
       .limit(5)
       .lean();
 
-    const records= await Promise.all(
+    const records = await Promise.all(
       recentRecords.map(async (app) => {
         const customerName = await this.inferCustomerName(
           app.userId as Types.ObjectId,
           app.customerType as UserRole,
         );
-        return { 
+        return {
           id: String(app._id),
           customerName: customerName,
           deliveredBy: app?.assignedTo,
@@ -317,8 +318,8 @@ export class SmartBinService {
   }
 
   async getAdminSmartbinOverview(filters?: { year?: number; binType?: BinType }) {
-        const query: any = {};
-         if (filters?.year) {
+    const query: any = {};
+    if (filters?.year) {
       const year = Number(filters.year);
       const startDate = new Date(year, 0, 1);
       const endDate = new Date(year + 1, 0, 1);
@@ -331,15 +332,15 @@ export class SmartBinService {
     const totalSmartbinUsers = await this.smartbinModel
       .distinct('userId')
       .countDocuments();
-    const smartbinRequests = await this.smartbinModel.countDocuments( );
-    const deliveredSmartbins = await this.smartbinModel.countDocuments({status:SmartbinStatus.Delivered});
+    const smartbinRequests = await this.smartbinModel.countDocuments();
+    const deliveredSmartbins = await this.smartbinModel.countDocuments({ status: SmartbinStatus.Delivered });
 
     const smartbinUsersByLGAFromDB = await this.smartbinModel.aggregate([
-       {
+      {
         $match: query,
       },
       {
-        
+
         $group: {
           _id: '$localGovernmentArea',
           count: { $sum: 1 },
@@ -377,11 +378,11 @@ export class SmartBinService {
     const skip = (page - 1) * limit;
 
 
-     const query: any = {status:SmartbinStatus.Delivered};
+    const query: any = { status: SmartbinStatus.Delivered };
     if (filters.type) {
       query.binType = filters.type;
     }
-   
+
     if (filters.customerType) {
       query.customerType = filters.customerType;
     }
@@ -411,7 +412,7 @@ export class SmartBinService {
       this.smartbinModel.countDocuments(query),
     ]);
 
-   const records = await Promise.all(
+    const records = await Promise.all(
       applications.map(async (app) => {
         const customerName = await this.inferCustomerName(
           app.userId as Types.ObjectId,
@@ -425,7 +426,7 @@ export class SmartBinService {
           date: app.deliveredOn,
           address: app.address,
           binType: app.binType,
-          status:app.status,
+          status: app.status,
           lga: app.localGovernmentArea,
         };
       }),
@@ -451,7 +452,7 @@ export class SmartBinService {
     if (filters.type) {
       query.binType = filters.type;
     }
-   
+
     if (filters.customerType) {
       query.customerType = filters.customerType;
     }
@@ -910,7 +911,7 @@ export class SmartBinService {
       .findById(applicationId)
       .populate('payment')
       .lean();
- const customerName = await this.inferCustomerName(
+    const customerName = await this.inferCustomerName(
       smartBin.userId as Types.ObjectId,
       smartBin.customerType as UserRole,
     );
@@ -925,7 +926,7 @@ export class SmartBinService {
       binType: smartBin?.binType,
       binId: smartBin?.binId,
       lga: smartBin?.localGovernmentArea,
-    
+
     };
 
     return {
@@ -937,8 +938,8 @@ export class SmartBinService {
     const smartBin:
       | (SmartbinDocument & { payment: TransactionAttributes })
       | any = await this.smartbinModel
-      .findById(applicationId)
-      .populate('payment');
+        .findById(applicationId)
+        .populate('payment');
 
     if (!smartBin) {
       throw new NotFoundException('Bin application not found');
@@ -954,4 +955,46 @@ export class SmartBinService {
     await smartBin.deleteOne();
     return { message: 'Bin application deleted successfully' };
   }
+
+  /////////////////////////////////PARTNERS DASHBOARD///////////////////////////////////
+  // smartbin Partners
+  async getSmartBinPartnersDashboard() {
+    const totalSmartbinOrders = await this.smartbinModel.countDocuments();
+    const totalDeliveredSmartbins = await this.smartbinModel.countDocuments({
+      status: SmartbinStatus.Delivered,
+    });
+    const totalRevenueAgg = await this.transactionModel.aggregate([
+      {
+        $match: {
+          service: ServiceType.SmartBinPurchase,
+          status: TransactionStatus.Successful,
+        },
+      },
+      {
+        $group: { _id: null, total: { $sum: '$amount' } },
+      },
+    ]);
+    const totalRevenue =
+      totalRevenueAgg.length > 0 ? totalRevenueAgg[0].total : 0;
+
+    const ongoingDeliveries = await this.smartbinModel.find({
+      status: { $in: [SmartbinStatus.Pending, SmartbinStatus.Approved] },
+    });
+
+    return {
+      totalSmartbinOrders,
+      totalDeliveredSmartbins,
+      totalRevenue,
+      pendingList: ongoingDeliveries.map((order) => ({
+        orderId: order.binId,
+        customerName: order.name || order.businessName,
+        phoneNumber: order.phoneNumber,
+        lga: order.localGovernmentArea,
+        orderDate: order.createdAt,
+        status: order.status,
+      })),
+    };
+  }
+
 }
+
