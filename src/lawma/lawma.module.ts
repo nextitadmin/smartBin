@@ -11,6 +11,7 @@ import { TeamModule } from './team/team.module';
 import { ReportModule } from '@src/report/report.module';
 import { AdminWasteManagementModule } from './waste-management/waste-management.module';
 import { LawMaAdminReportModule } from './report/report.module';
+import { SmartbinPartnersModule } from './smartbin-partners/smartbin-partners.module';
 
 @Module({
   imports: [
@@ -25,7 +26,8 @@ import { LawMaAdminReportModule } from './report/report.module';
     TeamModule,
     ReportModule,
     LawMaAdminReportModule,
-    AdminWasteManagementModule
+    AdminWasteManagementModule,
+    SmartbinPartnersModule
   ],
 controllers:[]
 })
