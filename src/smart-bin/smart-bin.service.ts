@@ -995,6 +995,45 @@ export class SmartBinService {
       })),
     };
   }
+  /////////////////// TEAM MEMBER DASHBOARD ////////////////////////////
+  // smartbin Team Member
+  async getsmartBinTeamMemberDashboard(partnerId: string) {
+    const assignedBins = await this.smartbinModel.find({ assignedTo: partnerId });
 
+    const totalOrders = assignedBins.length;
+    const totalDelivered = assignedBins.filter(b => b.status === SmartbinStatus.Delivered).length;
+    const pendingDeliveries = assignedBins.filter(b =>
+      [SmartbinStatus.Pending, SmartbinStatus.Approved].includes(b.status)
+    );
+
+    const transactionRefs = assignedBins.map(b => b.transactionReference).filter(Boolean);
+
+    let totalAmountGenerated = 0;
+    if (transactionRefs.length > 0) {
+      const transactions = await this.transactionModel.find({
+        transactionReference: { $in: transactionRefs },
+        service: ServiceType.SmartBinPurchase,
+        status: TransactionStatus.Successful,
+      });
+
+      totalAmountGenerated = transactions.reduce((sum, tx) => sum + tx.amount, 0);
+    }
+
+    const pendingList = pendingDeliveries.map(order => ({
+      orderId: order.binId,
+      customerName: order.name || order.businessName,
+      lga: order.localGovernmentArea?.name || '',
+      dateAssigned: order.createdAt,
+      assignedBy: 'Lawma Admin', //order.assignedBy || option currently not available in smartbin model
+      status: order.status,
+    }));
+
+    return {
+      totalOrders,
+      totalDelivered,
+      totalAmountGenerated,
+      pendingDeliveries: pendingList,
+    };
+  }
 }
 

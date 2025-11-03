@@ -16,5 +16,9 @@ export class SmartbinPartnersController {
   getDashboard() {
     return this.smartbinPartnersService.getSmartBinPartnersDashboard();
   }
+  @Get('team-member/:partnerId')
+  getTeamMemberDashboard(@Param('partnerId') partnerId: string) {
+    return this.smartbinPartnersService.getSmartBinTeamMemberDashboard(partnerId);
+  }
 
 }

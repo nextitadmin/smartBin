@@ -8,4 +8,8 @@ export class LawmaSmartbinPartnersService {
   async getSmartBinPartnersDashboard() {
     return this.smartBinService.getSmartBinPartnersDashboard();
   }
+  async getSmartBinTeamMemberDashboard(partnerId: string) {
+    return this.smartBinService.getsmartBinTeamMemberDashboard(partnerId);
+  }
+
 }
