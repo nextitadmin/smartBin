@@ -288,11 +288,60 @@ export class GetApplicationsDto {
   @IsEnum(UserRole)
   customerType?: UserRole;
 
+  @ApiPropertyOptional({ description: 'Filter by status' })
+  @IsOptional()
+  @IsEnum(SmartbinStatus)
+  status?: SmartbinStatus;
+
+  @ApiPropertyOptional({ description: 'Start date for filtering' })
+  @IsOptional()
+  @IsDateString()
+  startDate?: string;
+
+  @ApiPropertyOptional({ description: 'End date for filtering' })
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
+
   @ApiPropertyOptional()
   @IsOptional()
   page?: number;
 
-@ApiPropertyOptional()
+  @ApiPropertyOptional()
+  @IsOptional()
+  limit?: number;
+}
+
+export class GetDeliveredApplicationsDto {
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  type?: BinType;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  search?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsEnum(UserRole)
+  customerType?: UserRole;
+
+  @ApiPropertyOptional({ description: 'Start date for filtering' })
+  @IsOptional()
+  @IsDateString()
+  startDate?: string;
+
+  @ApiPropertyOptional({ description: 'End date for filtering' })
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  page?: number;
+
+  @ApiPropertyOptional()
   @IsOptional()
   limit?: number;
 }

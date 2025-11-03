@@ -34,6 +34,7 @@ import {
   CreateBusinessApplicationDto,
   CreateFacilityApplicationDto,
   GetApplicationsDto,
+  GetDeliveredApplicationsDto,
   orderBinsDto,
   scheduleDeliveryDto,
 } from './dto/binAppDto';
@@ -373,10 +374,9 @@ export class SmartBinService {
   }
 
   // delivered bins
-  async getDeliveredSmartBins(filters: GetApplicationsDto) {
+  async getDeliveredSmartBins(filters: GetDeliveredApplicationsDto) {
     const { page = 1, limit = 10 } = filters || {};
     const skip = (page - 1) * limit;
-
 
     const query: any = { status: SmartbinStatus.Delivered };
     if (filters.type) {
@@ -387,19 +387,43 @@ export class SmartBinService {
       query.customerType = filters.customerType;
     }
 
+
+    if (filters.startDate && filters.endDate) {
+      query.deliveredOn = {
+        $gte: new Date(filters.startDate),
+        $lte: new Date(filters.endDate),
+      };
+    }
+
     if (filters.search) {
+      const searchRegex = { $regex: filters.search, $options: 'i' };
+
+      const [residentUsers, corporateUsers, agentUsers, facilityUsers] =
+        await Promise.all([
+          this.residentModel.find({
+            $or: [{ firstName: searchRegex }, { lastName: searchRegex }],
+          }),
+          this.corporateModel.find({ businessName: searchRegex }),
+          this.agentModel.find({
+            $or: [{ firstName: searchRegex }, { lastName: searchRegex }],
+          }),
+          this.facilityModel.find({
+            $or: [{ firstName: searchRegex }, { lastName: searchRegex }],
+          }),
+        ]);
+
+      const userIds = [
+        ...residentUsers.map((u) => u._id),
+        ...corporateUsers.map((u) => u._id),
+        ...agentUsers.map((u) => u._id),
+        ...facilityUsers.map((u) => u._id),
+      ];
+
       query.$or = [
-        { name: { $regex: filters.search, $options: 'i' } },
-        { businessName: { $regex: filters.search, $options: 'i' } },
-        {
-          customerType: { $regex: filters.search, $options: 'i' },
-        },
-        {
-          address: { $regex: filters.search, $options: 'i' },
-        },
-        {
-          binType: { $regex: filters.search, $options: 'i' },
-        },
+        { userId: { $in: userIds } },
+        { customerType: searchRegex },
+        { address: searchRegex },
+        { binType: searchRegex },
       ];
     }
     const [applications, total] = await Promise.all([
@@ -427,7 +451,7 @@ export class SmartBinService {
           address: app.address,
           binType: app.binType,
           status: app.status,
-          lga: app.localGovernmentArea,
+          lga: app.localGovernmentArea?.name || 'N/A',
         };
       }),
     );
@@ -449,7 +473,7 @@ export class SmartBinService {
     const skip = (page - 1) * limit;
 
     const query: any = {};
-    if (filters.type) {
+     if (filters.type) {
       query.binType = filters.type;
     }
 
@@ -457,22 +481,48 @@ export class SmartBinService {
       query.customerType = filters.customerType;
     }
 
-    if (filters.search) {
-      query.$or = [
-        { name: { $regex: filters.search, $options: 'i' } },
-        { businessName: { $regex: filters.search, $options: 'i' } },
-        {
-          customerType: { $regex: filters.search, $options: 'i' },
-        },
-        {
-          address: { $regex: filters.search, $options: 'i' },
-        },
-        {
-          binType: { $regex: filters.search, $options: 'i' },
-        },
-      ];
+    if (filters.status) {
+      query.status = filters.status;
     }
 
+    if (filters.startDate && filters.endDate) {
+      query.deliveredOn = {
+        $gte: new Date(filters.startDate),
+        $lte: new Date(filters.endDate),
+      };
+    }
+
+    if (filters.search) {
+      const searchRegex = { $regex: filters.search, $options: 'i' };
+
+      const [residentUsers, corporateUsers, agentUsers, facilityUsers] =
+        await Promise.all([
+          this.residentModel.find({
+            $or: [{ firstName: searchRegex }, { lastName: searchRegex }],
+          }),
+          this.corporateModel.find({ businessName: searchRegex }),
+          this.agentModel.find({
+            $or: [{ firstName: searchRegex }, { lastName: searchRegex }],
+          }),
+          this.facilityModel.find({
+            $or: [{ firstName: searchRegex }, { lastName: searchRegex }],
+          }),
+        ]);
+
+      const userIds = [
+        ...residentUsers.map((u) => u._id),
+        ...corporateUsers.map((u) => u._id),
+        ...agentUsers.map((u) => u._id),
+        ...facilityUsers.map((u) => u._id),
+      ];
+
+      query.$or = [
+        { userId: { $in: userIds } },
+        { customerType: searchRegex },
+        { address: searchRegex },
+        { binType: searchRegex },
+      ];
+    }
     const [applications, total] = await Promise.all([
       this.smartbinModel
         .find(query)
