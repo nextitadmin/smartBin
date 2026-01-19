@@ -1040,7 +1040,7 @@ export class SmartBinService {
         orderId: order.binId,
         customerName: order.name || order.businessName,
         phoneNumber: order.phoneNumber,
-        lga: order.localGovernmentArea,
+        lga: {}, //TODO: Fixed by @Usman
         orderDate: order.createdAt,
         status: order.status,
       })),
@@ -1082,7 +1082,7 @@ export class SmartBinService {
     const pendingList = pendingDeliveries.map((order) => ({
       orderId: order.binId,
       customerName: order.name || order.businessName,
-      lga: order.localGovernmentArea?.name || '',
+      lga: {}, // TODO: Fixed by @usman
       dateAssigned: order.createdAt,
       assignedBy: 'Lawma Admin', //order.assignedBy || option currently not available in smartbin model
       status: order.status,
