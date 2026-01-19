@@ -14,7 +14,7 @@ export interface CorporateAttributes {
   email: string;
   companyEmail?: string;
   companyPhoneNumber?: string;
-  lgaId?: Types.ObjectId;
+  lga?: Types.ObjectId;
   pspCompany?: string;
   profilePicture?: string;
   phoneNumber?: string;
@@ -76,7 +76,7 @@ export class Corporate implements CorporateAttributes {
     ref: Lga.name,
     required: true,
   })
-  lgaId: Types.ObjectId;
+  lga: Types.ObjectId;
 
   @Prop({ required: false })
   pspCompany?: string;
@@ -115,6 +115,6 @@ export class Corporate implements CorporateAttributes {
   updatedAt?: Date;
 }
 
-export type CorporateDocument = Corporate & Document;
+export type CorporateDocument = CorporateAttributes & Document;
 
 export const CorporateSchema = SchemaFactory.createForClass(Corporate);

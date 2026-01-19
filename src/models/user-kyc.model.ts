@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, SchemaTypes, Types } from 'mongoose';
+import { Document, PopulatedDoc, SchemaTypes, Types } from 'mongoose';
 import { UserRole } from './types';
-import { Lga } from './lgas.model';
+import { Lga, LGAAttributes } from './lgas.model';
 
 export enum IdVerificationStatus {
   PENDING = 'pending',
@@ -46,7 +46,7 @@ export interface UserKycAttributes {
   houseNumber?: string;
   flatNumber?: string;
   address?: string;
-  lgaId: Types.ObjectId;
+  lga: any;
   closestLandmark?: string;
   branches?: BranchDetails[];
   signatories?: Types.ObjectId[];
@@ -67,6 +67,7 @@ export interface UserKycAttributes {
   updatedAt?: Date;
 }
 
+export type UserKycDocument = UserKycAttributes & Document;
 @Schema({
   collection: 'user_kycs',
   timestamps: true,
@@ -109,7 +110,7 @@ export class UserKyc extends Document {
   address: string;
 
   @Prop({ type: SchemaTypes.ObjectId, ref: Lga.name, required: true })
-  lgaId?: Types.ObjectId;
+  lga?: any;
 
   @Prop({ type: SchemaTypes.String, required: false })
   closestLandmark: string;

@@ -30,7 +30,7 @@ export class Facility {
     ref: Lga.name,
     required: true,
   })
-  lgaId: Types.ObjectId;
+  lga: Types.ObjectId;
 
   @Prop({ required: true })
   closestLandmark: string;

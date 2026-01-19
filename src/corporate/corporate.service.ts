@@ -46,6 +46,7 @@ import { Bill } from '@models/bill.model';
 import { Wallet } from '@models/wallet.model';
 import { SmartBin } from '@models/smart-bin.model';
 import { Pickup } from '@models/pickup';
+import { UserKycRepository } from '@models/repository/user-kyc.repository';
 
 @Injectable()
 export class CorporateService {
@@ -54,6 +55,7 @@ export class CorporateService {
     @InjectModel(Corporate.name)
     private corporateModel: Model<CorporateDocument>,
     @InjectModel(Payer.name) private readonly payerModel: Model<PayerDocument>,
+
     @InjectModel(UserKyc.name) private userKycModel: Model<UserKyc>,
     @InjectModel(Branch.name) private branchModel: Model<Branch>,
     @InjectModel(Bill.name) private billModel: Model<Bill>,
@@ -63,6 +65,7 @@ export class CorporateService {
     private ee: EventEmitter2,
     private jwtService: JwtService,
     private readonly configService: ConfigService<ConfigAttributes>,
+    // private readonly userKycRepository: UserKycRepository,
   ) {}
 
   async registerCorporate(body: CreateCorporateAccountDto) {
@@ -267,8 +270,11 @@ export class CorporateService {
     }
 
     const userKyc = await this.userKycModel
-      .findOne({ userId: new Types.ObjectId(userId) })
-      .lean();
+      .findOne({
+        userId: new Types.ObjectId(userId),
+      })
+      .populate('lga')
+      .exec();
     const defaultAvatar =
       'https://res.cloudinary.com/demo/image/upload/avatar.png';
 
@@ -281,7 +287,7 @@ export class CorporateService {
       landmark: userKyc?.closestLandmark || null,
       nextPickupDate: null,
       accountNumber: null,
-      localGovermentArea: userKyc?.localGovernment || null,
+      localGovermentArea: userKyc?.lga.name || null,
       buildingType: userKyc?.buildingType || null,
       hasSubmittedIdentity: userKyc?.hasSubmittedIdentity || false,
       hasSubmittedCorporateInformation:
@@ -296,7 +302,6 @@ export class CorporateService {
       hasCompletedKyc: userKyc?.hasCompletedKyc || false,
     };
     return {
-      message: 'Corporate profile retrieved successfully',
       ...business,
       ...data,
       phoneNumber: business.phoneNumber || null,
