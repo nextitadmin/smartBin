@@ -34,7 +34,6 @@ export class SuperAdminService {
     @InjectModel(TeamMember.name)
     private readonly teamMemberModel: Model<TeamMember>,
     @InjectModel(PSP.name) private readonly pspModel: Model<PSP>,
-    @InjectModel(Lga.name) private readonly lgaModel: Model<Lga>,
   ) { }
 
   // get super admin dashboard
@@ -200,6 +199,152 @@ export class SuperAdminService {
       },
       topPSPcompanies: topPSPcompanies,
     }
+  }
+
+  // Lawma Admin
+  async getLawmaAdminDashboard() {
+    const [
+      residentCount,
+      agentCount,
+      corporateCount,
+      facilityManagerCount,
+    ] = await Promise.all([
+      this.residentModel.countDocuments().exec(),
+      this.agentModel.countDocuments().exec(),
+      this.corporateModel.countDocuments().exec(),
+      this.facilityModel.countDocuments().exec(),
+    ]);
+
+    const totalRegisteredUsers =
+      residentCount + agentCount + corporateCount + facilityManagerCount;
+
+    const percentageByUserType = {
+      resident: Math.floor((residentCount / totalRegisteredUsers) * 100) || 0,
+      agent: Math.floor((agentCount / totalRegisteredUsers) * 100) || 0,
+      corporate: Math.floor((corporateCount / totalRegisteredUsers) * 100) || 0,
+      facilityManager:
+        Math.floor((facilityManagerCount / totalRegisteredUsers) * 100) || 0,
+    };
+
+    const totalPSPCompanies = await this.pspModel.countDocuments().exec();
+
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const lastYear = currentYear - 1;
+
+    // Helper function for yearly aggregation
+    const getYearlyRevenue = async (year: number) => {
+      const result = await this.transactionModel.aggregate([
+        {
+          $match: {
+            status: TransactionStatus.Successful,
+            service: {
+              $in: [ServiceType.WasteDisposal, ServiceType.SmartBinPurchase],
+            },
+            createdAt: {
+              $gte: new Date(`${year}-01-01`),
+              $lt: new Date(`${year + 1}-01-01`),
+            },
+          },
+        },
+        { $group: { _id: null, total: { $sum: "$amount" } } },
+      ]).exec();
+      return result?.[0]?.total ?? 0;
+    };
+
+    const [currentYearRevenue, lastYearRevenue] = await Promise.all([
+      getYearlyRevenue(currentYear),
+      getYearlyRevenue(lastYear),
+    ]);
+
+    const annualRevenueGrowth =
+      lastYearRevenue > 0
+        ? (((currentYearRevenue - lastYearRevenue) / lastYearRevenue) * 100).toFixed(2) + "%"
+        : "100%";
+
+    const monthlyRevenueData = await this.transactionModel.aggregate([
+      {
+        $match: {
+          status: TransactionStatus.Successful,
+          createdAt: {
+            $gte: new Date(`${currentYear}-01-01`),
+            $lt: new Date(`${currentYear + 1}-01-01`),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: { month: { $month: "$createdAt" } },
+          revenue: { $sum: "$amount" },
+        },
+      },
+      { $sort: { "_id.month": 1 } },
+    ]).exec();
+
+    const monthlyRevenue = Array.from({ length: 12 }, (_, i) => {
+      const month = monthlyRevenueData.find(m => m._id.month === i + 1);
+      return month ? month.revenue : 0;
+    });
+
+    const topPSPcompanies = await this.pspModel.aggregate([
+      { $sort: { createdAt: -1 } },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: "psp-users",
+          localField: "_id",
+          foreignField: "psp_id",
+          as: "team_members",
+        },
+      },
+      {
+        $addFields: {
+          teamMembersCount: { $size: "$team_members" },
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          company_name: 1,
+          teamMembersCount: 1,
+        },
+      },
+    ]).exec();
+
+    const [pendingBinrequests, completedBinrequests, totalBinRequests] =
+      await Promise.all([
+        this.smartbinModel
+          .countDocuments({ status: SmartbinStatus.Pending })
+          .exec(),
+        this.smartbinModel
+          .countDocuments({ status: SmartbinStatus.Delivered })
+          .exec(),
+        this.smartbinModel.countDocuments().exec(),
+      ]);
+    return {
+      registeredUsers: {
+        resident: residentCount,
+        agent: agentCount,
+        corporate: corporateCount,
+        facilityManager: facilityManagerCount,
+        total: totalRegisteredUsers,
+        percentageByUserType,
+      },
+      binRequests: {
+        pending: pendingBinrequests,
+        completed: completedBinrequests,
+        total: totalBinRequests,
+      },
+      psp: {
+        total: totalPSPCompanies,
+        topCompanies: topPSPcompanies,
+      },
+      revenue: {
+        total: currentYearRevenue,
+        monthlyRevenue,
+        annualGrowth: annualRevenueGrowth,
+      },
+    };
   }
 
   // get Revenue Overview

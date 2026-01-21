@@ -13,7 +13,7 @@ export class LawmaSuperadminsService {
     return this.superAdminService.getRevenueOverview();
   }
 
-  async getAdminDashboard() {
-    return this.superAdminService.getSuperAdminDashboard();
+  async getLawmaAdminDashboard() {
+    return this.superAdminService.getLawmaAdminDashboard();
   }
 }

@@ -21,6 +21,6 @@ export class SuperadminsController {
   }
   @Get('admin-dashboard')
   async getAdminDashboard() {
-    return this.superAdminService.getAdminDashboard();
+    return this.superAdminService.getLawmaAdminDashboard();
   }
 }
