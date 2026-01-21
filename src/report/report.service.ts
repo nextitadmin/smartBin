@@ -36,13 +36,17 @@ import { PspTeamMember, SmartbinPartnerUser } from '@common/types';
 export class ReportService {
   constructor(
     @InjectModel(Report.name) private readonly reportModel: Model<Report>,
-    @InjectModel(Transaction.name) private readonly transactionModel: Model<Transaction>,
+    @InjectModel(Transaction.name)
+    private readonly transactionModel: Model<Transaction>,
     @InjectModel(SmartBin.name) private readonly smartBinModel: Model<SmartBin>,
-    @InjectModel(Pickup.name) private readonly pickupModel: Model<PickupDocument>,
+    @InjectModel(Pickup.name)
+    private readonly pickupModel: Model<PickupDocument>,
     @InjectModel(Resident.name) private readonly residentModel: Model<Resident>,
     @InjectModel(Agent.name) private readonly agentModel: Model<Agent>,
-    @InjectModel(FacilityManager.name) private readonly facilityManagerModel: Model<FacilityManager>,
-    @InjectModel(Corporate.name) private readonly corporateModel: Model<Corporate>,
+    @InjectModel(FacilityManager.name)
+    private readonly facilityManagerModel: Model<FacilityManager>,
+    @InjectModel(Corporate.name)
+    private readonly corporateModel: Model<Corporate>,
   ) {}
 
   // generte report
@@ -758,7 +762,7 @@ export class ReportService {
         status: app.status,
         amount: app.amount,
         dateRequested: app.applicationHistory?.[0]?.timestamp,
-        LGA: app.localGovernmentArea || 'N/A',
+        // LGA: app.localGovernmentArea || 'N/A',
         address: app.address,
         branch: app?.branch,
       };
@@ -801,15 +805,15 @@ export class ReportService {
         (u) => u._id.toString() === app.userId.toString(),
       );
       const name = user ? `${user.firstName} ${user.lastName}` : 'N/A';
-      return { 
+      return {
         orderId: app._id,
         name,
         status: app.status,
         dateDelivered: app.deliveredOn,
-        LGA: app.localGovernmentArea || 'N/A',
+        // LGA: app.localGovernmentArea || 'N/A',
         address: app.address,
-        deliveredBy: app.assignedTo|| 'N/A',
-        };
+        deliveredBy: app.assignedTo || 'N/A',
+      };
     });
     return {
       applications: enrichedApplications,

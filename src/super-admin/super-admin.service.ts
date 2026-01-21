@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model, models, Types } from 'mongoose';
 import { Resident } from '@models/users/resident.model';
 import { Agent } from '@models/users/agent.model';
 import { Corporate } from '@models/users/corporate.model';
 import { FacilityManager } from '@models/users/facility-manager.model';
-import { Bill } from '@models/bill.model';
+import { Bill, BillStatus } from '@models/bill.model';
 import { Wallet } from '@models/wallet.model';
 import { SmartBin, SmartbinStatus } from '@models/smart-bin.model';
 import { ServiceType, Transaction, TransactionStatus } from '@models/transaction.model';
@@ -15,6 +15,7 @@ import { UserRole } from '@models/types';
 import { Paging } from '@common/http';
 import { PSP } from '@models/psp.model';
 import { AdministratorRole } from '@models/administrator.model';
+import { Lga } from '@models/lgas.model';
 @Injectable()
 export class SuperAdminService {
   constructor(
@@ -42,38 +43,119 @@ export class SuperAdminService {
       agentCount,
       corporateCount,
       facilityManagerCount,
-      totalTeamMembers,
+      totalPSPCompanies,
     ] = await Promise.all([
       this.residentModel.countDocuments().exec(),
       this.agentModel.countDocuments().exec(),
       this.corporateModel.countDocuments().exec(),
       this.facilityModel.countDocuments().exec(),
-      this.teamMemberModel.countDocuments().exec(),
+      this.pspModel.countDocuments().exec(),
     ]);
-
-    const pendingBinrequests = await this.smartbinModel
-      .countDocuments({ status: SmartbinStatus.Pending })
-      .exec();
-    const completedBinrequests = await this.smartbinModel
-      .countDocuments({ status: SmartbinStatus.Delivered })
-      .exec();
-    const totalBinRequests = await this.smartbinModel.countDocuments().exec();
-
     const totalRegisteredUsers =
       residentCount + agentCount + corporateCount + facilityManagerCount;
-    totalTeamMembers;
+
+    const [
+      pendingRequests,
+      inventoryRequests,
+      scheduledRequests,
+      deliveredRequests,
+      activatedRequests,
+      totalBinRequests,
+    ] = await Promise.all([
+      this.smartbinModel.countDocuments({ status: SmartbinStatus.Pending }).exec(),
+      this.smartbinModel.countDocuments({ status: SmartbinStatus.Inventory }).exec(),
+      this.smartbinModel.countDocuments({ status: SmartbinStatus.ScheduledForDelivery }).exec(),
+      this.smartbinModel.countDocuments({ status: SmartbinStatus.Delivered }).exec(),
+      this.smartbinModel.countDocuments({ status: SmartbinStatus.Activated }).exec(),
+      this.smartbinModel.countDocuments().exec(),
+    ]);
+
     const percentageByUserType = {
       resident: Math.floor((residentCount / totalRegisteredUsers) * 100) || 0,
       agent: Math.floor((agentCount / totalRegisteredUsers) * 100) || 0,
       corporate: Math.floor((corporateCount / totalRegisteredUsers) * 100) || 0,
       facilityManager:
         Math.floor((facilityManagerCount / totalRegisteredUsers) * 100) || 0,
-      teamMember:
-        Math.floor((totalTeamMembers / totalRegisteredUsers) * 100) || 0,
     };
 
-    const totalPSPCompanies = await this.pspModel.countDocuments().exec();
-    // TODO: Add top PSP companies per revenue generated. @Kazeem
+    const [
+      totalRevenue,
+      binPurchaseRevenue,
+      wasteDisposalRevenue,
+      pspRevenue,
+    ] = await Promise.all([
+      this.transactionModel.aggregate([
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+      this.transactionModel.aggregate([
+        { $match: { service: ServiceType.SmartBinPurchase } },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+      this.transactionModel.aggregate([
+        { $match: { service: ServiceType.WasteDisposal } },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+      //Psprevenue calculation
+      this.transactionModel.aggregate([
+        { $match: { service: ServiceType.WalletCharge } },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+    ]);
+    // PSP Revenue Calculation
+    const pspRevenueResults = await this.pickupModel.aggregate([
+      {
+        $match: {
+          transactionReference: { $exists: true, $ne: null },
+        },
+      },
+      {
+        $lookup: {
+          from: 'transactions',
+          localField: 'transactionReference',
+          foreignField: 'transactionReference',
+          as: 'transactionData',
+        },
+      },
+      { $unwind: '$transactionData' },
+      {
+        $match: {
+          'transactionData.status': TransactionStatus.Successful,
+        },
+      },
+      {
+        $group: {
+          _id: '$psp_id',
+          totalRevenue: { $sum: '$transactionData.amount' },
+          totalPickups: { $sum: 1 },
+        },
+      },
+      { $sort: { totalRevenue: -1 } },
+    ]);
+
+    const totalPSPRevenue = pspRevenueResults.reduce(
+      (sum, item) => sum + (item.totalRevenue || 0),
+      0,
+    );
+
+    const [
+      binsDelivered,
+      wastePickedUp,
+      unpaidBillsCount,
+      unpaidBillsAmount,
+    ] = await Promise.all([
+      this.smartbinModel.countDocuments({ status: SmartbinStatus.Delivered }).exec(),
+      this.pickupModel.aggregate([
+        { $match: { status: Status.Completed } },
+        { $group: { _id: null, totalWeight: { $sum: '$weight' } } },
+      ]),
+      this.billModel.countDocuments({ status: BillStatus.Completed }).exec(),
+      this.billModel.aggregate([
+        { $match: { status: BillStatus.Pending } },
+        { $group: { _id: null, totalAmount: { $sum: '$amount' } } },
+      ]),
+    ]);
+    const lgasCovered = await this.lgaModel.countDocuments().exec();
+    const householdsEnumerated = await this.residentModel.countDocuments().exec();
     const topPSPcompanies = await this.pspModel
       .find()
       .sort({ createdAt: -1 })
@@ -81,25 +163,42 @@ export class SuperAdminService {
       .lean();
 
     return {
-      registeredUsers: {
+      totals: {
+        registeredUSers: totalRegisteredUsers,
+        pspCompanies: totalPSPCompanies,
+        binRequests: totalBinRequests,
+        totalRevenue: totalRevenue[0]?.total
+      },
+      userCategory: {
         residentUsers: residentCount,
         agentsUsers: agentCount,
-        corporatesUsers: corporateCount,
-        facilityManagers: facilityManagerCount,
-        totalRegisteredUsers: totalRegisteredUsers,
-        percentageByUserType: percentageByUserType,
+        corporateUsers: corporateCount,
+        facilityManagerUsers: facilityManagerCount,
+        percentageByUserType,
       },
       binRequests: {
-        pendingBinrequests: pendingBinrequests,
-        completedBinrequests: completedBinrequests,
-        totalBinRequests: totalBinRequests,
+        pendingRequests,
+        inventoryRequests,
+        scheduledRequests,
+        deliveredRequests,
+        activatedRequests,
+        totalBinRequests,
       },
-      totalTeamMembers: totalTeamMembers,
-      pspCompanies: {
-        registeredPSPs: totalPSPCompanies,
-        topPSPcompanies: topPSPcompanies,
+      revenueBreakdown: {
+        binPurchaseRevenue: binPurchaseRevenue[0]?.total,
+        wasteDisposalRevenue: wasteDisposalRevenue[0]?.total,
+        pspRevenue: totalPSPRevenue
       },
-    };
+      operationalMetrics: {
+        householdsEnumerated,
+        binsDelivered,
+        wastePickedUp,
+        lgasCovered,
+        unpaidBillsCount,
+        unpaidBillsAmount: unpaidBillsAmount[0]?.totalAmount,
+      },
+      topPSPcompanies: topPSPcompanies,
+    }
   }
 
   // Lawma Admin

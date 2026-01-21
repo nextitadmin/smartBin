@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, SchemaTypes, Types } from 'mongoose';
+import { Document, PopulatedDoc, SchemaTypes, Types } from 'mongoose';
 import { UserRole } from './types';
+import { Lga, LGAAttributes } from './lgas.model';
 
 export enum IdVerificationStatus {
   PENDING = 'pending',
@@ -45,7 +46,7 @@ export interface UserKycAttributes {
   houseNumber?: string;
   flatNumber?: string;
   address?: string;
-  localGovernment?: string;
+  lga: any;
   closestLandmark?: string;
   branches?: BranchDetails[];
   signatories?: Types.ObjectId[];
@@ -61,11 +62,12 @@ export interface UserKycAttributes {
   signatoryVerificationStatus?: SignatoryVerificationStatus;
   businessRegistrationNumber?: string;
   businessSector?: string;
-  hasCompletedKyc?:boolean;
+  hasCompletedKyc?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 }
 
+export type UserKycDocument = UserKycAttributes & Document;
 @Schema({
   collection: 'user_kycs',
   timestamps: true,
@@ -107,8 +109,8 @@ export class UserKyc extends Document {
   @Prop({ type: SchemaTypes.String, required: false })
   address: string;
 
-  @Prop({ type: SchemaTypes.String, required: false })
-  localGovernment: string;
+  @Prop({ type: SchemaTypes.ObjectId, ref: Lga.name, required: true })
+  lga?: any;
 
   @Prop({ type: SchemaTypes.String, required: false })
   closestLandmark: string;
@@ -159,7 +161,6 @@ export class UserKyc extends Document {
     default: [],
   })
   branches: BranchDetails[];
-
 
   @Prop({
     type: SchemaTypes.String,

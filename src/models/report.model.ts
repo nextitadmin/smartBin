@@ -1,6 +1,7 @@
 import { SchemaTypes, Types } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { Lga } from './lgas.model';
 
 export enum ReportType {
   Revenue = 'revenue',
@@ -35,7 +36,7 @@ export interface ReportAttributes {
   data: Record<string, any>;
   userId?: Types.ObjectId;
   adminId?: Types.ObjectId;
-  lga?: string;
+  lgaId?: Types.ObjectId;
   tenantName?: string;
   businessName?: string;
   createdAt?: Date;
@@ -52,8 +53,10 @@ export class Report implements ReportAttributes {
 
   @Prop({ required: true })
   reportName: string;
+
   @Prop()
   customerType?: CustomerType;
+
   @Prop()
   customerName?: string;
 
@@ -72,9 +75,6 @@ export class Report implements ReportAttributes {
   reportMethod?: ReportMethod;
 
   @Prop()
-  lga?: string;
-
-  @Prop()
   startDate: Date;
 
   @Prop()
@@ -85,6 +85,13 @@ export class Report implements ReportAttributes {
     from: string;
     to: string;
   };
+
+  @Prop({
+    type: SchemaTypes.ObjectId,
+    ref: Lga.name,
+    required: true,
+  })
+  lgaId: Types.ObjectId;
 
   @Prop({ type: Object })
   filters: Record<string, any>;
@@ -102,11 +109,19 @@ export class Report implements ReportAttributes {
   @Prop({
     type: {
       isAuto: { type: Boolean, default: false },
-      frequency: { type: String, enum: Object.values(Frequency), default: Frequency.Monthly },
+      frequency: {
+        type: String,
+        enum: Object.values(Frequency),
+        default: Frequency.Monthly,
+      },
       day: { type: String },
       time: { type: String },
       nextRun: { type: Date },
-      status: { type: String, enum: ['active', 'inactive'], default: 'inactive' },
+      status: {
+        type: String,
+        enum: ['active', 'inactive'],
+        default: 'inactive',
+      },
       primaryEmail: { type: String },
       secondaryEmails: [{ type: String }],
       createdBySuperAdmin: { type: Boolean, default: false },

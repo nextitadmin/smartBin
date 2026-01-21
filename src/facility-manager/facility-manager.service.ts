@@ -244,7 +244,7 @@ export class FacilityManagerService {
         'https://res.cloudinary.com/demo/image/upload/avatar.png',
       address: userKyc.address || null,
       landmark: userKyc.closestLandmark || null,
-      localGovermentArea: userKyc.localGovernment || null,
+      localGovermentArea: userKyc.lga.name || null,
       buildingType: userKyc.buildingType || null,
     };
   }

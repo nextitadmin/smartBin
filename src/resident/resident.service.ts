@@ -272,7 +272,7 @@ export class ResidentService {
       address: userKyc?.address || null,
       landmark: userKyc?.closestLandmark || null,
       nextPickupDate: resident.nextPickupDate || null,
-      localGovermentArea: userKyc?.localGovernment || null,
+      // localGovermentArea: userKyc?.localGovernment || null,
       buildingType: userKyc?.buildingType || null,
       idDocument: userKyc?.idDocument || null,
       idDocumentNo: userKyc?.idDocumentNo || null,
@@ -523,12 +523,9 @@ export class ResidentService {
     return data;
   }
 
- 
-
-  async trackApplication(applicationId: string){
+  async trackApplication(applicationId: string) {
     return this.smartBinService.getOrderTimeline(applicationId);
   }
-
 
   async deleteBinApplication(applicationId: string) {
     return this.smartBinService.deleteBinApplication(applicationId);

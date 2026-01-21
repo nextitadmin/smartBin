@@ -657,7 +657,8 @@ export class PickupService {
       if (user) {
         customerName = `${user.firstName} ${user.lastName}`;
         email = user.email;
-        localGovernmentArea = user.localGovernmentArea;
+        localGovernmentArea = 'N/A';
+        // localGovernmentArea = user.localGovernmentArea;
       }
     }
 

@@ -14,6 +14,7 @@ import { Payer, PayerSchema } from '@models/users/payer.model';
 import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { TeamMember, TeamMemberSchema } from '@models/team.model';
 import { PSP, PSPSchema } from '@models/psp.model';
+import { Lga, LgaSchema } from '@models/lgas.model';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { PSP, PSPSchema } from '@models/psp.model';
         { name: UserKyc.name, schema: UserKycSchema },
         { name: TeamMember.name, schema: TeamMemberSchema },
         { name: PSP.name, schema: PSPSchema },
+        { name: Lga.name, schema: LgaSchema}
       ]),
     ],
   controllers: [],

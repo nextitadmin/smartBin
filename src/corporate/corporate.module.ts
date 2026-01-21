@@ -42,7 +42,8 @@ import { CorporatePaymentController } from './payment/payment.controller';
 import { ReportService } from '@src/report/report.service';
 import { Report, ReportSchema } from '@models/report.model';
 import { PayerService } from '@src/payer/payer.service';
-import { TeamMember, TeamMemberSchema } from '@models/team.model';  
+import { TeamMember, TeamMemberSchema } from '@models/team.model';
+import { UserKycRepository } from '@models/repository/user-kyc.repository';
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -67,7 +68,7 @@ import { TeamMember, TeamMemberSchema } from '@models/team.model';
     DashboardModule,
     forwardRef(() => NotificationModule),
     KycModule,
-    TeamMember
+    TeamMember,
   ],
 
   controllers: [

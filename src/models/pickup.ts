@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, SchemaTypes, Types } from 'mongoose';
 import { UserRole } from './types';
 import { PaymentMethod } from './transaction.model';
+import { PSP } from './psp.model';
 
 export type PickupDocument = Pickup & Document;
 
@@ -9,7 +10,7 @@ export enum Status {
   Pending = 'pending',
   Cancelled = 'cancelled',
   SchedulePickup = 'schedule-pickup',
-Assigned = 'assigned',
+  Assigned = 'assigned',
   Delivered = 'delivered',
   Completed = 'completed',
 }
@@ -71,8 +72,8 @@ export class Pickup {
   @Prop()
   representative?: string;
 
-  @Prop({ type: SchemaTypes.ObjectId, ref: 'PSP' })
-pspId?: Types.ObjectId;
+  @Prop({ type: SchemaTypes.ObjectId, ref: PSP.name })
+  pspId?: Types.ObjectId;
 
   @Prop({ enum: Object.values(Status), default: Status.Pending })
   status: Status;
@@ -138,7 +139,6 @@ pspId?: Types.ObjectId;
 
   @Prop()
   assignedTo?: string;
-
 
   @Prop()
   paymentDue?: Date;

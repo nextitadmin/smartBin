@@ -39,7 +39,7 @@ import {
   version: '1',
 })
 export class CorporateController {
-  constructor(private readonly corporateService: CorporateService) { }
+  constructor(private readonly corporateService: CorporateService) {}
 
   @Public()
   @Post('register')
@@ -105,7 +105,6 @@ export class CorporateController {
     return new SuccessResponse('profile updated', response);
   }
 
-
   @Get('profile')
   @CorporateAuth()
   async getProfile(@AuthenticatedCorporate() corporate: AuthUser) {
@@ -126,7 +125,7 @@ export class CorporateController {
     @Body() body: ProfileDto,
     @AuthenticatedCorporate() corporate: AuthUser,
   ) {
-    const response = await this.corporateService.updateProfilePicture(
+    await this.corporateService.updateProfilePicture(
       corporate.id,
       body.imageUrl,
     );
@@ -140,9 +139,11 @@ export class CorporateController {
     @AuthenticatedCorporate() corporate: AuthUser,
   ) {
     const response = await this.corporateService.addBranch(corporate.id, body);
-    return new SuccessResponse('Branch added to corporation successfully', response);
+    return new SuccessResponse(
+      'Branch added to corporation successfully',
+      response,
+    );
   }
-
 
   @Get('fetch-branches')
   @CorporateAuth()

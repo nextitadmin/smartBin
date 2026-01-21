@@ -1,5 +1,6 @@
 import { SchemaTypes, Types } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Lga } from './lgas.model';
 
 export enum LawmaCustomerType {
   Returning = 'Returning',
@@ -11,7 +12,7 @@ export interface BranchAttributes {
   userId: Types.ObjectId;
   branchName: string;
   branchAddress: string;
-  localGovernmentArea: string;
+  lgaId: Types.ObjectId;
   lawmaCustomerType?: LawmaCustomerType;
   closestLandmark: string;
   state?: string;
@@ -42,10 +43,11 @@ export class Branch implements BranchAttributes {
   branchAddress: string;
 
   @Prop({
+    type: SchemaTypes.ObjectId,
+    ref: Lga.name,
     required: true,
-    type: SchemaTypes.String,
   })
-  localGovernmentArea: string;
+  lgaId: Types.ObjectId;
 
   @Prop({
     required: true,

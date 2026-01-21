@@ -11,6 +11,7 @@ import {
   CorporateTeam,
   CorporateTeamSchema,
 } from '@models/corporate-team.model';
+import { UserKycRepository } from '@models/repository/user-kyc.repository';
 // import { AdminKycController } from './admin.controller';
 
 @Module({
