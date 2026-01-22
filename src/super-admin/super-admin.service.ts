@@ -14,7 +14,6 @@ import { TeamMember } from '@models/team.model';
 import { UserRole } from '@models/types';
 import { Paging } from '@common/http';
 import { PSP } from '@models/psp.model';
-import { AdministratorRole } from '@models/administrator.model';
 @Injectable()
 export class SuperAdminService {
   constructor(
@@ -35,7 +34,6 @@ export class SuperAdminService {
     @InjectModel(PSP.name) private readonly pspModel: Model<PSP>,
   ) { }
 
-  // get super admin dashboard
   async getSuperAdminDashboard() {
     const [
       residentCount,
