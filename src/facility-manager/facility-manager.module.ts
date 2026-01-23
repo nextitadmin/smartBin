@@ -39,7 +39,7 @@ import { FacilityUserService } from './user-management/facility-user.service';
 import { FacilityUsers, FacilityUserSchema } from '@models/facility-users.model';
 import { BillService } from '@src/bill/bill.service';
 import { FacilityManagerBillController } from './bill/bill.controller';
-
+import { Lga,LgaSchema } from '@models/lgas.model';
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -57,7 +57,8 @@ import { FacilityManagerBillController } from './bill/bill.controller';
       { name: Facility.name, schema: FacilitySchema },
       { name: TeamMember.name, schema: TeamMemberSchema },
       { name: Report.name, schema: ReportSchema },
-      { name: FacilityUsers.name, schema: FacilityUserSchema }
+      { name: FacilityUsers.name, schema: FacilityUserSchema },
+      {name: Lga.name, schema:LgaSchema}
     ]),
     SmartBinModule,
     KycModule,

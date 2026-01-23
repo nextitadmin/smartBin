@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, models, Types } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Resident } from '@models/users/resident.model';
 import { Agent } from '@models/users/agent.model';
 import { Corporate } from '@models/users/corporate.model';
@@ -33,6 +33,8 @@ export class SuperAdminService {
     private readonly transactionModel: Model<Transaction>,
     @InjectModel(TeamMember.name)
     private readonly teamMemberModel: Model<TeamMember>,
+    @InjectModel(Lga.name)
+    private readonly lgaModel:Model<Lga>,
     @InjectModel(PSP.name) private readonly pspModel: Model<PSP>,
   ) { }
 

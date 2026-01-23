@@ -37,6 +37,7 @@ import { Report, ReportSchema } from '@models/report.model';
 import { AgentSmartbinController } from './bin-management/bin-management.controller';
 import { AgentSmartbinService } from './bin-management/bin-management.service';
 import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
+import { Lga,LgaSchema } from '@models/lgas.model';
 
 @Module({
   imports: [
@@ -84,6 +85,7 @@ import { SmartBinModule } from '@src/smart-bin/smart-bin.module';
         name: TeamMember.name,
         schema: TeamMemberSchema,
       },
+      {name: Lga.name, schema:LgaSchema}
     ]),
     forwardRef(() => WalletModule),
     forwardRef(() => TransactionModule),

@@ -44,6 +44,7 @@ import { Report, ReportSchema } from '@models/report.model';
 import { PayerService } from '@src/payer/payer.service';
 import { TeamMember, TeamMemberSchema } from '@models/team.model';
 import { UserKycRepository } from '@models/repository/user-kyc.repository';
+import { Lga,LgaSchema } from '@models/lgas.model';
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -62,6 +63,7 @@ import { UserKycRepository } from '@models/repository/user-kyc.repository';
       { name: Report.name, schema: ReportSchema },
       { name: Facility.name, schema: FacilitySchema },
       { name: TeamMember.name, schema: TeamMemberSchema },
+      {name: Lga.name, schema:LgaSchema}
     ]),
     WalletModule,
     PickupModule,
