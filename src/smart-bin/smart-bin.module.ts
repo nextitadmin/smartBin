@@ -15,6 +15,7 @@ import { SmartBinService } from './smart-bin.service';
 import { AgentModule } from '@src/agent/agent.module';
 import { Facility, FacilitySchema } from '@models/facilities';
 import { TeamMember, TeamMemberSchema } from '../models/team.model';
+import { Lga, LgaSchema } from '@models/lgas.model';
 
 @Module({
   imports: [
@@ -29,7 +30,7 @@ import { TeamMember, TeamMemberSchema } from '../models/team.model';
       { name: Transaction.name, schema: TransactionSchema },
       { name: Facility.name, schema: FacilitySchema },
       { name: TeamMember.name, schema: TeamMemberSchema },
-
+      { name: Lga.name, schema: LgaSchema },
     ]),
     AgentModule,
   ],
@@ -37,4 +38,4 @@ import { TeamMember, TeamMemberSchema } from '../models/team.model';
   providers: [SmartBinService],
   exports: [SmartBinService],
 })
-export class SmartBinModule { }
+export class SmartBinModule {}
