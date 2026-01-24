@@ -45,6 +45,6 @@ import { RbacModule } from '@src/rbac/rbac.module';
     ReportModule,
     RbacModule,
   ],
-  exports: [PspAuthService],
+  exports: [PspAuthService, PspService],
 })
 export class PspModule {}

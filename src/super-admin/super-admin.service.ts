@@ -14,6 +14,10 @@ import { TeamMember } from '@models/team.model';
 import { UserRole } from '@models/types';
 import { Paging } from '@common/http';
 import { PSP } from '@models/psp.model';
+import { Lga } from '@models/lgas.model';
+import { PspService } from '../lawma/psp/psp.service';
+import { CreatePspDTO, ChangeStatusPspDto } from '../lawma/psp/dto/psp.dto';
+
 @Injectable()
 export class SuperAdminService {
   constructor(
@@ -31,11 +35,12 @@ export class SuperAdminService {
     private readonly transactionModel: Model<Transaction>,
     @InjectModel(TeamMember.name)
     private readonly teamMemberModel: Model<TeamMember>,
-    @InjectModel(Lga.name)
-    private readonly lgaModel:Model<Lga>,
     @InjectModel(PSP.name) private readonly pspModel: Model<PSP>,
+    @InjectModel(Lga.name) private readonly lgaModel: Model<Lga>,
+    private readonly pspService: PspService,
+    
   ) { }
-
+  
   async getSuperAdminDashboard() {
     const [
       residentCount,
@@ -321,4 +326,81 @@ export class SuperAdminService {
       paymentDetails,
     };
   }
+
+// PSP Revenue Management
+  async getPspRevenueAnalysis(
+    page: number = 1,
+    limit: number = 10,
+    lgaFilter?: string,
+    search?: string,
+  ) {
+    // This returns all PSPs
+    const psps = await this.pspService.getPsps(); 
+    const total = psps.length;
+    
+    //  manually filter
+    const filteredPsps = psps.filter(psp => {
+      if (lgaFilter && psp.lga_id.toString() !== lgaFilter) return false;
+      if (search && !psp.company_name.toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
+    });
+
+    // Paginate
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedPsps = filteredPsps.slice(startIndex, endIndex);
+
+    // Get revenue data for each PSP
+    const revenueData = await Promise.all(
+      paginatedPsps.map(async (psp, index) => {
+        // Get household coverage
+        const householdCovered = await this.residentModel.countDocuments({
+          lga_id: psp.lga_id,
+          deleted_at: null,
+        });
+
+        // successful transactions
+        const transactions = await this.transactionModel.aggregate([
+          {
+            $match: {
+              psp_id: psp._id,
+              status: TransactionStatus.Successful,
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              totalRevenue: { $sum: '$amount' },
+              totalBills: { $sum: 1 },
+            },
+          },
+        ]);
+
+        const revenueInfo = transactions[0] || {
+          totalRevenue: 0,
+          totalBills: 0,
+        };
+
+        // Get LGA name
+        const lga = await this.lgaModel.findById(psp.lga_id).lean();
+
+        return {
+          pspCompany: psp.company_name,
+          lga: lga?.name || 'N/A',
+          householdCovered,
+          revenue: revenueInfo.totalRevenue,
+          bills: revenueInfo.totalBills.countDocuments(),
+        };
+      }),
+    );
+
+    return {
+      data: revenueData,
+      total: filteredPsps.length,
+      page,
+      limit,
+      totalPages: Math.ceil(filteredPsps.length / limit),
+    };
+  }
+
 }
