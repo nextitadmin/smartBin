@@ -4,6 +4,7 @@ import { UserRole } from './types';
 import { Transaction } from './transaction.model';
 import { Type } from 'class-transformer';
 import { Lga, LGAAttributes } from './lgas.model';
+import { string } from 'joi';
 
 export enum SmartbinStatus {
   Pending = 'pending',
@@ -35,7 +36,11 @@ export enum BinAssignmentStatus {
   Assigned = 'assigned',
   Unassigned = 'unassigned',
 }
-
+export enum RecieverType {
+  OWNER = 'owner',
+  RELATIVE = 'relative',
+  ACQUAINTANCE = 'acquaintance',
+}
 export const DEFAULT_SMART_BIN_AMOUNT = 100000;
 export interface SmartBinAttributes {
   _id?: string;
@@ -56,6 +61,7 @@ export interface SmartBinAttributes {
   email?: string;
   phoneNumber?: string;
   amount?: number;
+  quantity?: number;
   branch?: string;
   binId?: string;
   branchId: string;
@@ -75,11 +81,16 @@ export interface SmartBinAttributes {
   deliveredBy?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  receiverName?: string;
+  receiverType?: RecieverType;
+
   applicationHistory: [
     {
-      timestamp: Date; // date
-      status: string; // activated, delivered, scheduledForDelivery, delivered, cancelled //enum
+      timestamp: Date;
+      status: string;
       description: string;
+      updatedBy?: string;
+      updatedByName?: string;
     },
   ];
 }
@@ -96,6 +107,12 @@ class ApplicationHistoryItem {
 
   @Prop({ type: String, required: true })
   description: string;
+
+  @Prop({ type: SchemaTypes.ObjectId, required: false })
+  updatedBy?: Types.ObjectId; // Can store team member ID or name
+
+  @Prop({ type: SchemaTypes.String, required: false })
+  updatedByName?: string; // Store the name for easy display
 }
 
 const ApplicationHistoryItemSchema = SchemaFactory.createForClass(
@@ -136,10 +153,10 @@ export class SmartBin extends Document {
   payerId: string;
 
   @Prop({
-    type: SchemaTypes.String,
+    type: SchemaTypes.ObjectId,
     required: false,
   })
-  assignedTo?: string;
+  assignedTo?: Types.ObjectId;
 
   @Prop({
     type: String,
@@ -155,6 +172,13 @@ export class SmartBin extends Document {
     default: BinType.Smart,
   })
   binType: BinType;
+
+  @Prop({
+    type: SchemaTypes.Number,
+    required: false,
+    default: 1,
+  })
+  quantity?: number;
 
   @Prop({
     type: String,
@@ -248,7 +272,7 @@ export class SmartBin extends Document {
   @Prop({
     type: SchemaTypes.ObjectId,
     ref: Lga.name,
-    required: true,
+    required: false,
   })
   lga_id?: Types.ObjectId;
 
@@ -269,6 +293,16 @@ export class SmartBin extends Document {
 
   @Prop({ type: [ApplicationHistoryItemSchema], default: [] })
   applicationHistory: ApplicationHistoryItem[];
+
+  @Prop({ type: SchemaTypes.String })
+  receiverName?: string;
+
+  @Prop({
+    type: String,
+    enum: Object.values(RecieverType),
+    default: RecieverType.OWNER,
+  })
+  receiverType?: RecieverType;
 }
 
 export const SmartBinSchema = SchemaFactory.createForClass(SmartBin);

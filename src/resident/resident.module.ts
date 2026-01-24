@@ -41,6 +41,7 @@ import { NotificationModule } from '@src/notification/notification.module';
 import { WalletModule } from '@src/wallet/wallet.module';
 // import { AdminResidentController } from './admin.controller';
 import { TeamMember, TeamMemberSchema } from '@models/team.model';
+import { Lga, LgaSchema } from '@models/lgas.model';
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -85,6 +86,7 @@ import { TeamMember, TeamMemberSchema } from '@models/team.model';
       { name: Pickup.name, schema: PickupSchema },
       { name: Facility.name, schema: FacilitySchema },
       { name: TeamMember.name, schema: TeamMemberSchema },
+      {name: Lga.name, schema:LgaSchema}
     ]),
     SmartBinModule,
     KycModule,

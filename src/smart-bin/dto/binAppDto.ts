@@ -1,4 +1,8 @@
-import { BinType, LAWMACustomerType } from '@models/smart-bin.model';
+import {
+  BinType,
+  LAWMACustomerType,
+  RecieverType,
+} from '@models/smart-bin.model';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsBoolean,
@@ -413,4 +417,36 @@ export class GetOverviewDto {
   @IsOptional()
   @IsEnum(BinType)
   binType?: BinType;
+}
+
+export class DeliveryData {
+  @ApiProperty()
+  receiverName: string;
+  @ApiProperty()
+  receiverType: RecieverType;
+  @ApiProperty()
+  deliveredBy:string;
+  @ApiProperty()
+  agreeToReceive: boolean;
+}
+
+
+export class GetTeamMemberBinsFilterDto {
+  @ApiPropertyOptional({ description: 'Start date for filtering' })
+  @IsOptional()
+  @IsDateString()
+  startDate?: string;
+
+  @ApiPropertyOptional({ description: 'End date for filtering' })
+  @IsOptional()
+  @IsDateString()
+  endDate?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  page?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  limit?: number;
 }

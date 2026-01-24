@@ -31,6 +31,8 @@ export class SuperAdminService {
     private readonly transactionModel: Model<Transaction>,
     @InjectModel(TeamMember.name)
     private readonly teamMemberModel: Model<TeamMember>,
+    @InjectModel(Lga.name)
+    private readonly lgaModel:Model<Lga>,
     @InjectModel(PSP.name) private readonly pspModel: Model<PSP>,
   ) { }
 
