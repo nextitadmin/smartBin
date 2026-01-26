@@ -16,4 +16,8 @@ export class LawmaSuperadminsService {
   async getLawmaAdminDashboard() {
     return this.superAdminService.getLawmaAdminDashboard();
   }
+
+  async getPspRevenueAnalysis() {
+    return this.superAdminService.getPspRevenueAnalysis();
+  }
 }

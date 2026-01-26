@@ -15,6 +15,9 @@ import { UserKyc, UserKycSchema } from '@models/user-kyc.model';
 import { TeamMember, TeamMemberSchema } from '@models/team.model';
 import { PSP, PSPSchema } from '@models/psp.model';
 import { Lga, LgaSchema } from '@models/lgas.model';
+import { PspService } from '../lawma/psp/psp.service';
+import { PspModule } from '@src/lawma/psp/psp.module';
+
 
 @Module({
   imports: [
@@ -34,6 +37,7 @@ import { Lga, LgaSchema } from '@models/lgas.model';
         { name: PSP.name, schema: PSPSchema },
         { name: Lga.name, schema: LgaSchema}
       ]),
+      PspModule
     ],
   controllers: [],
   providers: [SuperAdminService],
