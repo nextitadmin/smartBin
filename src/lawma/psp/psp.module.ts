@@ -19,6 +19,8 @@ import { AdminReportService } from '../report/report.service';
 import { ReportModule } from '@src/report/report.module';
 import { AuthService } from '../auth/auth.service';
 import { RbacModule } from '@src/rbac/rbac.module';
+import { PspTeamManagementController } from './psp-users/team-management/teamManagement.controller';
+import { PspTeamManagement } from './psp-users/team-management/teamManagement.service';
 
 @Module({
   controllers: [
@@ -26,6 +28,7 @@ import { RbacModule } from '@src/rbac/rbac.module';
     PspAuthController,
     PspWasteManagementController,
     PSPReportController,
+    PspTeamManagementController
   ],
   providers: [
     PspService,
@@ -33,6 +36,7 @@ import { RbacModule } from '@src/rbac/rbac.module';
     LawmaWasteManagementService,
     AdminReportService,
     AuthService,
+    PspTeamManagement,
   ],
   imports: [
     MongooseModule.forFeature([
