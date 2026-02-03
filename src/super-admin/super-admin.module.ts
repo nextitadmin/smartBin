@@ -17,6 +17,7 @@ import { PSP, PSPSchema } from '@models/psp.model';
 import { Lga, LgaSchema } from '@models/lgas.model';
 import { PspService } from '../lawma/psp/psp.service';
 import { PspModule } from '@src/lawma/psp/psp.module';
+import { PickupModule } from '@src/waste-management/pickup/pickup.module';
 
 
 @Module({
@@ -37,7 +38,8 @@ import { PspModule } from '@src/lawma/psp/psp.module';
         { name: PSP.name, schema: PSPSchema },
         { name: Lga.name, schema: LgaSchema}
       ]),
-      PspModule
+      PspModule,
+      PickupModule,
     ],
   controllers: [],
   providers: [SuperAdminService],

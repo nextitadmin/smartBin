@@ -3,7 +3,7 @@ import { Status } from '@models/pickup';
 import { Injectable } from '@nestjs/common';
 import { PickupService } from '@src/waste-management/pickup/pickup.service';
 import { AdminUser,PspUser, PspTeamMember } from '@common/types';
-import { GetPickupDto ,AssignTeamMemberDto, UpdatePickupStatusDto} from '@src/waste-management/pickup/dto/pickup.dto';
+import { GetPickupDto ,AssignTeamMemberDto, UpdatePickupStatusDto, GetPickupsForPspDto} from '@src/waste-management/pickup/dto/pickup.dto';
 
 @Injectable()
 export class LawmaWasteManagementService {
@@ -43,6 +43,27 @@ export class LawmaWasteManagementService {
     const updatedPickup = await this.pickupService.updatePickupStatus(  id,dto);
     return new SuccessResponse('Pickup status updated successfully', updatedPickup);
   }
+
+//  async  getPspRevenueForAdmin() {
+
+//   }
+
+
+  // In LawmaWasteManagementService
+async getPspRevenueForAdmin(admin: AdminUser, filters?: GetPickupsForPspDto) {
+  const data = await this.pickupService.getPspRevenueForAdmin(filters);
+  return new SuccessResponse('PSP revenue retrieved successfully', data);
+}
+
+async getRevenueForPsp(psp: PspUser, filters?: any) {
+  const data = await this.pickupService.getRevenueForPsp(psp.id, filters);
+  return new SuccessResponse('Revenue retrieved successfully', data);
+}
+
+async getMonthlyRevenueForAdmin(admin: AdminUser, year?: number) {
+  const data = await this.pickupService.getMonthlyRevenueForAdmin(year);
+  return new SuccessResponse('Monthly revenue retrieved successfully', data);
+}
 
   async assignTeamMember(
     psp:PspUser,
