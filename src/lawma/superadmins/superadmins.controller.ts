@@ -1,6 +1,6 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { SuperAdminService } from '@src/super-admin/super-admin.service';
+import { LawmaSuperadminsService } from './superadmins.service';
 
 @ApiTags('Admin/Superadmins')
 @Controller({
@@ -35,4 +35,9 @@ export class SuperadminsController {
   async getAdminDashboard() {
     return this.superAdminService.getLawmaAdminDashboard();
   }
+  @Get('psp-revenue-analysis')
+  async getPspRevenueAnalysis() {
+    return this.superAdminService.getPspRevenueAnalysis();
+  }
 }
+

@@ -15,7 +15,10 @@ import { TeamMember } from '@models/team.model';
 import { UserRole } from '@models/types';
 import { Paging } from '@common/http';
 import { PSP } from '@models/psp.model';
-import { AdministratorRole } from '@models/administrator.model';
+import { Lga } from '@models/lgas.model';
+import { PspService } from '../lawma/psp/psp.service';
+import { CreatePspDTO, ChangeStatusPspDto } from '../lawma/psp/dto/psp.dto';
+
 @Injectable()
 export class SuperAdminService {
   constructor(
@@ -34,9 +37,11 @@ export class SuperAdminService {
     @InjectModel(TeamMember.name)
     private readonly teamMemberModel: Model<TeamMember>,
     @InjectModel(PSP.name) private readonly pspModel: Model<PSP>,
+    @InjectModel(Lga.name) private readonly lgaModel: Model<Lga>,
+    private readonly pspService: PspService,
+    
   ) { }
-
-  // get super admin dashboard
+  
   async getSuperAdminDashboard() {
     const [
       residentCount,
@@ -376,136 +381,80 @@ export class SuperAdminService {
     };
   }
 
-  // Helper function for yearly revenue
-  private async getYearlyRevenue(year: number) {
-    const result = await this.transactionModel.aggregate([
-      {
-        $match: {
-          status: TransactionStatus.Successful,
-          createdAt: {
-            $gte: new Date(`${year}-01-01`),
-            $lt: new Date(`${year + 1}-01-01`),
-          },
-        },
-      },
-      { $group: { _id: null, total: { $sum: '$amount' } } },
-    ]).exec();
-    return result?.[0]?.total ?? 0;
-  }
+// PSP Revenue Management
+  async getPspRevenueAnalysis(
+    page: number = 1,
+    limit: number = 10,
+    lgaFilter?: string,
+    search?: string,
+  ) {
+    // This returns all PSPs
+    const psps = await this.pspService.getPsps(); 
+    const total = psps.length;
+    
+    //  manually filter
+    const filteredPsps = psps.filter(psp => {
+      if (lgaFilter && psp.lga_id.toString() !== lgaFilter) return false;
+      if (search && !psp.company_name.toLowerCase().includes(search.toLowerCase())) return false;
+      return true;
+    });
 
-  // Get PSP revenue analysis with optional PSP filtering
-  async getPspRevenueAnalysis(pspId?: string) {
-    const matchStage: any = {
-      $exists: true,
-      $ne: null,
-    };
+    // Paginate
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+    const paginatedPsps = filteredPsps.slice(startIndex, endIndex);
 
-    if (pspId) {
-      matchStage.$eq = pspId;
-    }
+    // Get revenue data for each PSP
+    const revenueData = await Promise.all(
+      paginatedPsps.map(async (psp, index) => {
+        // Get household coverage
+        const householdCovered = await this.residentModel.countDocuments({
+          lga_id: psp.lga_id,
+          deleted_at: null,
+        });
 
-    const pipeline: PipelineStage[] = [
-      {
-        $match: {
-          psp_id: matchStage,
-          status: Status.Completed,
-          transactionReference: { $exists: true, $ne: null },
-        },
-      },
-      {
-        $lookup: {
-          from: 'transactions',
-          localField: 'transactionReference',
-          foreignField: 'transactionReference',
-          as: 'transactionData',
-        },
-      },
-      { $unwind: { path: '$transactionData', preserveNullAndEmptyArrays: true } },
-      {
-        $match: {
-          'transactionData.status': TransactionStatus.Successful,
-        },
-      },
-      {
-        $group: {
-          _id: '$psp_id',
-          revenue: { $sum: '$transactionData.amount' },
-          totalPickups: { $sum: 1 },
-          households: { $addToSet: '$accountId' },
-        },
-      },
-      {
-        $lookup: {
-          from: 'psps',
-          localField: '_id',
-          foreignField: '_id',
-          as: 'pspDetails',
-        },
-      },
-      { $unwind: { path: '$pspDetails', preserveNullAndEmptyArrays: true } },
-      {
-        $project: {
-          pspId: '$_id',
-          pspName: '$pspDetails.company_name',
-          revenue: 1,
-          totalPickups: 1,
-          householdsCovered: { $size: '$households' },
-        },
-      },
-      { $sort: { revenue: -1 } },
-    ];
-
-    return this.pickupModel.aggregate(pipeline as unknown as PipelineStage[]).exec();
-  }
-
-  // Get household usage by LGA
-  async getHouseholdByLga() {
-    const pipeline: PipelineStage[] = [
-      {
-        $lookup: {
-          from: 'residents',
-          localField: 'accountId',
-          foreignField: '_id',
-          as: 'residentData',
-        },
-      },
-      { $unwind: { path: '$residentData', preserveNullAndEmptyArrays: true } },
-      {
-        $lookup: {
-          from: 'lgas',
-          localField: 'residentData.lga',
-          foreignField: '_id',
-          as: 'lgaData',
-        },
-      },
-      { $unwind: { path: '$lgaData', preserveNullAndEmptyArrays: true } },
-      {
-        $group: {
-          _id: {
-            lga: '$lgaData.name',
-            lgaId: '$lgaData._id',
-          },
-          totalHouseholds: { $addToSet: '$accountId' },
-          binDelivered: {
-            $sum: {
-              $cond: [{ $eq: ['$status', Status.Completed] }, 1, 0],
+        // successful transactions
+        const transactions = await this.transactionModel.aggregate([
+          {
+            $match: {
+              psp_id: psp._id,
+              status: TransactionStatus.Successful,
             },
           },
-          wastePickedUp: { $sum: 1 },
-        },
-      },
-      {
-        $project: {
-          lgaName: '$_id.lga',
-          lgaId: '$_id.lgaId',
-          householdsCovered: { $size: '$totalHouseholds' },
-          binDelivered: 1,
-          wastePickedUp: 1,
-        },
-      },
-      { $sort: { householdsCovered: -1 } },
-    ];
+          {
+            $group: {
+              _id: null,
+              totalRevenue: { $sum: '$amount' },
+              totalBills: { $sum: 1 },
+            },
+          },
+        ]);
 
-    return this.pickupModel.aggregate(pipeline as unknown as PipelineStage[]).exec();
+        const revenueInfo = transactions[0] || {
+          totalRevenue: 0,
+          totalBills: 0,
+        };
+
+        // Get LGA name
+        const lga = await this.lgaModel.findById(psp.lga_id).lean();
+
+        return {
+          pspCompany: psp.company_name,
+          lga: lga?.name || 'N/A',
+          householdCovered,
+          revenue: revenueInfo.totalRevenue,
+          bills: revenueInfo.totalBills.countDocuments(),
+        };
+      }),
+    );
+
+    return {
+      data: revenueData,
+      total: filteredPsps.length,
+      page,
+      limit,
+      totalPages: Math.ceil(filteredPsps.length / limit),
+    };
   }
+
 }

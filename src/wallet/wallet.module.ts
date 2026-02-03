@@ -31,6 +31,7 @@ import { Pickup, PickupSchema } from '@models/pickup';
 import { Facility, FacilitySchema } from '@models/facilities';
 import { TeamMember, TeamMemberSchema } from '@models/team.model';
 import { UserKycRepository } from '@models/repository/user-kyc.repository';
+import { Lga, LgaSchema } from '@models/lgas.model';
 @Module({
   imports: [
     MongooseModule.forFeature([
@@ -48,9 +49,11 @@ import { UserKycRepository } from '@models/repository/user-kyc.repository';
       { name: Pickup.name, schema: PickupSchema },
       { name: Facility.name, schema: FacilitySchema },
       { name: TeamMember.name, schema: TeamMemberSchema },
+      {name: Lga.name, schema:LgaSchema}
     ]),
     // SmartBinModule,
     TransactionModule,
+   
   ],
   providers: [
     WalletService,

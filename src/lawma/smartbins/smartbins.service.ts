@@ -46,4 +46,8 @@ export class LawmaSmartbinsService {
   async scheduleDelivery(filters: scheduleDeliveryDto) {
     return this.smartBinService.scheduleDelivery(filters);
   }
+
+  async deleteApplication(orderId:string){
+    return this.smartBinService.deleteBinApplication(orderId)
+  }
 }
