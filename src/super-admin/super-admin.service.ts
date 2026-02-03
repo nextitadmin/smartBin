@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import type { PipelineStage } from 'mongoose';
 import { Resident } from '@models/users/resident.model';
 import { Agent } from '@models/users/agent.model';
 import { Corporate } from '@models/users/corporate.model';
@@ -51,17 +52,9 @@ export class SuperAdminService {
       this.teamMemberModel.countDocuments().exec(),
     ]);
 
-    const pendingBinrequests = await this.smartbinModel
-      .countDocuments({ status: SmartbinStatus.Pending })
-      .exec();
-    const completedBinrequests = await this.smartbinModel
-      .countDocuments({ status: SmartbinStatus.Delivered })
-      .exec();
-    const totalBinRequests = await this.smartbinModel.countDocuments().exec();
-
     const totalRegisteredUsers =
       residentCount + agentCount + corporateCount + facilityManagerCount;
-    totalTeamMembers;
+
     const percentageByUserType = {
       resident: Math.floor((residentCount / totalRegisteredUsers) * 100) || 0,
       agent: Math.floor((agentCount / totalRegisteredUsers) * 100) || 0,
@@ -72,8 +65,53 @@ export class SuperAdminService {
         Math.floor((totalTeamMembers / totalRegisteredUsers) * 100) || 0,
     };
 
+    // Bin requests with breakdown by type and status
+    const [
+      pendingBinRequests,
+      deliveredBinRequests,
+      totalBinRequests,
+      smartBinCount,
+      nonSmartBinCount,
+    ] = await Promise.all([
+      this.smartbinModel
+        .countDocuments({ status: SmartbinStatus.Pending })
+        .exec(),
+      this.smartbinModel
+        .countDocuments({ status: SmartbinStatus.Delivered })
+        .exec(),
+      this.smartbinModel.countDocuments().exec(),
+      this.smartbinModel.countDocuments({ binType: 'smart' }).exec(),
+      this.smartbinModel.countDocuments({ binType: 'non_smart' }).exec(),
+    ]);
+
+    // Bin request status breakdown
+    const binStatusBreakdown = await this.smartbinModel.aggregate([
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // Revenue data - total, bin purchase, waste disposal
+    const [totalRevenue, binPurchaseRevenue, wasteDisposalRevenue] = await Promise.all([
+      this.getYearlyRevenue(new Date().getFullYear()),
+      this.transactionModel.aggregate([
+        {
+          $match: { service: ServiceType.SmartBinPurchase, status: TransactionStatus.Successful },
+        },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+      this.transactionModel.aggregate([
+        {
+          $match: { service: ServiceType.WasteDisposal, status: TransactionStatus.Successful },
+        },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+    ]);
+
     const totalPSPCompanies = await this.pspModel.countDocuments().exec();
-    // TODO: Add top PSP companies per revenue generated. @Kazeem
     const topPSPcompanies = await this.pspModel
       .find()
       .sort({ createdAt: -1 })
@@ -90,9 +128,25 @@ export class SuperAdminService {
         percentageByUserType: percentageByUserType,
       },
       binRequests: {
-        pendingBinrequests: pendingBinrequests,
-        completedBinrequests: completedBinrequests,
-        totalBinRequests: totalBinRequests,
+        byType: {
+          smart: smartBinCount,
+          nonSmart: nonSmartBinCount,
+          total: totalBinRequests,
+        },
+        byStatus: binStatusBreakdown.reduce((acc, item) => {
+          acc[item._id] = item.count;
+          return acc;
+        }, {}),
+        summary: {
+          pending: pendingBinRequests,
+          delivered: deliveredBinRequests,
+          total: totalBinRequests,
+        },
+      },
+      revenue: {
+        total: totalRevenue,
+        binPurchase: binPurchaseRevenue[0]?.total || 0,
+        wasteDisposal: wasteDisposalRevenue[0]?.total || 0,
       },
       totalTeamMembers: totalTeamMembers,
       pspCompanies: {
@@ -320,5 +374,138 @@ export class SuperAdminService {
       },
       paymentDetails,
     };
+  }
+
+  // Helper function for yearly revenue
+  private async getYearlyRevenue(year: number) {
+    const result = await this.transactionModel.aggregate([
+      {
+        $match: {
+          status: TransactionStatus.Successful,
+          createdAt: {
+            $gte: new Date(`${year}-01-01`),
+            $lt: new Date(`${year + 1}-01-01`),
+          },
+        },
+      },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]).exec();
+    return result?.[0]?.total ?? 0;
+  }
+
+  // Get PSP revenue analysis with optional PSP filtering
+  async getPspRevenueAnalysis(pspId?: string) {
+    const matchStage: any = {
+      $exists: true,
+      $ne: null,
+    };
+
+    if (pspId) {
+      matchStage.$eq = pspId;
+    }
+
+    const pipeline: PipelineStage[] = [
+      {
+        $match: {
+          psp_id: matchStage,
+          status: Status.Completed,
+          transactionReference: { $exists: true, $ne: null },
+        },
+      },
+      {
+        $lookup: {
+          from: 'transactions',
+          localField: 'transactionReference',
+          foreignField: 'transactionReference',
+          as: 'transactionData',
+        },
+      },
+      { $unwind: { path: '$transactionData', preserveNullAndEmptyArrays: true } },
+      {
+        $match: {
+          'transactionData.status': TransactionStatus.Successful,
+        },
+      },
+      {
+        $group: {
+          _id: '$psp_id',
+          revenue: { $sum: '$transactionData.amount' },
+          totalPickups: { $sum: 1 },
+          households: { $addToSet: '$accountId' },
+        },
+      },
+      {
+        $lookup: {
+          from: 'psps',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'pspDetails',
+        },
+      },
+      { $unwind: { path: '$pspDetails', preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          pspId: '$_id',
+          pspName: '$pspDetails.company_name',
+          revenue: 1,
+          totalPickups: 1,
+          householdsCovered: { $size: '$households' },
+        },
+      },
+      { $sort: { revenue: -1 } },
+    ];
+
+    return this.pickupModel.aggregate(pipeline as unknown as PipelineStage[]).exec();
+  }
+
+  // Get household usage by LGA
+  async getHouseholdByLga() {
+    const pipeline: PipelineStage[] = [
+      {
+        $lookup: {
+          from: 'residents',
+          localField: 'accountId',
+          foreignField: '_id',
+          as: 'residentData',
+        },
+      },
+      { $unwind: { path: '$residentData', preserveNullAndEmptyArrays: true } },
+      {
+        $lookup: {
+          from: 'lgas',
+          localField: 'residentData.lga',
+          foreignField: '_id',
+          as: 'lgaData',
+        },
+      },
+      { $unwind: { path: '$lgaData', preserveNullAndEmptyArrays: true } },
+      {
+        $group: {
+          _id: {
+            lga: '$lgaData.name',
+            lgaId: '$lgaData._id',
+          },
+          totalHouseholds: { $addToSet: '$accountId' },
+          binDelivered: {
+            $sum: {
+              $cond: [{ $eq: ['$status', Status.Completed] }, 1, 0],
+            },
+          },
+          wastePickedUp: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          lgaName: '$_id.lga',
+          lgaId: '$_id.lgaId',
+          householdsCovered: { $size: '$totalHouseholds' },
+          binDelivered: 1,
+          wastePickedUp: 1,
+        },
+      },
+      { $sort: { householdsCovered: -1 } },
+    ];
+
+    return this.pickupModel.aggregate(pipeline as unknown as PipelineStage[]).exec();
   }
 }

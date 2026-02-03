@@ -1,6 +1,5 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { LawmaSuperadminsService } from './superadmins.service';
 import { SuperAdminService } from '@src/super-admin/super-admin.service';
 
 @ApiTags('Admin/Superadmins')
@@ -9,16 +8,29 @@ import { SuperAdminService } from '@src/super-admin/super-admin.service';
   version: '1',
 })
 export class SuperadminsController {
-  constructor(private readonly superAdminService: LawmaSuperadminsService) {}
+  constructor(private readonly superAdminService: SuperAdminService) { }
 
   @Get('dashboard')
   async getSuperAdminDashboard() {
     return this.superAdminService.getSuperAdminDashboard();
   }
-  @Get('revenue-overview')
-  async getRevenueOverview() {
-    return this.superAdminService.getRevenueOverview();
+
+  @Get('psp-revenue')
+  async getPspRevenueAnalysis(@Query('pspId') pspId?: string) {
+    return this.superAdminService.getPspRevenueAnalysis(pspId);
   }
+
+  @Get('households-by-lga')
+  async getHouseholdByLga() {
+    return this.superAdminService.getHouseholdByLga();
+  }
+
+  @Get('revenue-overview')
+  async getRevenueOverview(@Query('year') year?: string) {
+    const yearNum = year ? parseInt(year) : new Date().getFullYear();
+    return this.superAdminService.getRevenueOverview(yearNum);
+  }
+
   @Get('admin-dashboard')
   async getAdminDashboard() {
     return this.superAdminService.getLawmaAdminDashboard();
