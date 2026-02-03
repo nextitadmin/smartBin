@@ -13,6 +13,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { SuperadminsController } from './superadmins.controller';
 import { SuperAdminModule } from '@src/super-admin/super-admin.module';
 import { LawmaSuperadminsService } from './superadmins.service';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { LawmaSuperadminsService } from './superadmins.service';
     SuperadminsModule,
     SuperAdminModule,
     PspModule,
+    AuthModule,
   ],
   controllers: [SuperadminsController],
   providers: [LawmaSuperadminsService],

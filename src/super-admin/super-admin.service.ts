@@ -166,6 +166,25 @@ export class SuperAdminService {
     };
   }
 
+ async  getYearlyRevenue  (year: number)  {
+      const result = await this.transactionModel.aggregate([
+        {
+          $match: {
+            status: TransactionStatus.Successful,
+            service: {
+              $in: [ServiceType.WasteDisposal, ServiceType.SmartBinPurchase],
+            },
+            createdAt: {
+              $gte: new Date(`${year}-01-01`),
+              $lt: new Date(`${year + 1}-01-01`),
+            },
+          },
+        },
+        { $group: { _id: null, total: { $sum: "$amount" } } },
+      ]).exec();
+      return result?.[0]?.total ?? 0;
+    };
+
   // Lawma Admin
   async getLawmaAdminDashboard() {
     const [
@@ -198,28 +217,11 @@ export class SuperAdminService {
     const lastYear = currentYear - 1;
 
     // Helper function for yearly aggregation
-    const getYearlyRevenue = async (year: number) => {
-      const result = await this.transactionModel.aggregate([
-        {
-          $match: {
-            status: TransactionStatus.Successful,
-            service: {
-              $in: [ServiceType.WasteDisposal, ServiceType.SmartBinPurchase],
-            },
-            createdAt: {
-              $gte: new Date(`${year}-01-01`),
-              $lt: new Date(`${year + 1}-01-01`),
-            },
-          },
-        },
-        { $group: { _id: null, total: { $sum: "$amount" } } },
-      ]).exec();
-      return result?.[0]?.total ?? 0;
-    };
+   
 
     const [currentYearRevenue, lastYearRevenue] = await Promise.all([
-      getYearlyRevenue(currentYear),
-      getYearlyRevenue(lastYear),
+      this.getYearlyRevenue(currentYear),
+      this.getYearlyRevenue(lastYear),
     ]);
 
     const annualRevenueGrowth =
