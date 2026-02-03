@@ -12,7 +12,7 @@ import { RevenueOverviewDto } from '@src/super-admin/dto';
   version: '1',
 })
 export class SuperadminsController {
-  constructor(private readonly superAdminService: LawmaSuperadminsService) {}
+  constructor(private readonly superAdminService: SuperAdminService) { }
 
   @Get('dashboard')
   async getSuperAdminDashboard() {
