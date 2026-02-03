@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import type { PipelineStage } from 'mongoose';
 import { Resident } from '@models/users/resident.model';
 import { Agent } from '@models/users/agent.model';
 import { Corporate } from '@models/users/corporate.model';
@@ -56,17 +57,9 @@ export class SuperAdminService {
       this.teamMemberModel.countDocuments().exec(),
     ]);
 
-    const pendingBinrequests = await this.smartbinModel
-      .countDocuments({ status: SmartbinStatus.Pending })
-      .exec();
-    const completedBinrequests = await this.smartbinModel
-      .countDocuments({ status: SmartbinStatus.Delivered })
-      .exec();
-    const totalBinRequests = await this.smartbinModel.countDocuments().exec();
-
     const totalRegisteredUsers =
       residentCount + agentCount + corporateCount + facilityManagerCount;
-    totalTeamMembers;
+
     const percentageByUserType = {
       resident: Math.floor((residentCount / totalRegisteredUsers) * 100) || 0,
       agent: Math.floor((agentCount / totalRegisteredUsers) * 100) || 0,
@@ -77,8 +70,53 @@ export class SuperAdminService {
         Math.floor((totalTeamMembers / totalRegisteredUsers) * 100) || 0,
     };
 
+    // Bin requests with breakdown by type and status
+    const [
+      pendingBinRequests,
+      deliveredBinRequests,
+      totalBinRequests,
+      smartBinCount,
+      nonSmartBinCount,
+    ] = await Promise.all([
+      this.smartbinModel
+        .countDocuments({ status: SmartbinStatus.Pending })
+        .exec(),
+      this.smartbinModel
+        .countDocuments({ status: SmartbinStatus.Delivered })
+        .exec(),
+      this.smartbinModel.countDocuments().exec(),
+      this.smartbinModel.countDocuments({ binType: 'smart' }).exec(),
+      this.smartbinModel.countDocuments({ binType: 'non_smart' }).exec(),
+    ]);
+
+    // Bin request status breakdown
+    const binStatusBreakdown = await this.smartbinModel.aggregate([
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    // Revenue data - total, bin purchase, waste disposal
+    const [totalRevenue, binPurchaseRevenue, wasteDisposalRevenue] = await Promise.all([
+      this.getYearlyRevenue(new Date().getFullYear()),
+      this.transactionModel.aggregate([
+        {
+          $match: { service: ServiceType.SmartBinPurchase, status: TransactionStatus.Successful },
+        },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+      this.transactionModel.aggregate([
+        {
+          $match: { service: ServiceType.WasteDisposal, status: TransactionStatus.Successful },
+        },
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ]),
+    ]);
+
     const totalPSPCompanies = await this.pspModel.countDocuments().exec();
-    // TODO: Add top PSP companies per revenue generated. @Kazeem
     const topPSPcompanies = await this.pspModel
       .find()
       .sort({ createdAt: -1 })
@@ -95,9 +133,25 @@ export class SuperAdminService {
         percentageByUserType: percentageByUserType,
       },
       binRequests: {
-        pendingBinrequests: pendingBinrequests,
-        completedBinrequests: completedBinrequests,
-        totalBinRequests: totalBinRequests,
+        byType: {
+          smart: smartBinCount,
+          nonSmart: nonSmartBinCount,
+          total: totalBinRequests,
+        },
+        byStatus: binStatusBreakdown.reduce((acc, item) => {
+          acc[item._id] = item.count;
+          return acc;
+        }, {}),
+        summary: {
+          pending: pendingBinRequests,
+          delivered: deliveredBinRequests,
+          total: totalBinRequests,
+        },
+      },
+      revenue: {
+        total: totalRevenue,
+        binPurchase: binPurchaseRevenue[0]?.total || 0,
+        wasteDisposal: wasteDisposalRevenue[0]?.total || 0,
       },
       totalTeamMembers: totalTeamMembers,
       pspCompanies: {
