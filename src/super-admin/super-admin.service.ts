@@ -21,7 +21,7 @@ import { CreatePspDTO, ChangeStatusPspDto } from '../lawma/psp/dto/psp.dto';
 import { PickupService } from '@src/waste-management/pickup/pickup.service';
 import { AdminUser, PspUser } from '@common/types';
 import { GetPickupsForPspDto } from '@src/waste-management/pickup/dto/pickup.dto';
-import { RevenueOverviewDto } from './dto';
+import { RevenueOverviewDto, DashboardFiltersDto, DashboardFilterType } from './dto';
 
 @Injectable()
 export class SuperAdminService {
@@ -43,11 +43,45 @@ export class SuperAdminService {
     @InjectModel(PSP.name) private readonly pspModel: Model<PSP>,
     @InjectModel(Lga.name) private readonly lgaModel: Model<Lga>,
     private readonly pspService: PspService,
-    private readonly pickupService:PickupService
-    
+    private readonly pickupService: PickupService
+
   ) { }
-  
-  async getSuperAdminDashboard() {
+
+  async getSuperAdminDashboard(filters?: DashboardFiltersDto) {
+    // derive date range from filters
+    const { filter, year, pspId, lgaId } = filters || {};
+    const now = new Date();
+    let startDate: Date | undefined;
+    let endDate: Date | undefined;
+
+    switch (filter) {
+      case DashboardFilterType.TODAY:
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + 1);
+        break;
+      case DashboardFilterType.THIS_MONTH:
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        endDate = new Date(startDate);
+        endDate.setMonth(endDate.getMonth() + 1);
+        break;
+      case DashboardFilterType.MTD:
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        endDate = now;
+        break;
+      case DashboardFilterType.THIS_YEAR:
+        startDate = new Date((year || now.getFullYear()), 0, 1);
+        endDate = new Date((year || now.getFullYear()) + 1, 0, 1);
+        break;
+      case DashboardFilterType.YTD:
+        startDate = new Date((year || now.getFullYear()), 0, 1);
+        endDate = now;
+        break;
+      default:
+        // no date filtering
+        break;
+    }
+
     const [
       residentCount,
       agentCount,
@@ -75,6 +109,11 @@ export class SuperAdminService {
         Math.floor((totalTeamMembers / totalRegisteredUsers) * 100) || 0,
     };
 
+    // date match for queries
+    const dateMatch: any = {};
+    if (startDate && endDate) dateMatch.createdAt = { $gte: startDate, $lt: endDate };
+    else if (startDate && !endDate) dateMatch.createdAt = { $gte: startDate };
+
     // Bin requests with breakdown by type and status
     const [
       pendingBinRequests,
@@ -84,38 +123,55 @@ export class SuperAdminService {
       nonSmartBinCount,
     ] = await Promise.all([
       this.smartbinModel
-        .countDocuments({ status: SmartbinStatus.Pending })
+        .countDocuments({ status: SmartbinStatus.Pending, ...dateMatch })
         .exec(),
       this.smartbinModel
-        .countDocuments({ status: SmartbinStatus.Delivered })
+        .countDocuments({ status: SmartbinStatus.Delivered, ...dateMatch })
         .exec(),
-      this.smartbinModel.countDocuments().exec(),
-      this.smartbinModel.countDocuments({ binType: 'smart' }).exec(),
-      this.smartbinModel.countDocuments({ binType: 'non_smart' }).exec(),
+      this.smartbinModel.countDocuments({ ...dateMatch }).exec(),
+      this.smartbinModel.countDocuments({ binType: 'smart', ...dateMatch }).exec(),
+      this.smartbinModel.countDocuments({ binType: 'non_smart', ...dateMatch }).exec(),
     ]);
 
     // Bin request status breakdown
-    const binStatusBreakdown = await this.smartbinModel.aggregate([
+    const binStatusPipeline: PipelineStage[] = [
+      { $match: dateMatch },
       {
         $group: {
           _id: '$status',
           count: { $sum: 1 },
         },
       },
-    ]);
+    ];
+
+    const binStatusBreakdown = await this.smartbinModel.aggregate(binStatusPipeline as unknown as PipelineStage[]);
 
     // Revenue data - total, bin purchase, waste disposal
+    const transactionDateMatch: any = { status: TransactionStatus.Successful };
+    if (startDate && endDate) transactionDateMatch.createdAt = { $gte: startDate, $lt: endDate };
+    else if (startDate && !endDate) transactionDateMatch.createdAt = { $gte: startDate };
+
     const [totalRevenue, binPurchaseRevenue, wasteDisposalRevenue] = await Promise.all([
-      this.getYearlyRevenue(new Date().getFullYear()),
+      // total revenue in range or full year
+      (async () => {
+        if (startDate) {
+          const res = await this.transactionModel.aggregate([
+            { $match: transactionDateMatch },
+            { $group: { _id: null, total: { $sum: '$amount' } } },
+          ]);
+          return res?.[0]?.total || 0;
+        }
+        return this.getYearlyRevenue(new Date().getFullYear());
+      })(),
       this.transactionModel.aggregate([
         {
-          $match: { service: ServiceType.SmartBinPurchase, status: TransactionStatus.Successful },
+          $match: { ...transactionDateMatch, service: ServiceType.SmartBinPurchase },
         },
         { $group: { _id: null, total: { $sum: '$amount' } } },
       ]),
       this.transactionModel.aggregate([
         {
-          $match: { service: ServiceType.WasteDisposal, status: TransactionStatus.Successful },
+          $match: { ...transactionDateMatch, service: ServiceType.WasteDisposal },
         },
         { $group: { _id: null, total: { $sum: '$amount' } } },
       ]),
@@ -127,6 +183,62 @@ export class SuperAdminService {
       .sort({ createdAt: -1 })
       .limit(5)
       .lean();
+
+    // Number of waste pickups (completed) in range
+    const pickupMatch: any = { status: Status.Completed };
+    if (startDate && endDate) pickupMatch.createdAt = { $gte: startDate, $lt: endDate };
+    else if (startDate && !endDate) pickupMatch.createdAt = { $gte: startDate };
+    if (pspId) pickupMatch.pspId = new Types.ObjectId(pspId);
+
+    const numberOfWastePickups = await this.pickupModel.countDocuments(pickupMatch).exec();
+
+    // Households enumerated and number of LGAs covered
+    const residentMatch: any = { deleted_at: null };
+    if (lgaId) residentMatch.lga_id = new Types.ObjectId(lgaId);
+    if (startDate && endDate) residentMatch.createdAt = { $gte: startDate, $lt: endDate };
+    else if (startDate && !endDate) residentMatch.createdAt = { $gte: startDate };
+
+    const householdsEnumerated = await this.residentModel.countDocuments(residentMatch).exec();
+
+    const lgaIds = await this.residentModel.distinct('lga_id', residentMatch);
+    const numberOfLgasCovered = Array.isArray(lgaIds) ? lgaIds.length : 0;
+
+    // Unpaid bills
+    const unpaidBillsTotalAmount = 0;
+
+    // PSP revenue breakdown for dashboard
+    const pspTransactionMatch: any = { status: TransactionStatus.Successful };
+    if (startDate && endDate) pspTransactionMatch.createdAt = { $gte: startDate, $lt: endDate };
+    else if (startDate && !endDate) pspTransactionMatch.createdAt = { $gte: startDate };
+
+    const pspPipeline: PipelineStage[] = [
+      { $match: pspId ? { ...pspTransactionMatch, psp_id: new Types.ObjectId(pspId) } : pspTransactionMatch },
+      { $group: { _id: '$psp_id', revenue: { $sum: '$amount' }, pickups: { $sum: 1 } } },
+      { $sort: { revenue: -1 } },
+      { $limit: 5 },
+      {
+        $lookup: {
+          from: 'psps',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'psp',
+        },
+      },
+      { $unwind: { path: '$psp', preserveNullAndEmptyArrays: true } },
+      { $project: { _id: 1, revenue: 1, pickups: 1, company_name: '$psp.company_name' } },
+    ];
+
+    const pspRevenueSummary = await this.transactionModel.aggregate(pspPipeline as unknown as PipelineStage[]);
+
+    const statusDefaults: Record<string, number> = Object.values(SmartbinStatus).reduce((acc, s) => {
+      acc[s] = 0;
+      return acc;
+    }, {} as Record<string, number>);
+
+    const binStatusObj = binStatusBreakdown.reduce((acc, item) => {
+      acc[item._id] = item.count;
+      return acc;
+    }, statusDefaults);
 
     return {
       registeredUsers: {
@@ -143,10 +255,7 @@ export class SuperAdminService {
           nonSmart: nonSmartBinCount,
           total: totalBinRequests,
         },
-        byStatus: binStatusBreakdown.reduce((acc, item) => {
-          acc[item._id] = item.count;
-          return acc;
-        }, {}),
+        byStatus: binStatusObj,
         summary: {
           pending: pendingBinRequests,
           delivered: deliveredBinRequests,
@@ -158,32 +267,40 @@ export class SuperAdminService {
         binPurchase: binPurchaseRevenue[0]?.total || 0,
         wasteDisposal: wasteDisposalRevenue[0]?.total || 0,
       },
+      numberOfWastePickups,
+      householdsEnumerated,
+      numberOfLgasCovered,
+      unpaidBills: {
+        count: unpaidBillsTotalAmount,
+        totalAmount: unpaidBillsTotalAmount,
+      },
       totalTeamMembers: totalTeamMembers,
       pspCompanies: {
         registeredPSPs: totalPSPCompanies,
         topPSPcompanies: topPSPcompanies,
+        revenueSummary: pspRevenueSummary,
       },
     };
   }
 
- async  getYearlyRevenue  (year: number)  {
-      const result = await this.transactionModel.aggregate([
-        {
-          $match: {
-            status: TransactionStatus.Successful,
-            service: {
-              $in: [ServiceType.WasteDisposal, ServiceType.SmartBinPurchase],
-            },
-            createdAt: {
-              $gte: new Date(`${year}-01-01`),
-              $lt: new Date(`${year + 1}-01-01`),
-            },
+  async getYearlyRevenue(year: number) {
+    const result = await this.transactionModel.aggregate([
+      {
+        $match: {
+          status: TransactionStatus.Successful,
+          service: {
+            $in: [ServiceType.WasteDisposal, ServiceType.SmartBinPurchase],
+          },
+          createdAt: {
+            $gte: new Date(`${year}-01-01`),
+            $lt: new Date(`${year + 1}-01-01`),
           },
         },
-        { $group: { _id: null, total: { $sum: "$amount" } } },
-      ]).exec();
-      return result?.[0]?.total ?? 0;
-    };
+      },
+      { $group: { _id: null, total: { $sum: "$amount" } } },
+    ]).exec();
+    return result?.[0]?.total ?? 0;
+  };
 
   // Lawma Admin
   async getLawmaAdminDashboard() {
@@ -217,7 +334,7 @@ export class SuperAdminService {
     const lastYear = currentYear - 1;
 
     // Helper function for yearly aggregation
-   
+
 
     const [currentYearRevenue, lastYearRevenue] = await Promise.all([
       this.getYearlyRevenue(currentYear),
@@ -390,167 +507,167 @@ export class SuperAdminService {
 
 
   async getRevenue(filters?: RevenueOverviewDto) {
-  const currentYear = filters?.year || new Date().getFullYear();
-  const previousYear = currentYear - 1;
-  const { page = 1, limit = 10 } = filters || {};
-  const skip = (page - 1) * limit;
+    const currentYear = filters?.year || new Date().getFullYear();
+    const previousYear = currentYear - 1;
+    const { page = 1, limit = 10 } = filters || {};
+    const skip = (page - 1) * limit;
 
-  // 1. Total amount generated overtime (all successful transactions)
-  const [totalAmountResult] = await this.transactionModel.aggregate([
-    { $match: { status: TransactionStatus.Successful } },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ]);
-  const totalAmountGeneratedOvertime = totalAmountResult?.total || 0;
+    // 1. Total amount generated overtime (all successful transactions)
+    const [totalAmountResult] = await this.transactionModel.aggregate([
+      { $match: { status: TransactionStatus.Successful } },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]);
+    const totalAmountGeneratedOvertime = totalAmountResult?.total || 0;
 
-  // 2. Smart Bin revenue (total)
-  const [smartBinStats] = await this.transactionModel.aggregate([
-    {
-      $match: {
-        service: ServiceType.SmartBinPurchase,
-        status: TransactionStatus.Successful,
-      },
-    },
-    {
-      $group: {
-        _id: null,
-        revenue: { $sum: '$amount' },
-        totalTransactions: { $sum: 1 },
-      },
-    },
-  ]);
-
-  // 3. PSP/Waste Disposal revenue (total)
-  const [pspStats] = await this.transactionModel.aggregate([
-    {
-      $match: {
-        service: ServiceType.WasteDisposal,
-        status: TransactionStatus.Successful,
-      },
-    },
-    {
-      $group: {
-        _id: null,
-        revenue: { $sum: '$amount' },
-        totalTransactions: { $sum: 1 },
-      },
-    },
-  ]);
-
-  // 4. Current year total revenue
-  const [currentYearTotal] = await this.transactionModel.aggregate([
-    {
-      $match: {
-        status: TransactionStatus.Successful,
-        createdAt: {
-          $gte: new Date(`${currentYear}-01-01`),
-          $lt: new Date(`${currentYear + 1}-01-01`),
+    // 2. Smart Bin revenue (total)
+    const [smartBinStats] = await this.transactionModel.aggregate([
+      {
+        $match: {
+          service: ServiceType.SmartBinPurchase,
+          status: TransactionStatus.Successful,
         },
       },
-    },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ]);
-
-  // 5. Previous year total revenue (for comparison percentage)
-  const [previousYearTotal] = await this.transactionModel.aggregate([
-    {
-      $match: {
-        status: TransactionStatus.Successful,
-        createdAt: {
-          $gte: new Date(`${previousYear}-01-01`),
-          $lt: new Date(`${currentYear}-01-01`),
+      {
+        $group: {
+          _id: null,
+          revenue: { $sum: '$amount' },
+          totalTransactions: { $sum: 1 },
         },
       },
-    },
-    { $group: { _id: null, total: { $sum: '$amount' } } },
-  ]);
+    ]);
 
-  const currentYearRevenue = currentYearTotal?.total || 0;
-  const previousYearRevenue = previousYearTotal?.total || 0;
-
-  // Calculate year-over-year percentage change
-  const percentageChange =
-    previousYearRevenue > 0
-      ? (((currentYearRevenue - previousYearRevenue) / previousYearRevenue) * 100).toFixed(1)
-      : 0;
-
-  // 6. Monthly revenue breakdown for the selected year (combined SmartBin + WasteDisposal)
-  const monthlyRevenue = await this.transactionModel.aggregate([
-    {
-      $match: {
-        status: TransactionStatus.Successful,
-        createdAt: {
-          $gte: new Date(`${currentYear}-01-01`),
-          $lt: new Date(`${currentYear + 1}-01-01`),
+    // 3. PSP/Waste Disposal revenue (total)
+    const [pspStats] = await this.transactionModel.aggregate([
+      {
+        $match: {
+          service: ServiceType.WasteDisposal,
+          status: TransactionStatus.Successful,
         },
       },
-    },
-    {
-      $group: {
-        _id: { month: { $month: '$createdAt' } },
-        total: { $sum: '$amount' },
-        smartBinRevenue: {
-          $sum: {
-            $cond: [{ $eq: ['$service', ServiceType.SmartBinPurchase] }, '$amount', 0],
-          },
+      {
+        $group: {
+          _id: null,
+          revenue: { $sum: '$amount' },
+          totalTransactions: { $sum: 1 },
         },
-        wasteDisposalRevenue: {
-          $sum: {
-            $cond: [{ $eq: ['$service', ServiceType.WasteDisposal] }, '$amount', 0],
+      },
+    ]);
+
+    // 4. Current year total revenue
+    const [currentYearTotal] = await this.transactionModel.aggregate([
+      {
+        $match: {
+          status: TransactionStatus.Successful,
+          createdAt: {
+            $gte: new Date(`${currentYear}-01-01`),
+            $lt: new Date(`${currentYear + 1}-01-01`),
           },
         },
       },
-    },
-    { $sort: { '_id.month': 1 } },
-  ]);
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]);
 
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const chartData = months.map((month, index) => {
-    const found = monthlyRevenue.find((r) => r._id.month === index + 1);
+    // 5. Previous year total revenue (for comparison percentage)
+    const [previousYearTotal] = await this.transactionModel.aggregate([
+      {
+        $match: {
+          status: TransactionStatus.Successful,
+          createdAt: {
+            $gte: new Date(`${previousYear}-01-01`),
+            $lt: new Date(`${currentYear}-01-01`),
+          },
+        },
+      },
+      { $group: { _id: null, total: { $sum: '$amount' } } },
+    ]);
+
+    const currentYearRevenue = currentYearTotal?.total || 0;
+    const previousYearRevenue = previousYearTotal?.total || 0;
+
+    // Calculate year-over-year percentage change
+    const percentageChange =
+      previousYearRevenue > 0
+        ? (((currentYearRevenue - previousYearRevenue) / previousYearRevenue) * 100).toFixed(1)
+        : 0;
+
+    // 6. Monthly revenue breakdown for the selected year (combined SmartBin + WasteDisposal)
+    const monthlyRevenue = await this.transactionModel.aggregate([
+      {
+        $match: {
+          status: TransactionStatus.Successful,
+          createdAt: {
+            $gte: new Date(`${currentYear}-01-01`),
+            $lt: new Date(`${currentYear + 1}-01-01`),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: { month: { $month: '$createdAt' } },
+          total: { $sum: '$amount' },
+          smartBinRevenue: {
+            $sum: {
+              $cond: [{ $eq: ['$service', ServiceType.SmartBinPurchase] }, '$amount', 0],
+            },
+          },
+          wasteDisposalRevenue: {
+            $sum: {
+              $cond: [{ $eq: ['$service', ServiceType.WasteDisposal] }, '$amount', 0],
+            },
+          },
+        },
+      },
+      { $sort: { '_id.month': 1 } },
+    ]);
+
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const chartData = months.map((month, index) => {
+      const found = monthlyRevenue.find((r) => r._id.month === index + 1);
+      return {
+        month,
+        total: found?.total || 0,
+        smartBinRevenue: found?.smartBinRevenue || 0,
+        wasteDisposalRevenue: found?.wasteDisposalRevenue || 0,
+      };
+    });
+
+    const pspRevenue = await this.pickupService.getPspRevenueForAdmin()
+    const [pspCountResult] = await this.pickupModel.aggregate([
+      {
+        $match: {
+          status: Status.Completed,
+          pspId: { $exists: true, $ne: null },
+        },
+      },
+      { $group: { _id: '$pspId' } },
+      { $count: 'total' },
+    ]);
+    const totalPspCount = pspCountResult?.total || 0;
+
     return {
-      month,
-      total: found?.total || 0,
-      smartBinRevenue: found?.smartBinRevenue || 0,
-      wasteDisposalRevenue: found?.wasteDisposalRevenue || 0,
-    };
-  });
-
-  const pspRevenue = await this.pickupService.getPspRevenueForAdmin()
-  const [pspCountResult] = await this.pickupModel.aggregate([
-    {
-      $match: {
-        status: Status.Completed,
-        pspId: { $exists: true, $ne: null },
+      totalAmountGeneratedOvertime,
+      smartBinSuppliers: {
+        revenue: smartBinStats?.revenue || 0,
+        totalTransactions: smartBinStats?.totalTransactions || 0,
       },
-    },
-    { $group: { _id: '$pspId' } },
-    { $count: 'total' },
-  ]);
-  const totalPspCount = pspCountResult?.total || 0;
+      pspCompanies: {
+        revenue: pspStats?.revenue || 0,
+        totalTransactions: pspStats?.totalTransactions || 0,
+      },
 
-  return {
-    totalAmountGeneratedOvertime,
-    smartBinSuppliers: {
-      revenue: smartBinStats?.revenue || 0,
-      totalTransactions: smartBinStats?.totalTransactions || 0,
-    },
-    pspCompanies: {
-      revenue: pspStats?.revenue || 0,
-      totalTransactions: pspStats?.totalTransactions || 0,
-    },
+      totalRevenue: {
+        year: currentYear,
+        amount: currentYearRevenue,
+        percentageChange: Number(percentageChange),
+        comparisonText: `vs Last Year`,
+        monthlyBreakdown: chartData,
+      },
+      pspRevenue: pspRevenue,
 
-    totalRevenue: {
-      year: currentYear,
-      amount: currentYearRevenue,
-      percentageChange: Number(percentageChange),
-      comparisonText: `vs Last Year`,
-      monthlyBreakdown: chartData,
-    },
-    pspRevenue: pspRevenue,
-  
-  };
-}
+    };
+  }
 
-// PSP Revenue Management
+  // PSP Revenue Management
   async getPspRevenueAnalysis(
     page: number = 1,
     limit: number = 10,
@@ -558,9 +675,9 @@ export class SuperAdminService {
     search?: string,
   ) {
     // This returns all PSPs
-    const psps = await this.pspService.getPsps(); 
+    const psps = await this.pspService.getPsps();
     const total = psps.length;
-    
+
     //  manually filter
     const filteredPsps = psps.filter(psp => {
       if (lgaFilter && psp.lga_id.toString() !== lgaFilter) return false;
@@ -629,18 +746,18 @@ export class SuperAdminService {
 
 
 
-async getPspRevenueForAdmin(admin: AdminUser, filters?: GetPickupsForPspDto) {
-  const data = await this.pickupService.getPspRevenueForAdmin(filters);
-  return new SuccessResponse('PSP revenue retrieved successfully', data);
-}
+  async getPspRevenueForAdmin(admin: AdminUser, filters?: GetPickupsForPspDto) {
+    const data = await this.pickupService.getPspRevenueForAdmin(filters);
+    return new SuccessResponse('PSP revenue retrieved successfully', data);
+  }
 
-async getRevenueForPsp(psp: PspUser, filters?: any) {
-  const data = await this.pickupService.getRevenueForPsp(psp.id, filters);
-  return new SuccessResponse('Revenue retrieved successfully', data);
-}
+  async getRevenueForPsp(psp: PspUser, filters?: any) {
+    const data = await this.pickupService.getRevenueForPsp(psp.id, filters);
+    return new SuccessResponse('Revenue retrieved successfully', data);
+  }
 
-async getMonthlyRevenueForAdmin(admin: AdminUser, year?: number) {
-  const data = await this.pickupService.getMonthlyRevenueForAdmin(year);
-  return new SuccessResponse('Monthly revenue retrieved successfully', data);
-}
+  async getMonthlyRevenueForAdmin(admin: AdminUser, year?: number) {
+    const data = await this.pickupService.getMonthlyRevenueForAdmin(year);
+    return new SuccessResponse('Monthly revenue retrieved successfully', data);
+  }
 }
