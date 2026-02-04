@@ -7,7 +7,7 @@ import { filter } from 'rxjs';
 
 @Injectable()
 export class LawmaSuperadminsService {
-  constructor(private readonly superAdminService: SuperAdminService) {}
+  constructor(private readonly superAdminService: SuperAdminService) { }
 
   async getSuperAdminDashboard() {
     return this.superAdminService.getSuperAdminDashboard();
@@ -18,9 +18,9 @@ export class LawmaSuperadminsService {
   }
 
 
-   async getRevenue(filters?: RevenueOverviewDto) {
+  async getRevenue(filters?: RevenueOverviewDto) {
     return this.superAdminService.getRevenue(filters);
-   }
+  }
 
   async getLawmaAdminDashboard() {
     return this.superAdminService.getLawmaAdminDashboard();
