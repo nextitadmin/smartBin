@@ -8,8 +8,12 @@ import { Corporate } from '@models/users/corporate.model';
 import { FacilityManager } from '@models/users/facility-manager.model';
 import { Bill } from '@models/bill.model';
 import { Wallet } from '@models/wallet.model';
-import { SmartBin, SmartbinStatus } from '@models/smart-bin.model';
-import { ServiceType, Transaction, TransactionStatus } from '@models/transaction.model';
+import { BinType, SmartBin, SmartbinStatus } from '@models/smart-bin.model';
+import {
+  ServiceType,
+  Transaction,
+  TransactionStatus,
+} from '@models/transaction.model';
 import { Pickup, Status } from '@models/pickup';
 import { TeamMember } from '@models/team.model';
 import { UserRole } from '@models/types';
@@ -21,7 +25,11 @@ import { CreatePspDTO, ChangeStatusPspDto } from '../lawma/psp/dto/psp.dto';
 import { PickupService } from '@src/waste-management/pickup/pickup.service';
 import { AdminUser, PspUser } from '@common/types';
 import { GetPickupsForPspDto } from '@src/waste-management/pickup/dto/pickup.dto';
-import { RevenueOverviewDto, DashboardFiltersDto, DashboardFilterType } from './dto';
+import {
+  RevenueOverviewDto,
+  DashboardFiltersDto,
+  DashboardFilterType,
+} from './dto';
 
 @Injectable()
 export class SuperAdminService {
@@ -43,9 +51,8 @@ export class SuperAdminService {
     @InjectModel(PSP.name) private readonly pspModel: Model<PSP>,
     @InjectModel(Lga.name) private readonly lgaModel: Model<Lga>,
     private readonly pspService: PspService,
-    private readonly pickupService: PickupService
-
-  ) { }
+    private readonly pickupService: PickupService,
+  ) {}
 
   async getSuperAdminDashboard(filters?: DashboardFiltersDto) {
     // derive date range from filters
@@ -70,11 +77,11 @@ export class SuperAdminService {
         endDate = now;
         break;
       case DashboardFilterType.THIS_YEAR:
-        startDate = new Date((year || now.getFullYear()), 0, 1);
+        startDate = new Date(year || now.getFullYear(), 0, 1);
         endDate = new Date((year || now.getFullYear()) + 1, 0, 1);
         break;
       case DashboardFilterType.YTD:
-        startDate = new Date((year || now.getFullYear()), 0, 1);
+        startDate = new Date(year || now.getFullYear(), 0, 1);
         endDate = now;
         break;
       default:
@@ -111,94 +118,151 @@ export class SuperAdminService {
 
     // date match for queries
     const dateMatch: any = {};
-    if (startDate && endDate) dateMatch.createdAt = { $gte: startDate, $lt: endDate };
+    if (startDate && endDate)
+      dateMatch.createdAt = { $gte: startDate, $lt: endDate };
     else if (startDate && !endDate) dateMatch.createdAt = { $gte: startDate };
 
     // Bin requests with breakdown by type and status
-    const [
-      pendingBinRequests,
-      deliveredBinRequests,
-      totalBinRequests,
-      smartBinCount,
-      nonSmartBinCount,
-    ] = await Promise.all([
-      this.smartbinModel
-        .countDocuments({ status: SmartbinStatus.Pending, ...dateMatch })
-        .exec(),
-      this.smartbinModel
-        .countDocuments({ status: SmartbinStatus.Delivered, ...dateMatch })
-        .exec(),
-      this.smartbinModel.countDocuments({ ...dateMatch }).exec(),
-      this.smartbinModel.countDocuments({ binType: 'smart', ...dateMatch }).exec(),
-      this.smartbinModel.countDocuments({ binType: 'non_smart', ...dateMatch }).exec(),
-    ]);
-
-    // Bin request status breakdown
-    const binStatusPipeline: PipelineStage[] = [
-      { $match: dateMatch },
+    const binRequestsPipeline: PipelineStage[] = [
       {
-        $group: {
-          _id: '$status',
-          count: { $sum: 1 },
+        $match: {
+          ...dateMatch,
+        },
+      },
+      {
+        $facet: {
+          pendingBinRequests: [
+            {
+              $match: {
+                status: SmartbinStatus.Pending,
+              },
+            },
+            {
+              $count: 'count',
+            },
+          ],
+          deliveredBinRequests: [
+            {
+              $match: {
+                status: SmartbinStatus.Delivered,
+              },
+            },
+            {
+              $count: 'count',
+            },
+          ],
+          totalBinRequests: [
+            {
+              $count: 'count',
+            },
+          ],
+          smartBinCount: [
+            {
+              $match: {
+                binType: BinType.Smart,
+              },
+            },
+            {
+              $count: 'count',
+            },
+          ],
+          nonSmartBinCount: [
+            {
+              $match: {
+                binType: BinType.Non_Smart,
+              },
+            },
+            {
+              $count: 'count',
+            },
+          ],
+          binStatusBreakdown: [
+            { $match: dateMatch },
+            {
+              $group: {
+                _id: '$status',
+                count: { $sum: 1 },
+              },
+            },
+          ],
         },
       },
     ];
-
-    const binStatusBreakdown = await this.smartbinModel.aggregate(binStatusPipeline as unknown as PipelineStage[]);
+    const [binRequests] =
+      await this.smartbinModel.aggregate(binRequestsPipeline);
+    const totalBinRequests = binRequests?.totalBinRequests?.[0]?.count || 0;
+    const pendingBinRequests = binRequests?.pendingBinRequests?.[0]?.count || 0;
+    const deliveredBinRequests =
+      binRequests?.deliveredBinRequests?.[0]?.count || 0;
+    const smartBinCount = binRequests?.smartBinCount?.[0]?.count || 0;
+    const nonSmartBinCount = binRequests?.nonSmartBinCount?.[0]?.count || 0;
+    // Bin request status breakdown
+    const binStatusBreakdown = binRequests?.binStatusBreakdown || [];
 
     // Revenue data - total, bin purchase, waste disposal
     const transactionDateMatch: any = { status: TransactionStatus.Successful };
-    if (startDate && endDate) transactionDateMatch.createdAt = { $gte: startDate, $lt: endDate };
-    else if (startDate && !endDate) transactionDateMatch.createdAt = { $gte: startDate };
+    if (startDate && endDate)
+      transactionDateMatch.createdAt = { $gte: startDate, $lt: endDate };
+    else if (startDate && !endDate)
+      transactionDateMatch.createdAt = { $gte: startDate };
 
-    const [totalRevenue, binPurchaseRevenue, wasteDisposalRevenue] = await Promise.all([
-      // total revenue in range or full year
-      (async () => {
-        if (startDate) {
-          const res = await this.transactionModel.aggregate([
-            { $match: transactionDateMatch },
-            { $group: { _id: null, total: { $sum: '$amount' } } },
-          ]);
-          return res?.[0]?.total || 0;
-        }
-        return this.getYearlyRevenue(new Date().getFullYear());
-      })(),
-      this.transactionModel.aggregate([
-        {
-          $match: { ...transactionDateMatch, service: ServiceType.SmartBinPurchase },
-        },
-        { $group: { _id: null, total: { $sum: '$amount' } } },
-      ]),
-      this.transactionModel.aggregate([
-        {
-          $match: { ...transactionDateMatch, service: ServiceType.WasteDisposal },
-        },
-        { $group: { _id: null, total: { $sum: '$amount' } } },
-      ]),
-    ]);
+    const [totalRevenue, binPurchaseRevenue, wasteDisposalRevenue] =
+      await Promise.all([
+        // total revenue in range or full year
+        (async () => {
+          if (startDate) {
+            const res = await this.transactionModel.aggregate([
+              { $match: transactionDateMatch },
+              { $group: { _id: null, total: { $sum: '$amount' } } },
+            ]);
+            return res?.[0]?.total || 0;
+          }
+          return this.getYearlyRevenue(new Date().getFullYear());
+        })(),
+        this.transactionModel.aggregate([
+          {
+            $match: {
+              ...transactionDateMatch,
+              service: ServiceType.SmartBinPurchase,
+            },
+          },
+          { $group: { _id: null, total: { $sum: '$amount' } } },
+        ]),
+        this.transactionModel.aggregate([
+          {
+            $match: {
+              ...transactionDateMatch,
+              service: ServiceType.WasteDisposal,
+            },
+          },
+          { $group: { _id: null, total: { $sum: '$amount' } } },
+        ]),
+      ]);
 
     const totalPSPCompanies = await this.pspModel.countDocuments().exec();
-    const topPSPcompanies = await this.pspModel
-      .find()
-      .sort({ createdAt: -1 })
-      .limit(5)
-      .lean();
 
     // Number of waste pickups (completed) in range
     const pickupMatch: any = { status: Status.Completed };
-    if (startDate && endDate) pickupMatch.createdAt = { $gte: startDate, $lt: endDate };
+    if (startDate && endDate)
+      pickupMatch.createdAt = { $gte: startDate, $lt: endDate };
     else if (startDate && !endDate) pickupMatch.createdAt = { $gte: startDate };
     if (pspId) pickupMatch.pspId = new Types.ObjectId(pspId);
 
-    const numberOfWastePickups = await this.pickupModel.countDocuments(pickupMatch).exec();
+    const numberOfWastePickups = await this.pickupModel
+      .countDocuments(pickupMatch)
+      .exec();
 
     // Households enumerated and number of LGAs covered
     const residentMatch: any = { deleted_at: null };
     if (lgaId) residentMatch.lga_id = new Types.ObjectId(lgaId);
-    if (startDate && endDate) residentMatch.createdAt = { $gte: startDate, $lt: endDate };
-    else if (startDate && !endDate) residentMatch.createdAt = { $gte: startDate };
+    if (startDate && endDate)
+      residentMatch.createdAt = { $gte: startDate, $lt: endDate };
+    else if (startDate && !endDate)
+      residentMatch.createdAt = { $gte: startDate };
 
-    const householdsEnumerated = await this.residentModel.countDocuments(residentMatch).exec();
+    const householdsEnumerated = await this.residentModel
+      .countDocuments(residentMatch)
+      .exec();
 
     const lgaIds = await this.residentModel.distinct('lga_id', residentMatch);
     const numberOfLgasCovered = Array.isArray(lgaIds) ? lgaIds.length : 0;
@@ -208,32 +272,27 @@ export class SuperAdminService {
 
     // PSP revenue breakdown for dashboard
     const pspTransactionMatch: any = { status: TransactionStatus.Successful };
-    if (startDate && endDate) pspTransactionMatch.createdAt = { $gte: startDate, $lt: endDate };
-    else if (startDate && !endDate) pspTransactionMatch.createdAt = { $gte: startDate };
+    if (startDate && endDate)
+      pspTransactionMatch.createdAt = { $gte: startDate, $lt: endDate };
+    else if (startDate && !endDate)
+      pspTransactionMatch.createdAt = { $gte: startDate };
 
-    const pspPipeline: PipelineStage[] = [
-      { $match: pspId ? { ...pspTransactionMatch, psp_id: new Types.ObjectId(pspId) } : pspTransactionMatch },
-      { $group: { _id: '$psp_id', revenue: { $sum: '$amount' }, pickups: { $sum: 1 } } },
-      { $sort: { revenue: -1 } },
-      { $limit: 5 },
-      {
-        $lookup: {
-          from: 'psps',
-          localField: '_id',
-          foreignField: '_id',
-          as: 'psp',
-        },
+    const { pspRevenue, totalRevenue: totalPspRevenue } =
+      await this.pickupService.getPspRevenueForAdmin({
+        startDate,
+        endDate,
+        limit: 5,
+      });
+
+    const statusDefaults: Record<string, number> = Object.values(
+      SmartbinStatus,
+    ).reduce(
+      (acc, s) => {
+        acc[s] = 0;
+        return acc;
       },
-      { $unwind: { path: '$psp', preserveNullAndEmptyArrays: true } },
-      { $project: { _id: 1, revenue: 1, pickups: 1, company_name: '$psp.company_name' } },
-    ];
-
-    const pspRevenueSummary = await this.transactionModel.aggregate(pspPipeline as unknown as PipelineStage[]);
-
-    const statusDefaults: Record<string, number> = Object.values(SmartbinStatus).reduce((acc, s) => {
-      acc[s] = 0;
-      return acc;
-    }, {} as Record<string, number>);
+      {} as Record<string, number>,
+    );
 
     const binStatusObj = binStatusBreakdown.reduce((acc, item) => {
       acc[item._id] = item.count;
@@ -277,44 +336,46 @@ export class SuperAdminService {
       totalTeamMembers: totalTeamMembers,
       pspCompanies: {
         registeredPSPs: totalPSPCompanies,
-        topPSPcompanies: topPSPcompanies,
-        revenueSummary: pspRevenueSummary,
+        topPSPcompanies: pspRevenue.map((revenue) => ({
+          _id: revenue.pspId,
+          company_name: revenue.company_name,
+          revenue: revenue.revenue,
+        })),
+        revenueSummary: totalPspRevenue,
       },
     };
   }
 
   async getYearlyRevenue(year: number) {
-    const result = await this.transactionModel.aggregate([
-      {
-        $match: {
-          status: TransactionStatus.Successful,
-          service: {
-            $in: [ServiceType.WasteDisposal, ServiceType.SmartBinPurchase],
-          },
-          createdAt: {
-            $gte: new Date(`${year}-01-01`),
-            $lt: new Date(`${year + 1}-01-01`),
+    const result = await this.transactionModel
+      .aggregate([
+        {
+          $match: {
+            status: TransactionStatus.Successful,
+            service: {
+              $in: [ServiceType.WasteDisposal, ServiceType.SmartBinPurchase],
+            },
+            createdAt: {
+              $gte: new Date(`${year}-01-01`),
+              $lt: new Date(`${year + 1}-01-01`),
+            },
           },
         },
-      },
-      { $group: { _id: null, total: { $sum: "$amount" } } },
-    ]).exec();
+        { $group: { _id: null, total: { $sum: '$amount' } } },
+      ])
+      .exec();
     return result?.[0]?.total ?? 0;
-  };
+  }
 
   // Lawma Admin
   async getLawmaAdminDashboard() {
-    const [
-      residentCount,
-      agentCount,
-      corporateCount,
-      facilityManagerCount,
-    ] = await Promise.all([
-      this.residentModel.countDocuments().exec(),
-      this.agentModel.countDocuments().exec(),
-      this.corporateModel.countDocuments().exec(),
-      this.facilityModel.countDocuments().exec(),
-    ]);
+    const [residentCount, agentCount, corporateCount, facilityManagerCount] =
+      await Promise.all([
+        this.residentModel.countDocuments().exec(),
+        this.agentModel.countDocuments().exec(),
+        this.corporateModel.countDocuments().exec(),
+        this.facilityModel.countDocuments().exec(),
+      ]);
 
     const totalRegisteredUsers =
       residentCount + agentCount + corporateCount + facilityManagerCount;
@@ -335,7 +396,6 @@ export class SuperAdminService {
 
     // Helper function for yearly aggregation
 
-
     const [currentYearRevenue, lastYearRevenue] = await Promise.all([
       this.getYearlyRevenue(currentYear),
       this.getYearlyRevenue(lastYear),
@@ -343,57 +403,64 @@ export class SuperAdminService {
 
     const annualRevenueGrowth =
       lastYearRevenue > 0
-        ? (((currentYearRevenue - lastYearRevenue) / lastYearRevenue) * 100).toFixed(2) + "%"
-        : "100%";
+        ? (
+            ((currentYearRevenue - lastYearRevenue) / lastYearRevenue) *
+            100
+          ).toFixed(2) + '%'
+        : '100%';
 
-    const monthlyRevenueData = await this.transactionModel.aggregate([
-      {
-        $match: {
-          status: TransactionStatus.Successful,
-          createdAt: {
-            $gte: new Date(`${currentYear}-01-01`),
-            $lt: new Date(`${currentYear + 1}-01-01`),
+    const monthlyRevenueData = await this.transactionModel
+      .aggregate([
+        {
+          $match: {
+            status: TransactionStatus.Successful,
+            createdAt: {
+              $gte: new Date(`${currentYear}-01-01`),
+              $lt: new Date(`${currentYear + 1}-01-01`),
+            },
           },
         },
-      },
-      {
-        $group: {
-          _id: { month: { $month: "$createdAt" } },
-          revenue: { $sum: "$amount" },
+        {
+          $group: {
+            _id: { month: { $month: '$createdAt' } },
+            revenue: { $sum: '$amount' },
+          },
         },
-      },
-      { $sort: { "_id.month": 1 } },
-    ]).exec();
+        { $sort: { '_id.month': 1 } },
+      ])
+      .exec();
 
     const monthlyRevenue = Array.from({ length: 12 }, (_, i) => {
-      const month = monthlyRevenueData.find(m => m._id.month === i + 1);
+      const month = monthlyRevenueData.find((m) => m._id.month === i + 1);
       return month ? month.revenue : 0;
     });
 
-    const topPSPcompanies = await this.pspModel.aggregate([
-      { $sort: { createdAt: -1 } },
-      { $limit: 5 },
-      {
-        $lookup: {
-          from: "psp-users",
-          localField: "_id",
-          foreignField: "psp_id",
-          as: "team_members",
+    const topPSPcompanies = await this.pspModel
+      .aggregate([
+        { $sort: { createdAt: -1 } },
+        { $limit: 5 },
+        {
+          $lookup: {
+            from: 'psp-users',
+            localField: '_id',
+            foreignField: 'psp_id',
+            as: 'team_members',
+          },
         },
-      },
-      {
-        $addFields: {
-          teamMembersCount: { $size: "$team_members" },
+        {
+          $addFields: {
+            teamMembersCount: { $size: '$team_members' },
+          },
         },
-      },
-      {
-        $project: {
-          _id: 1,
-          company_name: 1,
-          teamMembersCount: 1,
+        {
+          $project: {
+            _id: 1,
+            company_name: 1,
+            teamMembersCount: 1,
+          },
         },
-      },
-    ]).exec();
+      ])
+      .exec();
 
     const [pendingBinrequests, completedBinrequests, totalBinRequests] =
       await Promise.all([
@@ -505,7 +572,6 @@ export class SuperAdminService {
     };
   }
 
-
   async getRevenue(filters?: RevenueOverviewDto) {
     const currentYear = filters?.year || new Date().getFullYear();
     const previousYear = currentYear - 1;
@@ -587,7 +653,10 @@ export class SuperAdminService {
     // Calculate year-over-year percentage change
     const percentageChange =
       previousYearRevenue > 0
-        ? (((currentYearRevenue - previousYearRevenue) / previousYearRevenue) * 100).toFixed(1)
+        ? (
+            ((currentYearRevenue - previousYearRevenue) / previousYearRevenue) *
+            100
+          ).toFixed(1)
         : 0;
 
     // 6. Monthly revenue breakdown for the selected year (combined SmartBin + WasteDisposal)
@@ -607,12 +676,20 @@ export class SuperAdminService {
           total: { $sum: '$amount' },
           smartBinRevenue: {
             $sum: {
-              $cond: [{ $eq: ['$service', ServiceType.SmartBinPurchase] }, '$amount', 0],
+              $cond: [
+                { $eq: ['$service', ServiceType.SmartBinPurchase] },
+                '$amount',
+                0,
+              ],
             },
           },
           wasteDisposalRevenue: {
             $sum: {
-              $cond: [{ $eq: ['$service', ServiceType.WasteDisposal] }, '$amount', 0],
+              $cond: [
+                { $eq: ['$service', ServiceType.WasteDisposal] },
+                '$amount',
+                0,
+              ],
             },
           },
         },
@@ -620,7 +697,20 @@ export class SuperAdminService {
       { $sort: { '_id.month': 1 } },
     ]);
 
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
     const chartData = months.map((month, index) => {
       const found = monthlyRevenue.find((r) => r._id.month === index + 1);
       return {
@@ -631,7 +721,7 @@ export class SuperAdminService {
       };
     });
 
-    const pspRevenue = await this.pickupService.getPspRevenueForAdmin()
+    const pspRevenue = await this.pickupService.getPspRevenueForAdmin();
     const [pspCountResult] = await this.pickupModel.aggregate([
       {
         $match: {
@@ -663,7 +753,6 @@ export class SuperAdminService {
         monthlyBreakdown: chartData,
       },
       pspRevenue: pspRevenue,
-
     };
   }
 
@@ -679,9 +768,13 @@ export class SuperAdminService {
     const total = psps.length;
 
     //  manually filter
-    const filteredPsps = psps.filter(psp => {
+    const filteredPsps = psps.filter((psp) => {
       if (lgaFilter && psp.lga_id.toString() !== lgaFilter) return false;
-      if (search && !psp.company_name.toLowerCase().includes(search.toLowerCase())) return false;
+      if (
+        search &&
+        !psp.company_name.toLowerCase().includes(search.toLowerCase())
+      )
+        return false;
       return true;
     });
 
@@ -742,9 +835,6 @@ export class SuperAdminService {
       totalPages: Math.ceil(filteredPsps.length / limit),
     };
   }
-
-
-
 
   async getPspRevenueForAdmin(admin: AdminUser, filters?: GetPickupsForPspDto) {
     const data = await this.pickupService.getPspRevenueForAdmin(filters);

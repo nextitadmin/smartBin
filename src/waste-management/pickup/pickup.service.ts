@@ -683,493 +683,503 @@ export class PickupService {
     return { message: 'Pickup deleted successfully' };
   }
 
-
-
-
-
-
   // Add these methods to your PickupService
 
-// 1. Get revenue for ALL PSP companies (for Super Admin dashboard)
-async getPspRevenueForAdmin(filters?: GetPickupsForPspDto) {
-  const { page = 1, limit = 10, search, lga } = filters || {};
-  const skip = (page - 1) * limit;
+  // 1. Get revenue for ALL PSP companies (for Super Admin dashboard)
+  async getPspRevenueForAdmin(filters?: GetPickupsForPspDto) {
+    const { page = 1, limit = 10, search, lga } = filters || {};
+    const skip = (page - 1) * limit;
 
-  // Build date filter for completed pickups
-  const dateFilter: any = {};
-  if (filters?.startDate || filters?.endDate) {
-    dateFilter.updatedAt = {};
-    if (filters.startDate) dateFilter.updatedAt.$gte = new Date(filters.startDate);
-    if (filters.endDate) dateFilter.updatedAt.$lte = new Date(filters.endDate);
-  }
+    console.log({ filters });
+    // Build date filter for completed pickups
+    const dateFilter: any = {};
+    if (filters?.startDate || filters?.endDate) {
+      dateFilter.updatedAt = {};
+      if (filters.startDate)
+        dateFilter.updatedAt.$gte = new Date(filters.startDate);
+      if (filters.endDate)
+        dateFilter.updatedAt.$lte = new Date(filters.endDate);
+    }
 
-  // Base match for pickups
-  const pickupMatch: any = {
-    status: Status.Completed,
-    pspId: { $exists: true, $ne: null },
-    ...dateFilter,
-  };
+    // Base match for pickups
+    const pickupMatch: any = {
+      status: Status.Completed,
+      pspId: { $exists: true },
+      ...dateFilter,
+    };
 
-  // Build the aggregation pipeline
-  const pipeline: any[] = [
-    { $match: pickupMatch },
-    {
-      $lookup: {
-        from: 'transactions',
-        localField: 'transactionReference',
-        foreignField: 'transactionReference',
-        as: 'transaction',
+    // Build the aggregation pipeline
+    const pipeline: any[] = [
+      { $match: pickupMatch },
+      {
+        $lookup: {
+          from: 'transactions',
+          localField: 'transactionReference',
+          foreignField: 'transactionReference',
+          as: 'transaction',
+        },
       },
-    },
-    {
-      $unwind: {
-        path: '$transaction',
-        preserveNullAndEmptyArrays: true,
+      {
+        $unwind: {
+          path: '$transaction',
+          preserveNullAndEmptyArrays: true,
+        },
       },
-    },
-    {
-      $match: {
-        'transaction.status': TransactionStatus.Successful,
-      },
-    },
-    {
-      $group: {
-        _id: '$pspId',
-        totalRevenue: { $sum: '$transaction.amount' },
-        completedPickups: { $sum: 1 },
-        householdsCovered: { $addToSet: '$accountId' },
-      },
-    },
-    {
-      $lookup: {
-        from: 'psps',
-        localField: '_id',
-        foreignField: '_id',
-        as: 'psp',
-      },
-    },
-    { $unwind: '$psp' },
-    {
-      $lookup: {
-        from: 'lgas',
-        localField: 'psp.lga_id',
-        foreignField: '_id',
-        as: 'lga',
-      },
-    },
-    {
-      $unwind: {
-        path: '$lga',
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-  ];
-
-  // Add LGA filter after lookup (filter by LGA ID or name)
-  if (lga) {
-    pipeline.push({
-      $match: {
-        $or: [
-          { 'lga._id': new Types.ObjectId(lga) },
-          { 'lga.name': { $regex: lga, $options: 'i' } },
-        ],
-      },
-    });
-  }
-
-  // Add search filter (search by PSP company name, administrator name, or LGA name)
-  if (search) {
-    pipeline.push({
-      $match: {
-        $or: [
-          { 'psp.company_name': { $regex: search, $options: 'i' } },
-          { 'psp.administrator_name': { $regex: search, $options: 'i' } },
-          { 'lga.name': { $regex: search, $options: 'i' } },
-        ],
-      },
-    });
-  }
-
-  // Project the final shape
-  pipeline.push({
-    $project: {
-      pspId: '$_id',
-      pspCompany: '$psp.company_name',
-      administratorName: '$psp.administrator_name',
-      administratorEmail: '$psp.administrator_email',
-      lcda: '$lga.name',
-      lgaId: '$lga._id',
-      householdCovered: { $size: '$householdsCovered' },
-      revenue: '$totalRevenue',
-      completedPickups: 1,
-    },
-  });
-
-  // Create a copy of the pipeline for counting (before skip/limit)
-  const countPipeline = [...pipeline, { $count: 'total' }];
-
-  // Add sorting and pagination
-  pipeline.push(
-    { $sort: { revenue: -1 } },
-    { $skip: skip },
-    { $limit: limit },
-  );
-
-  // Execute both pipelines
-  const [pspRevenue, totalCountResult, totalRevenueResult] = await Promise.all([
-    this.pickupModel.aggregate(pipeline),
-    this.pickupModel.aggregate(countPipeline),
-    this.transactionModel.aggregate([
       {
         $match: {
-          status: TransactionStatus.Successful,
-          service: ServiceType.WasteDisposal,
+          'transaction.status': TransactionStatus.Successful,
         },
       },
-      { $group: { _id: null, total: { $sum: '$amount' } } },
-    ]),
-  ]);
+      {
+        $group: {
+          _id: '$pspId',
+          totalRevenue: { $sum: '$transaction.amount' },
+          completedPickups: { $sum: 1 },
+          householdsCovered: { $addToSet: '$accountId' },
+        },
+      },
+      {
+        $lookup: {
+          from: 'psps',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'psp',
+        },
+      },
+      { $unwind: '$psp' },
+      {
+        $lookup: {
+          from: 'lgas',
+          localField: 'psp.lga_id',
+          foreignField: '_id',
+          as: 'lga',
+        },
+      },
+      {
+        $unwind: {
+          path: '$lga',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+    ];
 
-  const totalCount = totalCountResult[0]?.total || 0;
-  const totalRevenue = totalRevenueResult[0]?.total || 0;
+    // Add LGA filter after lookup (filter by LGA ID or name)
+    if (lga) {
+      pipeline.push({
+        $match: {
+          $or: [
+            { 'lga._id': new Types.ObjectId(lga) },
+            { 'lga.name': { $regex: lga, $options: 'i' } },
+          ],
+        },
+      });
+    }
 
-  return {
-    totalRevenue,
-    pspRevenue: pspRevenue.map((item) => ({
-      pspId: item.pspId,
-      pspCompany: item.pspCompany,
-      administratorName: item.administratorName,
-      lcda: item.lcda || 'N/A',
-      lgaId: item.lgaId,
-      householdCovered: item.householdCovered,
-      revenue: item.revenue,
-      completedPickups: item.completedPickups,
-      outstandingBills: 0,
-    })),
-    paging: {
-      totalRecords: totalCount,
-      currentPage: page,
-      totalPages: Math.ceil(totalCount / limit),
-      pageSize: limit,
+    // Add search filter (search by PSP company name, administrator name, or LGA name)
+    if (search) {
+      pipeline.push({
+        $match: {
+          $or: [
+            { 'psp.company_name': { $regex: search, $options: 'i' } },
+            { 'psp.administrator_name': { $regex: search, $options: 'i' } },
+            { 'lga.name': { $regex: search, $options: 'i' } },
+          ],
+        },
+      });
+    }
+
+    // Project the final shape
+    pipeline.push({
+      $project: {
+        pspId: '$_id',
+        pspCompany: '$psp.company_name',
+        administratorName: '$psp.administrator_name',
+        administratorEmail: '$psp.administrator_email',
+        lcda: '$lga.name',
+        lgaId: '$lga._id',
+        householdCovered: { $size: '$householdsCovered' },
+        revenue: '$totalRevenue',
+        completedPickups: 1,
+      },
+    });
+
+    // Create a copy of the pipeline for counting (before skip/limit)
+    const countPipeline = [...pipeline, { $count: 'total' }];
+
+    // Add sorting and pagination
+    pipeline.push(
+      { $sort: { revenue: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+    );
+
+    // Execute both pipelines
+    const [pspRevenue, totalCountResult, totalRevenueResult] =
+      await Promise.all([
+        this.pickupModel.aggregate(pipeline),
+        this.pickupModel.aggregate(countPipeline),
+        this.transactionModel.aggregate([
+          {
+            $match: {
+              status: TransactionStatus.Successful,
+              service: ServiceType.WasteDisposal,
+            },
+          },
+          { $group: { _id: null, total: { $sum: '$amount' } } },
+        ]),
+      ]);
+
+    const totalCount = totalCountResult[0]?.total || 0;
+    const totalRevenue = totalRevenueResult[0]?.total || 0;
+
+    return {
+      totalRevenue,
+      pspRevenue: pspRevenue.map((item) => ({
+        pspId: item.pspId,
+        pspCompany: item.pspCompany,
+        administratorName: item.administratorName,
+        lcda: item.lcda || 'N/A',
+        lgaId: item.lgaId,
+        householdCovered: item.householdCovered,
+        revenue: item.revenue,
+        completedPickups: item.completedPickups,
+        outstandingBills: 0,
+        company_name: item.pspCompany,
+      })),
+      paging: {
+        totalRecords: totalCount,
+        currentPage: page,
+        totalPages: Math.ceil(totalCount / limit),
+        pageSize: limit,
+      },
+    };
+  }
+  // async getPspRevenueForAdmin(filters?: GetPickupsForPspDto) {
+  //   const { page = 1, limit = 10 } = filters || {};
+  //   const skip = (page - 1) * limit;
+
+  //   // Build date filter for completed pickups
+  //   const dateFilter: any = {};
+  //   if (filters?.startDate || filters?.endDate) {
+  //     dateFilter.updatedAt = {};
+  //     if (filters.startDate) dateFilter.updatedAt.$gte = filters.startDate;
+  //     if (filters.endDate) dateFilter.updatedAt.$lte = filters.endDate;
+  //   }
+
+  //   // Aggregate completed pickups by PSP
+  //   const pspRevenue = await this.pickupModel.aggregate([
+  //     {
+  //       $match: {
+  //         status: Status.Completed,
+  //         pspId: { $exists: true, $ne: null },
+  //         ...dateFilter,
+  //       },
+  //     },
+  //     {
+  //       // Lookup the transaction to get the amount
+  //       $lookup: {
+  //         from: 'transactions',
+  //         localField: 'transactionReference',
+  //         foreignField: 'transactionReference',
+  //         as: 'transaction',
+  //       },
+  //     },
+  //     {
+  //       $unwind: {
+  //         path: '$transaction',
+  //         preserveNullAndEmptyArrays: true,
+  //       },
+  //     },
+  //     {
+  //       // Only count successful transactions
+  //       $match: {
+  //         'transaction.status': TransactionStatus.Successful,
+  //       },
+  //     },
+  //     {
+  //       // Group by PSP
+  //       $group: {
+  //         _id: '$pspId',
+  //         totalRevenue: { $sum: '$transaction.amount' },
+  //         completedPickups: { $sum: 1 },
+  //         // Count unique households/accounts
+  //         householdsCovered: { $addToSet: '$accountId' },
+  //       },
+  //     },
+  //     {
+  //       // Lookup PSP details
+  //       $lookup: {
+  //         from: 'psps',
+  //         localField: '_id',
+  //         foreignField: '_id',
+  //         as: 'psp',
+  //       },
+  //     },
+  //     {
+  //       $unwind: '$psp',
+  //     },
+  //     {
+  //       // Lookup LGA details
+  //       $lookup: {
+  //         from: 'lgas',
+  //         localField: 'psp.lga_id',
+  //         foreignField: '_id',
+  //         as: 'lga',
+  //       },
+  //     },
+  //     {
+  //       $unwind: {
+  //         path: '$lga',
+  //         preserveNullAndEmptyArrays: true,
+  //       },
+  //     },
+  //     {
+  //       $project: {
+  //         pspId: '$_id',
+  //         pspCompany: '$psp.company_name',
+  //         lcda: '$lga.name',
+  //         householdCovered: { $size: '$householdsCovered' },
+  //         revenue: '$totalRevenue',
+  //         completedPickups: 1,
+  //       },
+  //     },
+  //     { $sort: { revenue: -1 } },
+  //     { $skip: skip },
+  //     { $limit: limit },
+  //   ]);
+
+  //   // Get total count for pagination
+  //   const totalCountResult = await this.pickupModel.aggregate([
+  //     {
+  //       $match: {
+  //         status: Status.Completed,
+  //         pspId: { $exists: true, $ne: null },
+  //         ...dateFilter,
+  //       },
+  //     },
+  //     {
+  //       $group: { _id: '$pspId' },
+  //     },
+  //     {
+  //       $count: 'total',
+  //     },
+  //   ]);
+
+  //   const totalCount = totalCountResult[0]?.total || 0;
+
+  //   // Get total revenue across all PSPs
+  //   const totalRevenueResult = await this.transactionModel.aggregate([
+  //     {
+  //       $match: {
+  //         status: TransactionStatus.Successful,
+  //         service: ServiceType.WasteDisposal,
+  //       },
+  //     },
+  //     {
+  //       $group: { _id: null, total: { $sum: '$amount' } },
+  //     },
+  //   ]);
+
+  //   const totalRevenue = totalRevenueResult[0]?.total || 0;
+
+  //   return {
+  //     totalRevenue,
+  //     pspRevenue: pspRevenue.map((item) => ({
+
+  //       pspId: item.pspId,
+  //       pspCompany: item.pspCompany,
+  //       lcda: item.lcda ,
+  //       householdCovered: item.householdCovered,
+  //       revenue: item.revenue,
+  //       outstandingBills: 0,
+  //     })),
+  //     paging: {
+  //       totalRecords: totalCount,
+  //       currentPage: page,
+  //       totalPages: Math.ceil(totalCount / limit),
+  //       pageSize: limit,
+  //     },
+  //   };
+  // }
+
+  async getRevenueForPsp(
+    pspId: string,
+    filters?: {
+      startDate?: Date;
+      endDate?: Date;
+      groupBy?: 'day' | 'month' | 'year';
     },
-  };
-}
-// async getPspRevenueForAdmin(filters?: GetPickupsForPspDto) {
-//   const { page = 1, limit = 10 } = filters || {};
-//   const skip = (page - 1) * limit;
+  ) {
+    const dateFilter: any = {};
+    if (filters?.startDate || filters?.endDate) {
+      dateFilter.updatedAt = {};
+      if (filters.startDate) dateFilter.updatedAt.$gte = filters.startDate;
+      if (filters.endDate) dateFilter.updatedAt.$lte = filters.endDate;
+    }
 
-//   // Build date filter for completed pickups
-//   const dateFilter: any = {};
-//   if (filters?.startDate || filters?.endDate) {
-//     dateFilter.updatedAt = {};
-//     if (filters.startDate) dateFilter.updatedAt.$gte = filters.startDate;
-//     if (filters.endDate) dateFilter.updatedAt.$lte = filters.endDate;
-//   }
+    // Get total revenue for this PSP
+    const revenueResult = await this.pickupModel.aggregate([
+      {
+        $match: {
+          status: Status.Completed,
+          pspId: new Types.ObjectId(pspId),
+          ...dateFilter,
+        },
+      },
+      {
+        $lookup: {
+          from: 'transactions',
+          localField: 'transactionReference',
+          foreignField: 'transactionReference',
+          as: 'transaction',
+        },
+      },
+      {
+        $unwind: {
+          path: '$transaction',
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $match: {
+          'transaction.status': TransactionStatus.Successful,
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalRevenue: { $sum: '$transaction.amount' },
+          completedPickups: { $sum: 1 },
+          householdsCovered: { $addToSet: '$accountId' },
+        },
+      },
+    ]);
 
-//   // Aggregate completed pickups by PSP
-//   const pspRevenue = await this.pickupModel.aggregate([
-//     {
-//       $match: {
-//         status: Status.Completed,
-//         pspId: { $exists: true, $ne: null },
-//         ...dateFilter,
-//       },
-//     },
-//     {
-//       // Lookup the transaction to get the amount
-//       $lookup: {
-//         from: 'transactions',
-//         localField: 'transactionReference',
-//         foreignField: 'transactionReference',
-//         as: 'transaction',
-//       },
-//     },
-//     {
-//       $unwind: {
-//         path: '$transaction',
-//         preserveNullAndEmptyArrays: true,
-//       },
-//     },
-//     {
-//       // Only count successful transactions
-//       $match: {
-//         'transaction.status': TransactionStatus.Successful,
-//       },
-//     },
-//     {
-//       // Group by PSP
-//       $group: {
-//         _id: '$pspId',
-//         totalRevenue: { $sum: '$transaction.amount' },
-//         completedPickups: { $sum: 1 },
-//         // Count unique households/accounts
-//         householdsCovered: { $addToSet: '$accountId' },
-//       },
-//     },
-//     {
-//       // Lookup PSP details
-//       $lookup: {
-//         from: 'psps',
-//         localField: '_id',
-//         foreignField: '_id',
-//         as: 'psp',
-//       },
-//     },
-//     {
-//       $unwind: '$psp',
-//     },
-//     {
-//       // Lookup LGA details
-//       $lookup: {
-//         from: 'lgas',
-//         localField: 'psp.lga_id',
-//         foreignField: '_id',
-//         as: 'lga',
-//       },
-//     },
-//     {
-//       $unwind: {
-//         path: '$lga',
-//         preserveNullAndEmptyArrays: true,
-//       },
-//     },
-//     {
-//       $project: {
-//         pspId: '$_id',
-//         pspCompany: '$psp.company_name',
-//         lcda: '$lga.name',
-//         householdCovered: { $size: '$householdsCovered' },
-//         revenue: '$totalRevenue',
-//         completedPickups: 1,
-//       },
-//     },
-//     { $sort: { revenue: -1 } },
-//     { $skip: skip },
-//     { $limit: limit },
-//   ]);
+    // Get revenue over time (for chart)
+    const groupBy = filters?.groupBy || 'month';
+    const dateFormat = {
+      day: { $dateToString: { format: '%Y-%m-%d', date: '$updatedAt' } },
+      month: { $dateToString: { format: '%Y-%m', date: '$updatedAt' } },
+      year: { $dateToString: { format: '%Y', date: '$updatedAt' } },
+    };
 
-//   // Get total count for pagination
-//   const totalCountResult = await this.pickupModel.aggregate([
-//     {
-//       $match: {
-//         status: Status.Completed,
-//         pspId: { $exists: true, $ne: null },
-//         ...dateFilter,
-//       },
-//     },
-//     {
-//       $group: { _id: '$pspId' },
-//     },
-//     {
-//       $count: 'total',
-//     },
-//   ]);
+    const revenueOverTime = await this.pickupModel.aggregate([
+      {
+        $match: {
+          status: Status.Completed,
+          pspId: new Types.ObjectId(pspId),
+          ...dateFilter,
+        },
+      },
+      {
+        $lookup: {
+          from: 'transactions',
+          localField: 'transactionReference',
+          foreignField: 'transactionReference',
+          as: 'transaction',
+        },
+      },
+      {
+        $unwind: '$transaction',
+      },
+      {
+        $match: {
+          'transaction.status': TransactionStatus.Successful,
+        },
+      },
+      {
+        $group: {
+          _id: dateFormat[groupBy],
+          revenue: { $sum: '$transaction.amount' },
+          pickups: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
 
-//   const totalCount = totalCountResult[0]?.total || 0;
+    const summary = revenueResult[0] || {
+      totalRevenue: 0,
+      completedPickups: 0,
+      householdsCovered: [],
+    };
 
-//   // Get total revenue across all PSPs
-//   const totalRevenueResult = await this.transactionModel.aggregate([
-//     {
-//       $match: {
-//         status: TransactionStatus.Successful,
-//         service: ServiceType.WasteDisposal,
-//       },
-//     },
-//     {
-//       $group: { _id: null, total: { $sum: '$amount' } },
-//     },
-//   ]);
-
-//   const totalRevenue = totalRevenueResult[0]?.total || 0;
-
-//   return {
-//     totalRevenue,
-//     pspRevenue: pspRevenue.map((item) => ({
-   
-//       pspId: item.pspId,
-//       pspCompany: item.pspCompany,
-//       lcda: item.lcda ,
-//       householdCovered: item.householdCovered,
-//       revenue: item.revenue,
-//       outstandingBills: 0, 
-//     })),
-//     paging: {
-//       totalRecords: totalCount,
-//       currentPage: page,
-//       totalPages: Math.ceil(totalCount / limit),
-//       pageSize: limit,
-//     },
-//   };
-// }
-
-async getRevenueForPsp(
-  pspId: string,
-  filters?: {
-    startDate?: Date;
-    endDate?: Date;
-    groupBy?: 'day' | 'month' | 'year';
-  },
-) {
-  const dateFilter: any = {};
-  if (filters?.startDate || filters?.endDate) {
-    dateFilter.updatedAt = {};
-    if (filters.startDate) dateFilter.updatedAt.$gte = filters.startDate;
-    if (filters.endDate) dateFilter.updatedAt.$lte = filters.endDate;
+    return {
+      totalRevenue: summary.totalRevenue,
+      completedPickups: summary.completedPickups,
+      householdsCovered: Array.isArray(summary.householdsCovered)
+        ? summary.householdsCovered.length
+        : 0,
+      revenueOverTime,
+    };
   }
 
-  // Get total revenue for this PSP
-  const revenueResult = await this.pickupModel.aggregate([
-    {
-      $match: {
-        status: Status.Completed,
-        pspId: new Types.ObjectId(pspId),
-        ...dateFilter,
-      },
-    },
-    {
-      $lookup: {
-        from: 'transactions',
-        localField: 'transactionReference',
-        foreignField: 'transactionReference',
-        as: 'transaction',
-      },
-    },
-    {
-      $unwind: {
-        path: '$transaction',
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $match: {
-        'transaction.status': TransactionStatus.Successful,
-      },
-    },
-    {
-      $group: {
-        _id: null,
-        totalRevenue: { $sum: '$transaction.amount' },
-        completedPickups: { $sum: 1 },
-        householdsCovered: { $addToSet: '$accountId' },
-      },
-    },
-  ]);
+  // 3. Get monthly revenue breakdown for admin chart
+  async getMonthlyRevenueForAdmin(year?: number) {
+    const targetYear = year || new Date().getFullYear();
 
-  // Get revenue over time (for chart)
-  const groupBy = filters?.groupBy || 'month';
-  const dateFormat = {
-    day: { $dateToString: { format: '%Y-%m-%d', date: '$updatedAt' } },
-    month: { $dateToString: { format: '%Y-%m', date: '$updatedAt' } },
-    year: { $dateToString: { format: '%Y', date: '$updatedAt' } },
-  };
-
-  const revenueOverTime = await this.pickupModel.aggregate([
-    {
-      $match: {
-        status: Status.Completed,
-        pspId: new Types.ObjectId(pspId),
-        ...dateFilter,
-      },
-    },
-    {
-      $lookup: {
-        from: 'transactions',
-        localField: 'transactionReference',
-        foreignField: 'transactionReference',
-        as: 'transaction',
-      },
-    },
-    {
-      $unwind: '$transaction',
-    },
-    {
-      $match: {
-        'transaction.status': TransactionStatus.Successful,
-      },
-    },
-    {
-      $group: {
-        _id: dateFormat[groupBy],
-        revenue: { $sum: '$transaction.amount' },
-        pickups: { $sum: 1 },
-      },
-    },
-    { $sort: { _id: 1 } },
-  ]);
-
-  const summary = revenueResult[0] || {
-    totalRevenue: 0,
-    completedPickups: 0,
-    householdsCovered: [],
-  };
-
-  return {
-    totalRevenue: summary.totalRevenue,
-    completedPickups: summary.completedPickups,
-    householdsCovered: Array.isArray(summary.householdsCovered)
-      ? summary.householdsCovered.length
-      : 0,
-    revenueOverTime,
-  };
-}
-
-// 3. Get monthly revenue breakdown for admin chart
-async getMonthlyRevenueForAdmin(year?: number) {
-  const targetYear = year || new Date().getFullYear();
-
-  const monthlyRevenue = await this.pickupModel.aggregate([
-    {
-      $match: {
-        status: Status.Completed,
-        pspId: { $exists: true, $ne: null },
-        updatedAt: {
-          $gte: new Date(`${targetYear}-01-01`),
-          $lte: new Date(`${targetYear}-12-31`),
+    const monthlyRevenue = await this.pickupModel.aggregate([
+      {
+        $match: {
+          status: Status.Completed,
+          pspId: { $exists: true, $ne: null },
+          updatedAt: {
+            $gte: new Date(`${targetYear}-01-01`),
+            $lte: new Date(`${targetYear}-12-31`),
+          },
         },
       },
-    },
-    {
-      $lookup: {
-        from: 'transactions',
-        localField: 'transactionReference',
-        foreignField: 'transactionReference',
-        as: 'transaction',
+      {
+        $lookup: {
+          from: 'transactions',
+          localField: 'transactionReference',
+          foreignField: 'transactionReference',
+          as: 'transaction',
+        },
       },
-    },
-    {
-      $unwind: '$transaction',
-    },
-    {
-      $match: {
-        'transaction.status': TransactionStatus.Successful,
+      {
+        $unwind: '$transaction',
       },
-    },
-    {
-      $group: {
-        _id: { $month: '$updatedAt' },
-        revenue: { $sum: '$transaction.amount' },
+      {
+        $match: {
+          'transaction.status': TransactionStatus.Successful,
+        },
       },
-    },
-    { $sort: { _id: 1 } },
-  ]);
+      {
+        $group: {
+          _id: { $month: '$updatedAt' },
+          revenue: { $sum: '$transaction.amount' },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
 
-  // Format for chart (fill in missing months with 0)
-  const months = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-  ];
+    // Format for chart (fill in missing months with 0)
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
 
-  const chartData = months.map((month, index) => {
-    const found = monthlyRevenue.find((r) => r._id === index + 1);
+    const chartData = months.map((month, index) => {
+      const found = monthlyRevenue.find((r) => r._id === index + 1);
+      return {
+        month,
+        revenue: found?.revenue || 0,
+      };
+    });
+
     return {
-      month,
-      revenue: found?.revenue || 0,
+      year: targetYear,
+      data: chartData,
     };
-  });
-
-  return {
-    year: targetYear,
-    data: chartData,
-  };
-}
+  }
 }

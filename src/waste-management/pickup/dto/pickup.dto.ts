@@ -68,6 +68,10 @@ export class GetPickupsForPspDto {
   @ApiPropertyOptional()
   @IsOptional()
   limit?: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  pspId?: string;
 }
 
 export class AssignTeamMemberDto {
