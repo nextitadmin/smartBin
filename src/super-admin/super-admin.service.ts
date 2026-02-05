@@ -52,7 +52,7 @@ export class SuperAdminService {
     @InjectModel(Lga.name) private readonly lgaModel: Model<Lga>,
     private readonly pspService: PspService,
     private readonly pickupService: PickupService,
-  ) {}
+  ) { }
 
   async getSuperAdminDashboard(filters?: DashboardFiltersDto) {
     // derive date range from filters
@@ -260,9 +260,33 @@ export class SuperAdminService {
     else if (startDate && !endDate)
       residentMatch.createdAt = { $gte: startDate };
 
-    const householdsEnumerated = await this.residentModel
-      .countDocuments(residentMatch)
-      .exec();
+    // Households enumerated: object with total and byLga breakdown
+    const totalHouseholdsEnumerated = await this.residentModel.countDocuments(residentMatch).exec();
+    const householdsByLgaAggregation = await this.residentModel.aggregate([
+      { $match: residentMatch },
+      { $group: { _id: '$lga_id', count: { $sum: 1 } } },
+      {
+        $lookup: {
+          from: 'lgas',
+          localField: '_id',
+          foreignField: '_id',
+          as: 'lgaInfo',
+        },
+      },
+      {
+        $project: {
+          lgaId: '$_id',
+          lgaName: { $arrayElemAt: ['$lgaInfo.name', 0] },
+          householdsEnumerated: '$count',
+        },
+      },
+      { $sort: { householdsEnumerated: -1 } },
+    ]);
+
+    const householdsEnumerated = {
+      total: totalHouseholdsEnumerated,
+      byLga: householdsByLgaAggregation,
+    };
 
     const lgaIds = await this.residentModel.distinct('lga_id', residentMatch);
     const numberOfLgasCovered = Array.isArray(lgaIds) ? lgaIds.length : 0;
@@ -299,6 +323,14 @@ export class SuperAdminService {
       return acc;
     }, statusDefaults);
 
+    // Bin delivered: object with smart/non-smart splitting and delivery status
+    const binDelivered = {
+      total: deliveredBinRequests,
+      smart: binRequests?.smartBinCount?.[0]?.count || 0,
+      nonSmart: binRequests?.nonSmartBinCount?.[0]?.count || 0,
+      byStatus: binStatusObj,
+    };
+
     return {
       registeredUsers: {
         residentUsers: residentCount,
@@ -321,6 +353,7 @@ export class SuperAdminService {
           total: totalBinRequests,
         },
       },
+      binDelivered,
       revenue: {
         total: totalRevenue,
         binPurchase: binPurchaseRevenue[0]?.total || 0,
@@ -404,9 +437,9 @@ export class SuperAdminService {
     const annualRevenueGrowth =
       lastYearRevenue > 0
         ? (
-            ((currentYearRevenue - lastYearRevenue) / lastYearRevenue) *
-            100
-          ).toFixed(2) + '%'
+          ((currentYearRevenue - lastYearRevenue) / lastYearRevenue) *
+          100
+        ).toFixed(2) + '%'
         : '100%';
 
     const monthlyRevenueData = await this.transactionModel
@@ -654,9 +687,9 @@ export class SuperAdminService {
     const percentageChange =
       previousYearRevenue > 0
         ? (
-            ((currentYearRevenue - previousYearRevenue) / previousYearRevenue) *
-            100
-          ).toFixed(1)
+          ((currentYearRevenue - previousYearRevenue) / previousYearRevenue) *
+          100
+        ).toFixed(1)
         : 0;
 
     // 6. Monthly revenue breakdown for the selected year (combined SmartBin + WasteDisposal)
