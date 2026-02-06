@@ -2,7 +2,7 @@ import { Controller, Get, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AdminUser } from '@common/types';
 import { GetPickupsForPspDto } from '@src/waste-management/pickup/dto/pickup.dto';
-import { RevenueOverviewDto, DashboardFiltersDto } from '@src/super-admin/dto';
+import { RevenueOverviewDto, DashboardFiltersDto, LawmaAdminDashboardFiltersDto } from '@src/super-admin/dto';
 import { SuperAdminService } from '@src/super-admin/super-admin.service';
 
 @ApiTags('Admin/Superadmins')
@@ -20,8 +20,8 @@ export class SuperadminsController {
   }
 
   @Get('admin-dashboard')
-  async getAdminDashboard() {
-    return this.superAdminService.getLawmaAdminDashboard();
+  async getAdminDashboard(@Query() filters?: LawmaAdminDashboardFiltersDto) {
+    return this.superAdminService.getLawmaAdminDashboard(filters);
   }
 
 

@@ -42,3 +42,11 @@ export class RevenueOverviewDto {
 
    limit?: number;
 }
+
+export class LawmaAdminDashboardFiltersDto {
+   @ApiPropertyOptional({ description: 'Filter by year' })
+   @IsOptional()
+   @Type(() => Number)
+   @IsNumber()
+   year?: number;
+}
