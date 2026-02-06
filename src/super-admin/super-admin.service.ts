@@ -401,7 +401,12 @@ export class SuperAdminService {
   }
 
   // Lawma Admin
-  async getLawmaAdminDashboard(year?: number) {
+  async getLawmaAdminDashboard(filters?: DashboardFiltersDto) {
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const selectedYear = filters?.year ? Number(filters.year) : currentYear;
+    const lastYear = selectedYear - 1;
+
     const [residentCount, agentCount, corporateCount, facilityManagerCount] =
       await Promise.all([
         this.residentModel.countDocuments().exec(),
@@ -423,10 +428,7 @@ export class SuperAdminService {
 
     const totalPSPCompanies = await this.pspModel.countDocuments().exec();
 
-    const now = new Date();
-    const selectedYear = year || now.getFullYear();
-    const currentYear = now.getFullYear();
-    const lastYear = selectedYear - 1;
+
 
     // Helper function for yearly aggregation
 
@@ -544,7 +546,7 @@ export class SuperAdminService {
         year: selectedYear,
         total: currentYearRevenue,
         monthlyRevenue,
-        yearlyRevenue,
+        // yearlyRevenue,
         annualGrowth: annualRevenueGrowth,
       },
     };
