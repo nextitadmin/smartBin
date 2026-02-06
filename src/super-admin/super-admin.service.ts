@@ -401,7 +401,7 @@ export class SuperAdminService {
   }
 
   // Lawma Admin
-  async getLawmaAdminDashboard() {
+  async getLawmaAdminDashboard(year?: number) {
     const [residentCount, agentCount, corporateCount, facilityManagerCount] =
       await Promise.all([
         this.residentModel.countDocuments().exec(),
@@ -424,13 +424,14 @@ export class SuperAdminService {
     const totalPSPCompanies = await this.pspModel.countDocuments().exec();
 
     const now = new Date();
+    const selectedYear = year || now.getFullYear();
     const currentYear = now.getFullYear();
-    const lastYear = currentYear - 1;
+    const lastYear = selectedYear - 1;
 
     // Helper function for yearly aggregation
 
     const [currentYearRevenue, lastYearRevenue] = await Promise.all([
-      this.getYearlyRevenue(currentYear),
+      this.getYearlyRevenue(selectedYear),
       this.getYearlyRevenue(lastYear),
     ]);
 
@@ -448,8 +449,8 @@ export class SuperAdminService {
           $match: {
             status: TransactionStatus.Successful,
             createdAt: {
-              $gte: new Date(`${currentYear}-01-01`),
-              $lt: new Date(`${currentYear + 1}-01-01`),
+              $gte: new Date(`${selectedYear}-01-01`),
+              $lt: new Date(`${selectedYear + 1}-01-01`),
             },
           },
         },
@@ -467,6 +468,22 @@ export class SuperAdminService {
       const month = monthlyRevenueData.find((m) => m._id.month === i + 1);
       return month ? month.revenue : 0;
     });
+
+    // Yearly revenue data for the chart (last 5 years)
+    const yearlyRevenueData = await Promise.all(
+      Array.from({ length: 5 }, (_, i) => {
+        const year = currentYear - i;
+        return this.getYearlyRevenue(year);
+      }),
+    );
+
+    const yearlyRevenue = Array.from({ length: 5 }, (_, i) => {
+      const year = currentYear - i;
+      return {
+        year,
+        revenue: yearlyRevenueData[i],
+      };
+    }).reverse(); // Show oldest to newest
 
     const topPSPcompanies = await this.pspModel
       .aggregate([
@@ -524,8 +541,10 @@ export class SuperAdminService {
         topCompanies: topPSPcompanies,
       },
       revenue: {
+        year: selectedYear,
         total: currentYearRevenue,
         monthlyRevenue,
+        yearlyRevenue,
         annualGrowth: annualRevenueGrowth,
       },
     };
