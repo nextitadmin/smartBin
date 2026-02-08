@@ -29,6 +29,7 @@ import {
   RevenueOverviewDto,
   DashboardFiltersDto,
   DashboardFilterType,
+  LawmaAdminDashboardFiltersDto,
 } from './dto';
 
 @Injectable()
@@ -260,32 +261,32 @@ export class SuperAdminService {
     else if (startDate && !endDate)
       residentMatch.createdAt = { $gte: startDate };
 
-    // Households enumerated: object with total and byLga breakdown
-    const totalHouseholdsEnumerated = await this.residentModel.countDocuments(residentMatch).exec();
-    const householdsByLgaAggregation = await this.residentModel.aggregate([
-      { $match: residentMatch },
-      { $group: { _id: '$lga_id', count: { $sum: 1 } } },
-      {
-        $lookup: {
-          from: 'lgas',
-          localField: '_id',
-          foreignField: '_id',
-          as: 'lgaInfo',
-        },
-      },
-      {
-        $project: {
-          lgaId: '$_id',
-          lgaName: { $arrayElemAt: ['$lgaInfo.name', 0] },
-          householdsEnumerated: '$count',
-        },
-      },
-      { $sort: { householdsEnumerated: -1 } },
-    ]);
+    // Households enumerated: object with total and byLga breakdown (including 0 counts)
+    const [totalHouseholdsEnumerated, allLgas, householdsByLgaAggregation] =
+      await Promise.all([
+        this.residentModel.countDocuments(residentMatch).exec(),
+        this.lgaModel.find().lean(),
+        this.residentModel.aggregate([
+          { $match: residentMatch },
+          { $group: { _id: '$lga_id', count: { $sum: 1 } } },
+        ]),
+      ]);
+
+    const householdsMap = new Map(
+      householdsByLgaAggregation.map((item) => [String(item._id), item.count]),
+    );
+
+    const householdsByLga = allLgas
+      .map((lga) => ({
+        lgaId: lga._id,
+        lgaName: lga.name,
+        householdsEnumerated: householdsMap.get(String(lga._id)) || 0,
+      }))
+      .sort((a, b) => b.householdsEnumerated - a.householdsEnumerated);
 
     const householdsEnumerated = {
       total: totalHouseholdsEnumerated,
-      byLga: householdsByLgaAggregation,
+      byLga: householdsByLga,
     };
 
     const lgaIds = await this.residentModel.distinct('lga_id', residentMatch);
@@ -401,7 +402,7 @@ export class SuperAdminService {
   }
 
   // Lawma Admin
-  async getLawmaAdminDashboard(filters?: DashboardFiltersDto) {
+  async getLawmaAdminDashboard(filters?: LawmaAdminDashboardFiltersDto) {
     const now = new Date();
     const currentYear = now.getFullYear();
     const selectedYear = filters?.year ? Number(filters.year) : currentYear;
@@ -450,6 +451,9 @@ export class SuperAdminService {
         {
           $match: {
             status: TransactionStatus.Successful,
+            service: {
+              $in: [ServiceType.WasteDisposal, ServiceType.SmartBinPurchase],
+            },
             createdAt: {
               $gte: new Date(`${selectedYear}-01-01`),
               $lt: new Date(`${selectedYear + 1}-01-01`),
@@ -470,6 +474,12 @@ export class SuperAdminService {
       const month = monthlyRevenueData.find((m) => m._id.month === i + 1);
       return month ? month.revenue : 0;
     });
+
+    // Calculate total revenue from monthly breakdown to ensure consistency
+    const totalRevenueForSelectedYear = monthlyRevenue.reduce(
+      (sum, val) => sum + val,
+      0,
+    );
 
     // Yearly revenue data for the chart (last 5 years)
     const yearlyRevenueData = await Promise.all(
@@ -544,7 +554,7 @@ export class SuperAdminService {
       },
       revenue: {
         year: selectedYear,
-        total: currentYearRevenue,
+        total: totalRevenueForSelectedYear,
         monthlyRevenue,
         // yearlyRevenue,
         annualGrowth: annualRevenueGrowth,
