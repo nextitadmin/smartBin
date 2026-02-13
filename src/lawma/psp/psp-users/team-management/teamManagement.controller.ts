@@ -57,7 +57,7 @@ export class PspTeamManagementController {
     @Body() body: UpdatePspMembersStatusBodyDTO,
   ) {
     const response = await this.pspTeamService.updatePspMembersStatus({
-      pspId: pspAdmin.id,
+      pspId: pspAdmin.pspId,
       memberId: param.memberId,
       status: body.status,
     });
