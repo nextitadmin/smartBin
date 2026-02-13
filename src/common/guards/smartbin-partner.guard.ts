@@ -17,12 +17,12 @@ import { AdministratorRole } from '@models/administrator.model';
 @Injectable()
 export class SmartbinPartnerAuthGuard implements CanActivate {
   constructor(
-    @Inject(CACHE_MANAGER) private cacheService: Cache,
+    @Inject(CACHE_MANAGER) private readonly cacheService: Cache,
     private readonly reflector: Reflector,
     private readonly lawmaPartnerAuthService: LawmaPartnerAuthService,
   ) {}
 
-  private logger = new Logger(SmartbinPartnerAuthGuard.name);
+  private readonly logger = new Logger(SmartbinPartnerAuthGuard.name);
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
     const req: Request & {
