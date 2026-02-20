@@ -70,7 +70,7 @@ export class PspTeamManagement {
 
   async getPspMembers(pspId: string) {
 
-    return this.pspUser.find({ _id: pspId, deleted_at: null }).select('-password -id');
+    return this.pspUser.find({ psp_id: pspId, deleted_at: null }).select('-password -id');
   }
 
   async updatePsp(pspId: string, psp: PspDocument) {
