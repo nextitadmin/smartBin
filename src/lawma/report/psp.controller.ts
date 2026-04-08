@@ -9,12 +9,8 @@ import {
   GetReportsDto,
 } from '@src/report/dtos/report.dto';
 import { SuccessResponse } from '@common/http';
-import {
-  AdminAuth,
-  AuthenticatedAdmin,
-} from '@common/decorators/auth.decorator';
-import {PspUserAuth, AuthenticatedPspUser} from '@common/decorators/auth.decorator';
-import { AdminUser, PspUser } from '@common/types';
+import {PspUserAuth, AuthenticatedPspUser,AuthenticatedPspTeamMember} from '@common/decorators/auth.decorator';
+import { AdminUser, PspTeamMember, PspUser } from '@common/types';
 
 @ApiTags('PSP/Report')
 @Controller({
@@ -51,4 +47,34 @@ export class PSPReportController {
     const report = await this.reportService.getAdminReportById(id, admin);
     return new SuccessResponse('Report retrieved successfully', report);
   }
+
+
+  @Post('team-member-report')
+  async createTeamMemberReport(
+    @AuthenticatedPspTeamMember() teamMember: PspTeamMember,
+    @Body() dto: CreateAdminReportDto,
+  ) {
+    const data = await this.reportService.generatePspTeamMemberReport(teamMember, dto);
+    return data;
+}
+
+@Get('team-member-reports')
+async getTeamMemberReports(
+  @AuthenticatedPspTeamMember() teamMember: PspTeamMember,
+  @Query() filters: GetReportsDto,
+) {
+  const reports = await this.reportService.getPspTeamMemberReports(teamMember, filters);
+  return new SuccessResponse('Reports retrieved successfully', reports);
+
+}
+
+@Get('team-member-reports/:id')
+async getTeamMemberReportById(
+  @AuthenticatedPspTeamMember() teamMember: PspTeamMember,
+  @Param('id') id: string,
+) {
+  const report = await this.reportService.getPspTeamMemberReportById(id, teamMember);
+  return new SuccessResponse('Report retrieved successfully', report);
+}
+
 }
